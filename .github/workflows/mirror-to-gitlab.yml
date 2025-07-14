@@ -36,6 +36,9 @@ jobs:
           git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@lab.ssafy.com/s13-webmobile1-sub1/S13P11A505.git target-repo
 
           cd target-repo
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@naver.com"
+          
           git remote add frontend-source ../
 
           git fetch frontend-source
