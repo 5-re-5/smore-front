@@ -1,0 +1,33 @@
+name: ✨ Feature Request
+description: 새로운 기능 개발 요청
+title: "[Feat] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: 기능 설명
+      description: 어떤 기능이 필요한지 구체적으로 설명해 주세요
+  - type: input
+    id: issue
+    attributes:
+      label: 관련 Jira 이슈 키 (선택)
+      placeholder: "예: STUDY-123"
+  - type: textarea
+    id: reason
+    attributes:
+      label: 기능 필요 이유
+  - type: checkboxes
+    id: checked
+    attributes:
+      label: 체크 사항
+      options:
+        - label: 관련 화면 설계가 완료되었습니다.
+        - label: 백엔드 API가 준비되어 있습니다.
+        - label: 이 기능이 MVP 범위에 포함됩니다.
+  - type: textarea
+    id: references
+    attributes:
+      label: 📎 참고자료 / 스크린샷
+      description: 관련 이미지, 링크, 문서, 코드 스니펫 등을 포함해 주세요.
+      placeholder: "예: 디자인 시안 링크, Figma, 이미지, API 문서 등"
