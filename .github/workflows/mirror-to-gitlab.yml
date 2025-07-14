@@ -15,10 +15,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set Git author info
+      - name: Rewrite history into frontend/ (excluding .github/)
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@naver.com"
+          git filter-repo \
+            --to-subdirectory-filter frontend \
+            --path .github --invert-paths
 
       - name: Install git-filter-repo
         run: |
