@@ -1,0 +1,40 @@
+name: 🐞 Bug Report
+description: 버그를 제보하고 수정 요청
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: 문제 설명
+      description: 어떤 문제가 발생했는지 설명해 주세요.
+      placeholder: "예: 로그인 시 'Internal Server Error' 발생"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 방법
+      description: 문제를 재현하는 절차를 단계별로 작성해 주세요.
+      placeholder: "1. 로그인 버튼 클릭\n2. 에러 메시지 발생"
+  - type: input
+    id: expected
+    attributes:
+      label: 기대 동작
+      placeholder: "로그인 성공 후 대시보드로 이동"
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 환경
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - 기타
+  - type: textarea
+    id: references
+    attributes:
+      label: 📎 참고자료 / 스크린샷
+      description: 관련 이미지, 링크, 콘솔 로그, API 응답, 문서 등 포함해 주세요.
+      placeholder: "예: 콘솔 에러 로그, 에러 화면 이미지 등"
