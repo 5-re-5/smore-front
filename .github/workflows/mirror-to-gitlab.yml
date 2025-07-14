@@ -15,10 +15,13 @@ jobs:
         with:
           fetch-depth: 0  # 전체 커밋 히스토리를 가져옵니다.
 
-      - name: Configure Git author
+      - name: Rewrite history into frontend/ (excluding .github/)
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@naver.com"
+          git filter-repo \
+            --to-subdirectory-filter frontend \
+            --path .github --invert-paths
 
       - name: Create history-preserving subtree commit under frontend/
         run: |
