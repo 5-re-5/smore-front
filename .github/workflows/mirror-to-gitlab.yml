@@ -1,4 +1,4 @@
-name: Mirror smore-front with full history to GitLab (frontend)
+name: Mirror smore-front (full history) into GitLab/frontend
 
 on:
   push:
@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout with full history
+      - name: Checkout smore-front full history
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # 전체 커밋 히스토리를 가져옵니다.
+          fetch-depth: 0
 
       - name: Rewrite history into frontend/ (excluding .github/)
         run: |
@@ -23,17 +23,28 @@ jobs:
             --to-subdirectory-filter frontend \
             --path .github --invert-paths
 
-      - name: Create history-preserving subtree commit under frontend/
+      - name: Install git-filter-repo
         run: |
-          # Create a new orphan branch to house the subtree
-          git switch --orphan sync-frontend
-          git rm -rf . || true
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip install git-filter-repo
 
-          # Merge full history of main into frontend/ folder
-          git read-tree --prefix=frontend/ -u main
-          git commit -m "Subtree: move smore-front into frontend/"
-
-      - name: Push to GitLab
+      - name: Rewrite smore-front history into frontend/ subdir
         run: |
-          git remote add gitlab https://oauth2:${{ secrets.GITLAB_TOKEN }}@lab.ssafy.com/s13-webmobile1-sub1/S13P11A505.git
-          git push --force gitlab sync-frontend:main
+          git filter-repo --to-subdirectory-filter frontend
+
+      - name: Merge frontend/ history into GitLab main branch
+        run: |
+          # Clone GitLab 레포 (기존 full history 포함)
+          git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@lab.ssafy.com/s13-webmobile1-sub1/S13P11A505.git target-repo
+
+          cd target-repo
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@naver.com"
+          
+          git remote add frontend-source ../
+
+          git fetch frontend-source
+          git merge frontend-source/main --allow-unrelated-histories -m "Merge smore-front → frontend/ by ${{ github.actor }}"
+
+          git push origin main
