@@ -15,6 +15,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install git-filter-repo
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip install --user git-filter-repo
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
       - name: Rewrite history into frontend/ (excluding .github/)
         run: |
           git config user.name "${{ github.actor }}"
@@ -23,28 +30,17 @@ jobs:
             --to-subdirectory-filter frontend \
             --path .github --invert-paths
 
-      - name: Install git-filter-repo
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip
-          pip install git-filter-repo
-
-      - name: Rewrite smore-front history into frontend/ subdir
-        run: |
-          git filter-repo --to-subdirectory-filter frontend
-
       - name: Merge frontend/ history into GitLab main branch
         run: |
-          # Clone GitLab 레포 (기존 full history 포함)
           git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@lab.ssafy.com/s13-webmobile1-sub1/S13P11A505.git target-repo
 
           cd target-repo
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@naver.com"
-          
-          git remote add frontend-source ../
 
+          git remote add frontend-source ../
           git fetch frontend-source
+
           git merge frontend-source/main --allow-unrelated-histories -m "Merge smore-front → frontend/ by ${{ github.actor }}"
 
           git push origin main
