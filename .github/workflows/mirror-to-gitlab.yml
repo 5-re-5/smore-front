@@ -1,0 +1,36 @@
+name: Mirror smore-front with full history to GitLab (frontend)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout with full history
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # 전체 커밋 히스토리를 가져옵니다.
+
+      - name: Configure Git author
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@naver.com"
+
+      - name: Create history-preserving subtree commit under frontend/
+        run: |
+          # Create a new orphan branch to house the subtree
+          git switch --orphan sync-frontend
+          git rm -rf . || true
+
+          # Merge full history of main into frontend/ folder
+          git read-tree --prefix=frontend/ -u main
+          git commit -m "Subtree: move smore-front into frontend/"
+
+      - name: Push to GitLab
+        run: |
+          git remote add gitlab https://oauth2:${{ secrets.GITLAB_TOKEN }}@lab.ssafy.com/s13-webmobile1-sub1/S13P11A505.git
+          git push --force gitlab sync-frontend:main
