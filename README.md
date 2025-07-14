@@ -1,1 +1,1 @@
-# smore-front
+# Smore (study more) 
