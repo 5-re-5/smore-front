@@ -1,9 +1,29 @@
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
+import ReactDOM from 'react-dom/client'
+import { RouterProvider } from '@tanstack/react-router'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+import { Provider as QueryProvider } from '@/shared/lib/reactQuery/Provider'
+import { router } from '@/processes/routing/config/router'
+
+import '@/app/styles.css'
+import reportWebVitals from '@/app/reportWebVitals'
+
+const showDevtools = import.meta.env.DEV && import.meta.env.VITE_BRANCH === 'dev'
+
+const rootElement = document.getElementById('app')
+if (rootElement && !rootElement.innerHTML) {
+  const root = ReactDOM.createRoot(rootElement)
+  root.render(
+    <StrictMode>
+      <QueryProvider>
+        <RouterProvider router={router} />
+        {showDevtools && (
+            <ReactQueryDevtools buttonPosition="bottom-right" />
+        )}
+      </QueryProvider>
+    </StrictMode>,
+  )
+}
+
+reportWebVitals()

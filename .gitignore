@@ -1,24 +1,35 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Build outputs
+/dist
+/dist-ssr
+/build
+.nitro
 
-node_modules
-dist
-dist-ssr
+# Dependencies
+/node_modules
+
+# Environment & local config
+.env
+.env*.local
 *.local
+
+# Logs & debug
+npm-debug.log*
+
+# Security keys
+*.pem
+
+# Misc
+.DS_Store
+count.txt
+*.tsbuildinfo
+
+# Deployment platform
+.vercel
+
+# Framework-specific
+.tanstack
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
