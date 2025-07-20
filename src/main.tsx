@@ -9,7 +9,8 @@ import { router } from '@/processes/routing/config/router'
 import '@/app/styles.css'
 import reportWebVitals from '@/app/reportWebVitals'
 
-const showDevtools = import.meta.env.DEV && import.meta.env.VITE_BRANCH === 'dev'
+const showDevtools =
+  import.meta.env.DEV && import.meta.env.VITE_BRANCH === 'dev'
 
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
@@ -18,9 +19,7 @@ if (rootElement && !rootElement.innerHTML) {
     <StrictMode>
       <QueryProvider>
         <RouterProvider router={router} />
-        {showDevtools && (
-            <ReactQueryDevtools buttonPosition="bottom-right" />
-        )}
+        {showDevtools && <ReactQueryDevtools buttonPosition="bottom-right" />}
       </QueryProvider>
     </StrictMode>,
   )

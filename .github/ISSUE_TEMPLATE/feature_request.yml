@@ -1,7 +1,7 @@
 name: ✨ Feature Request
 description: 새로운 기능 개발 요청
-title: "[Feat] "
-labels: ["enhancement"]
+title: '[Feat] '
+labels: ['enhancement']
 body:
   - type: textarea
     id: feature_description
@@ -12,7 +12,7 @@ body:
     id: issue
     attributes:
       label: 관련 Jira 이슈 키 (선택)
-      placeholder: "예: STUDY-123"
+      placeholder: '예: STUDY-123'
   - type: textarea
     id: reason
     attributes:
@@ -30,4 +30,4 @@ body:
     attributes:
       label: 📎 참고자료 / 스크린샷
       description: 관련 이미지, 링크, 문서, 코드 스니펫 등을 포함해 주세요.
-      placeholder: "예: 디자인 시안 링크, Figma, 이미지, API 문서 등"
+      placeholder: '예: 디자인 시안 링크, Figma, 이미지, API 문서 등'

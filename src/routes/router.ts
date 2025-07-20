@@ -4,9 +4,7 @@ import { rootRoute } from '@/routes/__root'
 import { indexRoute } from '@/routes/index'
 import { getContext } from '@/shared/lib/reactQuery/Provider'
 
-const routeTree = rootRoute.addChildren([
-  indexRoute,
-])
+const routeTree = rootRoute.addChildren([indexRoute])
 
 export const router = createRouter({
   routeTree,

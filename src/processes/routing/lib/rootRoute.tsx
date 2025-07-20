@@ -2,7 +2,8 @@
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
-const showDevtools = import.meta.env.DEV && import.meta.env.VITE_BRANCH === 'dev'
+const showDevtools =
+  import.meta.env.DEV && import.meta.env.VITE_BRANCH === 'dev'
 const createRoot = createRootRouteWithContext<{ queryClient: unknown }>()
 
 export const rootRoute = createRoot({

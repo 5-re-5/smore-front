@@ -1,7 +1,7 @@
 name: 🐞 Bug Report
 description: 버그를 제보하고 수정 요청
-title: "[Bug] "
-labels: ["bug", "needs-triage"]
+title: '[Bug] '
+labels: ['bug', 'needs-triage']
 body:
   - type: textarea
     id: bug_description
@@ -21,7 +21,7 @@ body:
     id: expected
     attributes:
       label: 기대 동작
-      placeholder: "로그인 성공 후 대시보드로 이동"
+      placeholder: '로그인 성공 후 대시보드로 이동'
   - type: dropdown
     id: environment
     attributes:
@@ -37,4 +37,4 @@ body:
     attributes:
       label: 📎 참고자료 / 스크린샷
       description: 관련 이미지, 링크, 콘솔 로그, API 응답, 문서 등 포함해 주세요.
-      placeholder: "예: 콘솔 에러 로그, 에러 화면 이미지 등"
+      placeholder: '예: 콘솔 에러 로그, 에러 화면 이미지 등'
