@@ -1,5 +1,10 @@
-import type { LocalVideoTileProps } from '../types';
 import useAttachLocalVideo from '../model/useAttachLocalVideo';
+import type { LocalVideoTrack } from 'livekit-client';
+
+export interface LocalVideoTileProps {
+  track: LocalVideoTrack;
+  participantIdentity: string;
+}
 
 function LocalVideoTile({ track, participantIdentity }: LocalVideoTileProps) {
   const videoElement = useAttachLocalVideo(track);
