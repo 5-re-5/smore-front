@@ -31,7 +31,7 @@ export function useLocalTracks() {
       videoTrack?.stop();
       audioTrack?.stop();
     };
-  }, [videoTrack, audioTrack]);
+  }, []);
 
   return { videoTrack, audioTrack };
 }
