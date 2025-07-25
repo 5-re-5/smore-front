@@ -1,9 +1,9 @@
 import { createRoute } from '@tanstack/react-router';
 import { rootRoute } from '@/app/routing/lib/rootRoute';
-import Homepage from './ui/Homepage';
+import Roompage from './ui/Roompage';
 
-export const indexRoute = createRoute({
+export const roomRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
-  component: Homepage,
+  path: '/room',
+  component: Roompage,
 });

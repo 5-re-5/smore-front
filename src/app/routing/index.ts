@@ -1,6 +1,7 @@
+// src/routes/index.ts
 import { createRoute } from '@tanstack/react-router';
-import { rootRoute } from '@/app/routing/lib/rootRoute';
-import Homepage from './ui/Homepage';
+import { rootRoute } from './__root';
+import Homepage from '@/pages/homepage/ui/Homepage';
 
 export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
