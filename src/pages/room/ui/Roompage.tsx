@@ -3,7 +3,7 @@ import LocalVideoTile from '@/widgets/local-video/ui/LocalVideoTile';
 import MicWaveform from '@/widgets/mic-visualizer/ui/MicWaveform';
 import { useState } from 'react';
 
-function Roompage() {
+function RoomPage() {
   const { videoTrack, audioTrack } = useLocalTracks();
   // 유저 구분하기 위한 값
   const [participantName, setParticipantName] = useState(
@@ -34,4 +34,4 @@ function Roompage() {
   );
 }
 
-export default Roompage;
+export default RoomPage;
