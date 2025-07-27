@@ -1,10 +1,10 @@
+import { LocalVideoTile, RemoteVideoTiles } from '@/features/participants';
 import { getLivekitToken } from '@/shared/api/getLivekitToken';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
 import {
   LiveKitRoom,
   RoomAudioRenderer,
   StartAudio,
-  VideoConference,
 } from '@livekit/components-react';
 import { useSearch } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
@@ -36,9 +36,17 @@ function RoomPage() {
     <LiveKitRoom token={token} serverUrl={LIVEKIT_WS_URL} connect video audio>
       <RoomAudioRenderer />
       <StartAudio label="오디오 시작하기" />
-      <VideoConference />
+      <VideoGrid />
     </LiveKitRoom>
   );
 }
 
+function VideoGrid() {
+  return (
+    <div className="grid grid-cols-2 gap-4 p-4">
+      <LocalVideoTile />
+      <RemoteVideoTiles />
+    </div>
+  );
+}
 export default RoomPage;
