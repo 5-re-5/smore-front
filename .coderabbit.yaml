@@ -1,0 +1,4 @@
+branches:
+  review_on:
+    - main
+    - dev
