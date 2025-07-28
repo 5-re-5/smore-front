@@ -8,14 +8,17 @@ export function useAttachLocalCameraTrack(
   const cameraTrack = local?.cameraTrack?.track;
 
   useEffect(() => {
-    if (!cameraTrack || !ref.current) return;
-
     const videoElement = ref.current;
+    if (!cameraTrack || !videoElement) return;
 
     cameraTrack.attach(videoElement);
 
     return () => {
-      cameraTrack.detach(videoElement);
+      try {
+        cameraTrack.detach(videoElement);
+      } catch (e) {
+        console.warn('Failed to detach camera track:', e);
+      }
     };
   }, [cameraTrack, ref]);
 }

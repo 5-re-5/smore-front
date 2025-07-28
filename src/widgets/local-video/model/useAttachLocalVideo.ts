@@ -6,14 +6,19 @@ function useAttachLocalVideo(track: LocalVideoTrack) {
 
   useEffect(() => {
     const videoElement = videoRef.current;
-    if (!videoElement) return;
+    if (!track || !videoElement) return;
 
     track.attach(videoElement);
 
     return () => {
-      track.detach();
+      try {
+        track.detach(videoElement);
+      } catch (e) {
+        console.warn('Failed to detach video track:', e);
+      }
     };
   }, [track]);
+
   return videoRef;
 }
 

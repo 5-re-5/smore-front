@@ -8,9 +8,13 @@ export function useRemoteParticipantTracks() {
       participant
         .getTrackPublications()
         .filter((pub) => pub.track !== undefined && pub.kind === 'video')
-        .map((pub) => ({
-          participant,
-          track: pub.track!,
-        })),
+        .map((pub) => {
+          if (!pub.track) return null;
+          return {
+            participant,
+            track: pub.track,
+          };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null),
     );
 }
