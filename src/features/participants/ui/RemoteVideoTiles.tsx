@@ -8,7 +8,11 @@ export function RemoteVideoTiles() {
   return (
     <>
       {participantTracks.map((pt) => (
-        <VideoTile key={pt.track.sid} participantTrack={pt} />
+        <VideoTile
+          key={pt.track.sid}
+          participant={pt.participant}
+          track={pt.track}
+        />
       ))}
     </>
   );

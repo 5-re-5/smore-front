@@ -1,6 +1,6 @@
-import { LocalVideoTile, RemoteVideoTiles } from '@/features/participants';
 import { getLivekitToken } from '@/shared/api/getLivekitToken';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
+import { RoomLayout } from '@/widgets';
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -36,17 +36,9 @@ function RoomPage() {
     <LiveKitRoom token={token} serverUrl={LIVEKIT_WS_URL} connect video audio>
       <RoomAudioRenderer />
       <StartAudio label="오디오 시작하기" />
-      <VideoGrid />
+      <RoomLayout />
     </LiveKitRoom>
   );
 }
 
-function VideoGrid() {
-  return (
-    <div className="grid grid-cols-2 gap-4 p-4">
-      <LocalVideoTile />
-      <RemoteVideoTiles />
-    </div>
-  );
-}
 export default RoomPage;

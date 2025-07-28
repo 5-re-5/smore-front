@@ -1,5 +1,4 @@
 import { useParticipants } from '@livekit/components-react';
-
 export function useRemoteParticipantTracks() {
   const participants = useParticipants();
 
@@ -10,10 +9,8 @@ export function useRemoteParticipantTracks() {
         .getTrackPublications()
         .filter((pub) => pub.track !== undefined && pub.kind === 'video')
         .map((pub) => ({
+          participant,
           track: pub.track!,
-          identity: participant.identity,
-          isLocal: false,
-          isSpeaking: participant.isSpeaking,
         })),
     );
 }
