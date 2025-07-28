@@ -1,1 +1,1 @@
-# Smore (study more) 
+# Smore (study more)

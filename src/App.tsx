@@ -1,10 +1,7 @@
 function App() {
-
   return (
     <>
-      <div>
-        Smore Start
-      </div>
+      <div>Smore Start</div>
     </>
   )
 }

@@ -1,14 +1,16 @@
-import { createRouter } from '@tanstack/react-router'
-import { indexRoute } from '@/pages/homepage/route'
-import { getContext } from '@/shared/lib/reactQuery/Provider'
-import { rootRoute } from '../lib/rootRoute'
-import { aboutRoute } from '@/pages/about/route'
+import { createRouter } from '@tanstack/react-router';
+import { indexRoute } from '@/pages/homepage/route';
+import { getContext } from '@/shared/lib/reactQuery/Provider';
+import { rootRoute } from '../lib/rootRoute';
+import { aboutRoute } from '@/pages/about/route';
+import { roomRoute } from '@/pages/room/route';
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   aboutRoute,
+  roomRoute,
   // 여기에 다른 route 추가 가능
-])
+]);
 
 export const router = createRouter({
   routeTree,
@@ -17,10 +19,10 @@ export const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
-})
+});
 
 declare module '@tanstack/react-router' {
   interface Register {
-    router: typeof router
+    router: typeof router;
   }
 }

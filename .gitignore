@@ -33,3 +33,6 @@ count.txt
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# ESLint cache
+.eslintcache
