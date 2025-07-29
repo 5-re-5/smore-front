@@ -11,6 +11,8 @@ interface StopwatchState {
   updateTimes: () => void;
 }
 
+const SECONDS = 1;
+
 export const useStopwatchStore = create<StopwatchState>((set) => ({
   isRunning: false,
   curStudyTime: 0,
@@ -30,8 +32,8 @@ export const useStopwatchStore = create<StopwatchState>((set) => ({
     set((state) => {
       if (state.isRunning) {
         return {
-          curStudyTime: state.curStudyTime + 1,
-          todayTotalTime: state.todayTotalTime + 1,
+          curStudyTime: state.curStudyTime + SECONDS,
+          todayTotalTime: state.todayTotalTime + SECONDS,
         };
       }
       return {};
