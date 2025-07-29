@@ -6,6 +6,7 @@ import {
   useLocalParticipant,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
+import { useFaceDetection } from '@/features/face-detection/model/useFaceDetection';
 
 export function LocalVideoTile() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -29,6 +30,8 @@ export function LocalVideoTile() {
       source: Track.Source.Microphone,
     },
   };
+
+  useFaceDetection(videoRef);
 
   return (
     <div className="relative">
