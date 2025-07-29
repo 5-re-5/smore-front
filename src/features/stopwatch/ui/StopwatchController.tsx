@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useStopwatchStore } from '../model/useStopwatchStore';
 
 export const StopwatchController = () => {
@@ -8,8 +8,8 @@ export const StopwatchController = () => {
   const MS = 1000;
 
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
     if (!isRunning) return;
+    let timer: NodeJS.Timeout | null = null;
 
     timer = setInterval(() => {
       updateTimes();
@@ -18,14 +18,16 @@ export const StopwatchController = () => {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isRunning, updateTimes]);
+  }, [isRunning]);
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  };
+  const formatTime = useMemo(() => {
+    return (seconds: number) => {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    };
+  }, []);
 
   return (
     <div className="bg-black text-gray-400 p-4 rounded-lg w-full max-w-xl mx-auto">
