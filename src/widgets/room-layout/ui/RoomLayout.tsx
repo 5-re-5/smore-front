@@ -11,7 +11,7 @@ function RoomLayout() {
       <TrackToggle source={Track.Source.Microphone} />
       <TrackToggle source={Track.Source.Camera} />
       스톱워치
-      <StopwatchController targetTime={1800000} />
+      <StopwatchController />
     </>
   );
 }
