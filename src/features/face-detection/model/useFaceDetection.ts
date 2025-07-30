@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FilesetResolver, FaceDetector } from '@mediapipe/tasks-vision';
 import { useStopwatchStore } from '@/features/stopwatch';
 import { useFaceDetectionStore } from './useFaceDetectionStore';
@@ -12,84 +12,93 @@ export const useFaceDetection = (
 
   const faceDetectionInterval = useRef<NodeJS.Timeout | null>(null);
   const faceDetectedTime = useRef<number>(0);
+  const [isMounted, setIsMounted] = useState(true);
 
-  // Mediapipe 초기화
   const initializeFaceDetector = async () => {
-    const vision = await FilesetResolver.forVisionTasks(
-      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm',
-    );
+    try {
+      const vision = await FilesetResolver.forVisionTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm',
+      );
 
-    const faceDetector = await FaceDetector.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: '/models/blaze_face_short_range.tflite',
-        delegate: 'GPU',
-      },
-      runningMode: 'VIDEO',
-      minDetectionConfidence: 0.6,
-    });
+      const faceDetector = await FaceDetector.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: '/models/blaze_face_short_range.tflite',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO',
+        minDetectionConfidence: 0.6,
+      });
 
-    return faceDetector;
+      return faceDetector;
+    } catch (error) {
+      console.error('Face detector initialization failed:', error);
+      throw error;
+    }
   };
 
   const detectFace = async (faceDetector: FaceDetector) => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !isMounted) return;
 
     const videoElement = videoRef.current;
-    if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
-      console.error('Video element is not ready.');
-      return;
-    }
+    try {
+      const timestamp = performance.now();
+      const detections = await faceDetector.detectForVideo(
+        videoElement,
+        timestamp,
+      );
 
-    const timestamp = performance.now();
-    const detections = await faceDetector.detectForVideo(
-      videoElement,
-      timestamp,
-    );
+      const currentTime = performance.now();
 
-    const currentTime = performance.now();
-
-    // 얼굴이 감지되었을 때
-    if (detections.detections.length > 0) {
-      setFaceDetected(true);
-      faceDetectedTime.current = currentTime;
-      if (!isRunning) start(); // 얼굴 감지되면 start
-      return;
-    }
-
-    // 얼굴이 감지되지 않았을 때
-    setFaceDetected(false);
-    if (currentTime - faceDetectedTime.current > 5000) {
-      pause();
-      if (faceDetectionInterval.current) {
-        clearInterval(faceDetectionInterval.current);
+      if (detections.detections.length > 0) {
+        setFaceDetected(true);
+        faceDetectedTime.current = currentTime;
+        if (!isRunning) start();
+        return;
       }
+
+      setFaceDetected(false);
+      if (currentTime - faceDetectedTime.current > 5000) {
+        pause();
+        if (faceDetectionInterval.current) {
+          clearInterval(faceDetectionInterval.current);
+        }
+      }
+    } catch (error) {
+      console.error('Error during face detection:', error);
     }
   };
 
-  // interval로 얼굴 감지 주기 설정
   const startFaceDetection = async () => {
-    const faceDetector = await initializeFaceDetector();
-    faceDetectionInterval.current = setInterval(
-      () => detectFace(faceDetector),
-      1000,
-    );
+    if (!isMounted) return;
+
+    try {
+      const faceDetector = await initializeFaceDetector();
+      faceDetectionInterval.current = setInterval(
+        () => detectFace(faceDetector),
+        1000,
+      );
+    } catch (error) {
+      console.error('Error initializing face detector:', error);
+    }
   };
 
-  // 스톱워치 제어에 따른 얼굴 감지 동작 변경
   useEffect(() => {
+    setIsMounted(true);
+
     if (isFaceDetectionEnabled && isRunning) {
       startFaceDetection();
       return;
     }
 
     if (faceDetectionInterval.current) {
-      clearInterval(faceDetectionInterval.current); // 얼굴 감지 중지
+      clearInterval(faceDetectionInterval.current);
     }
 
     return () => {
+      setIsMounted(false);
       if (faceDetectionInterval.current) {
         clearInterval(faceDetectionInterval.current);
       }
     };
-  }, [isRunning, isFaceDetectionEnabled, videoRef]); // `isRunning`과 `isFaceDetectionEnabled`에 따라 얼굴 감지 시작/중지
+  }, [isRunning, isFaceDetectionEnabled, videoRef]);
 };
