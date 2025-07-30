@@ -1,15 +1,17 @@
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
+import { useFaceDetection } from '@/features/face-detection/model/useFaceDetection';
 import { useAttachLocalCameraTrack } from '../model/useAttachLocalCameraTrack';
 import {
   TrackMutedIndicator,
   useLocalParticipant,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
-import { useFaceDetection } from '@/features/face-detection/model/useFaceDetection';
-import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
 
 export function LocalVideoTile() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isFaceDetectionEnabled, setIsFaceDetectionEnabled] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
   const { localParticipant } = useLocalParticipant();
   const { faceDetected } = useFaceDetectionStore();
 
@@ -32,7 +34,11 @@ export function LocalVideoTile() {
     },
   };
 
-  useFaceDetection(videoRef);
+  const handleToggleFaceDetection = () => {
+    setIsFaceDetectionEnabled((prev) => !prev);
+  };
+
+  useFaceDetection(videoRef, isFaceDetectionEnabled);
 
   return (
     <div className="relative">
@@ -65,6 +71,13 @@ export function LocalVideoTile() {
           />
         )}
       </div>
+      {/* 얼굴 감지 on/off 버튼 */}
+      <button
+        onClick={handleToggleFaceDetection}
+        className="absolute bottom-2 right-2 bg-blue-500 text-white p-2 rounded"
+      >
+        {isFaceDetectionEnabled ? '얼굴 감지 비활성화' : '얼굴 감지 활성화'}
+      </button>
     </div>
   );
 }

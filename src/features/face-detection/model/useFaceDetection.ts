@@ -5,6 +5,7 @@ import { useFaceDetectionStore } from './useFaceDetectionStore';
 
 export const useFaceDetection = (
   videoRef: React.RefObject<HTMLVideoElement | null>,
+  isFaceDetectionEnabled: boolean,
 ) => {
   const { start, pause, isRunning } = useStopwatchStore();
   const { setFaceDetected } = useFaceDetectionStore();
@@ -45,19 +46,17 @@ export const useFaceDetection = (
       timestamp,
     );
 
-    const currentTime = performance.now(); // currentTime을 여기서 계산합니다.
+    const currentTime = performance.now();
 
     // 얼굴이 감지되었을 때
     if (detections.detections.length > 0) {
       setFaceDetected(true);
       faceDetectedTime.current = currentTime;
-      console.log('얼굴 감지');
       if (!isRunning) start(); // 얼굴 감지되면 start
       return;
     }
 
     // 얼굴이 감지되지 않았을 때
-    console.log('노얼굴');
     setFaceDetected(false);
     if (currentTime - faceDetectedTime.current > 5000) {
       pause();
@@ -78,19 +77,19 @@ export const useFaceDetection = (
 
   // 스톱워치 제어에 따른 얼굴 감지 동작 변경
   useEffect(() => {
-    if (isRunning) {
-      startFaceDetection(); // 스톱워치가 실행되면 얼굴 감지 시작
+    if (isFaceDetectionEnabled && isRunning) {
+      startFaceDetection();
       return;
     }
 
-    if (!faceDetectionInterval.current) return;
-
-    clearInterval(faceDetectionInterval.current);
+    if (faceDetectionInterval.current) {
+      clearInterval(faceDetectionInterval.current); // 얼굴 감지 중지
+    }
 
     return () => {
-      if (!faceDetectionInterval.current) return;
-
-      clearInterval(faceDetectionInterval.current);
+      if (faceDetectionInterval.current) {
+        clearInterval(faceDetectionInterval.current);
+      }
     };
-  }, [isRunning, videoRef]); // `isRunning`에 따라 얼굴 감지 시작/중지
+  }, [isRunning, isFaceDetectionEnabled, videoRef]); // `isRunning`과 `isFaceDetectionEnabled`에 따라 얼굴 감지 시작/중지
 };
