@@ -48,6 +48,7 @@ export function LocalVideoTile() {
         muted
         playsInline
         className="w-full h-full object-cover rounded-xl"
+        style={{ transform: 'scaleX(-1)' }}
       />
       {!faceDetected && (
         <div className="absolute top-0 left-0 w-full text-center text-red-600 font-bold bg-transparent">
