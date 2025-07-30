@@ -1,4 +1,3 @@
-// features/participants/ui/LocalVideoTile.tsx
 import { useRef } from 'react';
 import { useAttachLocalCameraTrack } from '../model/useAttachLocalCameraTrack';
 import {
@@ -7,10 +6,12 @@ import {
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { useFaceDetection } from '@/features/face-detection/model/useFaceDetection';
+import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
 
 export function LocalVideoTile() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { localParticipant } = useLocalParticipant();
+  const { faceDetected } = useFaceDetectionStore();
 
   useAttachLocalCameraTrack(videoRef);
 
@@ -42,6 +43,11 @@ export function LocalVideoTile() {
         playsInline
         className="w-full h-full object-cover rounded-xl"
       />
+      {!faceDetected && (
+        <div className="absolute top-0 left-0 w-full text-center text-red-600 font-bold bg-transparent">
+          얼굴 감지 불가능
+        </div>
+      )}
       <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-1 rounded">
         me
       </div>
