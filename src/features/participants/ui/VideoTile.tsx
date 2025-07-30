@@ -41,6 +41,7 @@ function VideoTile({ participant, track }: VideoTileProps) {
         muted={participant.isLocal}
         playsInline
         className="w-full h-full object-cover rounded-xl"
+        style={{ transform: 'scaleX(-1)' }}
       />
       <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-1 rounded">
         {participant.identity}
