@@ -37,8 +37,6 @@ const WhiteNoisePlayerUI = () => {
         </Select>
       </div>
 
-      {/* 재생/일시정지 버튼 - 얼리 리턴 */}
-      {!currentNoise && null}
       {currentNoise && (
         <div className="flex items-center justify-center">
           <button

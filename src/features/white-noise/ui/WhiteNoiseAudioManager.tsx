@@ -65,7 +65,6 @@ const WhiteNoiseAudioManager = () => {
 
   // 볼륨 변경
   useEffect(() => {
-    // 얼리 리턴 - 오디오 객체가 없으면 종료
     if (!audioRef.current) return;
 
     audioRef.current.volume = volume / 100;
