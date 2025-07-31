@@ -28,6 +28,8 @@ count.txt
 
 # Framework-specific
 .tanstack
+CLAUDE.md
+.claude
 
 # Editor directories and files
 .vscode/*
