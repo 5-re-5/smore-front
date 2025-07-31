@@ -28,7 +28,11 @@ function WhiteNoiseComponents() {
             <Music className="w-5 h-5" />
             {/* 재생 중 표시 - 아이콘 위에 */}
             {currentNoise && isPlaying && (
-              <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full whitespace-nowrap z-20">
+              <div
+                className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full whitespace-nowrap z-20"
+                aria-label="현재 재생 중"
+                role="status"
+              >
                 재생중
               </div>
             )}

@@ -48,7 +48,7 @@ const WhiteNoiseAudioManager = () => {
         audioRef.current = null;
       }
     };
-  }, [currentNoise, volume, isPlaying, setIsPlaying]);
+  }, [currentNoise, volume, isPlaying]);
 
   // 재생/일시정지 상태 변경
   useEffect(() => {

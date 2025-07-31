@@ -13,7 +13,7 @@ const WhiteNoiseController = () => {
       </div>
       <Slider
         value={[volume]}
-        onValueChange={(value: number[]) => setVolume(value[0])}
+        onValueChange={(value: number[]) => setVolume(value[0] ?? 0)}
         max={100}
         min={0}
         step={1}
