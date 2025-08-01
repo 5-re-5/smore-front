@@ -11,3 +11,13 @@ export interface ChatUser extends User {
   role: 'host' | 'admin' | 'guest';
   isSelf: boolean;
 }
+
+// 상태 업데이트 시 사용
+export type UserUpdateData = {
+  sid: string;
+  data: {
+    nickname?: string;
+    micOn?: boolean;
+    camOn?: boolean;
+  };
+};
