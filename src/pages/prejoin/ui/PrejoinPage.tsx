@@ -1,4 +1,5 @@
 import { CameraPreview } from '@/features/prejoin/ui/CameraPreview';
+import { PrejoinMicWaveform } from '@/features/prejoin/ui/PrejoinMicWaveform';
 import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -8,6 +9,7 @@ function PrejoinPage() {
   const navigate = useNavigate();
   const roomIdNumber = parseInt(roomId, 10);
   const [isJoining, setIsJoining] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
   const handleJoinRoom = async () => {
     setIsJoining(true);
@@ -51,9 +53,11 @@ function PrejoinPage() {
         <div className="h-full w-full bg-black rounded-lg shadow-lg p-14 px-10">
           <div className="grid lg:grid-cols-2 gap-8">
             {/* 왼쪽: 카메라 미리보기 */}
-            <section className="flex">
-              <div className="text-white">마이크 음량</div>
-              <CameraPreview />
+            <section className="flex items-start space-x-4">
+              <PrejoinMicWaveform stream={stream} />
+              <div className="flex-1">
+                <CameraPreview onStreamChange={setStream} />
+              </div>
             </section>
 
             {/* 오른쪽: 방 정보 및 입장 설정 */}
