@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 import { Button } from '@/shared/ui/button';
-import { usePomodoroStore } from '../model/usePomodoroStore';
+import {
+  usePomodoroStore,
+  STUDY_TIME,
+  BREAK_TIME,
+} from '../model/usePomodoroStore';
 import { CircularProgress } from './CircularProgress';
 
 export const PomodoroController = () => {
@@ -32,7 +36,7 @@ export const PomodoroController = () => {
   };
 
   const getProgress = (): number => {
-    const totalTime = phase === 'study' ? 25 * 60 : 5 * 60;
+    const totalTime = phase === 'study' ? STUDY_TIME : BREAK_TIME;
     return (remainingTime / totalTime) * 100;
   };
 

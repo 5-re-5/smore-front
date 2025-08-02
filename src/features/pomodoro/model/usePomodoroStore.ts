@@ -18,11 +18,12 @@ interface PomodoroState {
     phase: PomodoroPhase,
     remainingTime: number,
     isRunning: boolean,
+    totalCycles: number,
   ) => void;
 }
 
-const STUDY_TIME = 1 * 10; // 25 minutes in seconds
-const BREAK_TIME = 1 * 10; // 5 minutes in seconds
+export const STUDY_TIME = 25 * 60; // 25 minutes in seconds
+export const BREAK_TIME = 5 * 60; // 5 minutes in seconds
 
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   phase: 'study',
@@ -92,7 +93,8 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     phase: PomodoroPhase,
     remainingTime: number,
     isRunning: boolean,
+    totalCycles: number,
   ) => {
-    set({ phase, remainingTime, isRunning });
+    set({ phase, remainingTime, isRunning, totalCycles });
   },
 }));
