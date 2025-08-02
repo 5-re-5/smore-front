@@ -45,12 +45,12 @@ function PrejoinPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-8">
+        <h1 className="text-3xl font-bold text-center text-white mb-8">
           스터디룸 입장하기
         </h1>
-        <div className="h-full w-full bg-black rounded-lg shadow-lg p-14 px-10">
+        <div className="h-full w-full bg-[#202020] rounded-lg shadow-lg p-14 px-10">
           <div className="grid lg:grid-cols-2 gap-8">
             {/* 왼쪽: 카메라 미리보기 */}
             <section className="flex items-start space-x-4">
