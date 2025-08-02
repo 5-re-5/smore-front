@@ -18,18 +18,37 @@ export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
 
     const initCamera = async () => {
       try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
+        // 카메라만 먼저 요청
+        const videoStream = await navigator.mediaDevices.getUserMedia({
           video: true,
-          audio: true,
+          audio: false,
         });
 
-        currentStream = mediaStream;
-        setStream(mediaStream);
+        // 마이크 권한 추가 시도 (실패해도 카메라는 계속 작동)
+        try {
+          const audioStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+
+          // 오디오 트랙을 기존 스트림에 추가
+          const audioTrack = audioStream.getAudioTracks()[0];
+          if (audioTrack) {
+            videoStream.addTrack(audioTrack);
+          }
+        } catch (audioError) {
+          console.warn(
+            'Audio permission denied, continuing with video only:',
+            audioError,
+          );
+        }
+
+        currentStream = videoStream;
+        setStream(videoStream);
         setHasPermission(true);
-        onStreamChange?.(mediaStream);
+        onStreamChange?.(videoStream);
 
         if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
+          videoRef.current.srcObject = videoStream;
         }
       } catch (error) {
         console.error('Failed to get camera permission:', error);
@@ -154,13 +173,17 @@ export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
           />
         </svg>
       </div>
-      <p className="text-sm text-gray-300">카메라 권한이 필요합니다</p>
-      <button
-        className="mt-2 text-blue-400 hover:text-blue-300 text-sm underline"
-        onClick={() => window.location.reload()}
-      >
-        다시 시도
-      </button>
+      <p className="text-sm text-gray-300">카메라 접근이 차단되었습니다</p>
+      <div className="mt-3 text-xs text-gray-400 space-y-2">
+        <p>브라우저 주소창의 🔒 아이콘을 클릭하여</p>
+        <p>카메라 권한을 허용한 후 새로고침해주세요</p>
+        <button
+          className="mt-2 text-blue-400 hover:text-blue-300 text-sm underline"
+          onClick={() => window.location.reload()}
+        >
+          페이지 새로고침
+        </button>
+      </div>
     </div>
   );
 
