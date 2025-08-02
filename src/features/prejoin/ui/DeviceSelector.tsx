@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { Check } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Device {
   deviceId: string;
@@ -12,6 +14,7 @@ interface DeviceSelectorProps {
   title: string;
   currentDeviceId?: string;
   onDeviceSelect: (deviceId: string) => void;
+  buttonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 export const DeviceSelector = ({
@@ -21,9 +24,11 @@ export const DeviceSelector = ({
   title,
   currentDeviceId,
   onDeviceSelect,
+  buttonRef,
 }: DeviceSelectorProps) => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
 
   const getDeviceTypeName = useCallback(() => {
     switch (deviceType) {
@@ -62,69 +67,81 @@ export const DeviceSelector = ({
   useEffect(() => {
     if (isOpen) {
       loadDevices();
+
+      // 버튼 위치 계산
+      if (buttonRef?.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setPosition({
+          top: rect.bottom + 8, // 버튼 아래 8px
+          left: rect.left - 100, // 버튼 왼쪽에서 100px 왼쪽으로
+        });
+      }
     }
-  }, [isOpen, loadDevices]);
+  }, [isOpen, loadDevices, buttonRef]);
+
+  const renderLoadingState = () => (
+    <div className="p-4 text-center">
+      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto" />
+      <p className="text-sm text-gray-600 mt-2">기기 목록 로딩 중...</p>
+    </div>
+  );
+
+  const renderEmptyState = () => (
+    <div className="p-4 text-center">
+      <p className="text-sm text-gray-600">
+        사용 가능한 {getDeviceTypeName()}가 없습니다
+      </p>
+    </div>
+  );
+
+  const renderDeviceButton = (device: Device) => {
+    const isSelected = currentDeviceId === device.deviceId;
+    const buttonClass = `w-full rounded-xl text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+      isSelected ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+    }`;
+
+    return (
+      <button
+        key={device.deviceId}
+        onClick={() => {
+          onDeviceSelect(device.deviceId);
+          onClose();
+        }}
+        className={buttonClass}
+      >
+        <div className="flex items-center space-x-2">
+          {isSelected && <Check color="#1730ee" />}
+          <span className="text-sm">{device.label}</span>
+        </div>
+      </button>
+    );
+  };
+
+  const renderDeviceList = () => {
+    if (loading) return renderLoadingState();
+    if (devices.length === 0) return renderEmptyState();
+    return devices.map(renderDeviceButton);
+  };
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
       {/* 배경 오버레이 */}
       <div className="fixed inset-0 z-[60]" onClick={onClose} />
 
       {/* 드롭다운 */}
-      <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-xl border z-[70] min-w-64 max-w-xs">
+      <div
+        className="fixed bg-white rounded-lg shadow-xl border z-[100] min-w-64 max-w-xs"
+        style={{ top: position.top, left: position.left }}
+      >
         <div className="p-3 border-b">
           <h3 className="font-medium text-gray-900">{title}</h3>
         </div>
 
-        <div className="max-h-60 overflow-y-auto">
-          {loading ? (
-            <div className="p-4 text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-sm text-gray-600 mt-2">기기 목록 로딩 중...</p>
-            </div>
-          ) : devices.length === 0 ? (
-            <div className="p-4 text-center">
-              <p className="text-sm text-gray-600">
-                사용 가능한 {getDeviceTypeName()}가 없습니다
-              </p>
-            </div>
-          ) : (
-            devices.map((device) => (
-              <button
-                key={device.deviceId}
-                onClick={() => {
-                  onDeviceSelect(device.deviceId);
-                  onClose();
-                }}
-                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-                  currentDeviceId === device.deviceId
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-700'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  {currentDeviceId === device.deviceId && (
-                    <svg
-                      className="w-4 h-4 text-blue-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
-                  <span className="text-sm">{device.label}</span>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
+        <div className="max-h-60 overflow-y-auto">{renderDeviceList()}</div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 };
