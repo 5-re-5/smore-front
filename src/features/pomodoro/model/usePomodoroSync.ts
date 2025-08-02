@@ -1,7 +1,6 @@
-import { useEffect } from 'react';
-import { useDataChannel, useRoomContext } from '@livekit/components-react';
-import { ConnectionState } from 'livekit-client';
+import { useDataChannel } from '@livekit/components-react';
 import { usePomodoroStore } from './usePomodoroStore';
+import { usePomodoroStateBroadcaster } from './usePomodoroStateBroadcaster';
 
 interface PomodoroSyncData {
   type: 'pomodoro-update';
@@ -21,8 +20,6 @@ export const usePomodoroSync = () => {
     isHost,
     updateFromSync,
   } = usePomodoroStore();
-
-  const room = useRoomContext();
 
   // Participants: receive data with callback
   const handlePomodoroMessage = (message: { payload: Uint8Array }) => {
@@ -74,42 +71,16 @@ export const usePomodoroSync = () => {
     isHost ? undefined : handlePomodoroMessage,
   );
 
-  // Host broadcasts state changes
-  useEffect(() => {
-    if (!isHost) return;
-
-    if (!send) {
-      console.warn('Data channel send function not available');
-      return;
-    }
-
-    // Check room connection state
-    if (!room || room.state !== ConnectionState.Connected) {
-      console.warn('Room not connected, skipping pomodoro sync broadcast');
-      return;
-    }
-
-    const broadcastData: PomodoroSyncData = {
-      type: 'pomodoro-update',
-      phase,
-      remainingTime,
-      isRunning,
-      totalCycles,
-      timestamp: Date.now(),
-    };
-
-    try {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(JSON.stringify(broadcastData));
-
-      send(data, { reliable: true });
-    } catch (error) {
-      console.error('Failed to send pomodoro sync data:', error);
-    }
-  }, [phase, remainingTime, isRunning, totalCycles, isHost, send, room]);
+  const broadcaster = usePomodoroStateBroadcaster({
+    isHost,
+    phase,
+    remainingTime,
+    isRunning,
+    totalCycles,
+    send,
+  });
 
   return {
-    isConnected:
-      room?.state === ConnectionState.Connected && (!!send || !!message),
+    isConnected: broadcaster.isConnected || !!message,
   };
 };
