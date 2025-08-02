@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { MediaControls } from './MediaControls';
 
-export const CameraPreview = () => {
+interface CameraPreviewProps {
+  onStreamChange?: (stream: MediaStream | null) => void;
+}
+
+export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -22,6 +26,7 @@ export const CameraPreview = () => {
         currentStream = mediaStream;
         setStream(mediaStream);
         setHasPermission(true);
+        onStreamChange?.(mediaStream);
 
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
@@ -29,6 +34,7 @@ export const CameraPreview = () => {
       } catch (error) {
         console.error('Failed to get camera permission:', error);
         setHasPermission(false);
+        onStreamChange?.(null);
       }
     };
 
@@ -39,8 +45,9 @@ export const CameraPreview = () => {
       if (currentStream) {
         currentStream.getTracks().forEach((track) => track.stop());
       }
+      onStreamChange?.(null);
     };
-  }, []); // 의존성 배열 비우기
+  }, [onStreamChange]);
 
   // stream이 변경될 때 비디오 엘리먼트에 할당
   useEffect(() => {
@@ -117,6 +124,7 @@ export const CameraPreview = () => {
         // 기존 스트림 정지
         stream.getTracks().forEach((track) => track.stop());
         setStream(newStream);
+        onStreamChange?.(newStream);
 
         setDeviceChangeMessage('카메라가 변경되었습니다');
         setTimeout(() => setDeviceChangeMessage(null), 2000);
