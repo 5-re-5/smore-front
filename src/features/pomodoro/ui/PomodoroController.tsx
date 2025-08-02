@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Button } from '@/shared/ui/button';
 import {
   usePomodoroStore,
@@ -6,6 +5,7 @@ import {
   BREAK_TIME,
 } from '../model/usePomodoroStore';
 import { CircularProgress } from './CircularProgress';
+import { useInterval } from '@/shared/hooks/useInterval';
 
 export const PomodoroController = () => {
   const {
@@ -19,15 +19,7 @@ export const PomodoroController = () => {
     resetTimer,
   } = usePomodoroStore();
 
-  useEffect(() => {
-    if (!isRunning) return;
-
-    const interval = setInterval(() => {
-      tick();
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isRunning, tick]);
+  useInterval(tick, isRunning ? 1000 : null);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
