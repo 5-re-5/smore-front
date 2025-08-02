@@ -1,13 +1,13 @@
 import { createRoute } from '@tanstack/react-router';
 import { rootRoute } from '@/app/routing/lib/rootRoute';
-import RoomPage from './ui/Roompage';
+import PrejoinPage from './ui/PrejoinPage';
 
-export const roomRoute = createRoute({
+export const prejoinRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/room/$roomId',
-  component: RoomPage,
+  path: '/room/$roomId/prejoin',
+  component: PrejoinPage,
   validateSearch: (search) => {
-    // 토큰이나 기타 쿼리 파라미터 검증
+    // 추가 쿼리 파라미터가 필요한 경우 여기서 검증
     return search as Record<string, unknown>;
   },
 });
