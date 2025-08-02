@@ -3,6 +3,8 @@ import { Track } from 'livekit-client';
 import VideoGrid from './VideoGrid';
 import { useState } from 'react';
 import ChatPanel from '@/widgets/chat/ChatPanel';
+import { StopwatchController } from '@/features/stopwatch';
+import { WhiteNoiseComponents } from '@/features/white-noise';
 
 function RoomLayout() {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -10,6 +12,7 @@ function RoomLayout() {
   return (
     <>
       <VideoGrid />
+
       {/* 채팅 아이콘 버튼 */}
       <div className="absolute bottom-4 right-4 z-50">
         <button
@@ -32,6 +35,15 @@ function RoomLayout() {
         <TrackToggle source={Track.Source.Microphone} />
         <TrackToggle source={Track.Source.Camera} />
       </div>
+
+      {/* Todo: 미디어 바 위젯 만들기 */}
+      <TrackToggle source={Track.Source.Microphone} />
+      <TrackToggle source={Track.Source.Camera} />
+      스톱워치
+      <StopwatchController />
+      화이트 노이즈
+      <WhiteNoiseComponents />
+
     </>
   );
 }

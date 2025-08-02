@@ -1,2 +1,2 @@
 export { RemoteVideoTiles } from './ui/RemoteVideoTiles';
-export { LocalVideoTile } from './ui/LocalVideoTiles';
+export { LocalVideoTile } from './ui/LocalVideoTile';
