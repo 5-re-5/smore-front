@@ -1,6 +1,6 @@
-import { useParams, useNavigate } from '@tanstack/react-router';
-import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
 import { CameraPreview } from '@/features/prejoin/ui/CameraPreview';
+import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 
 function PrejoinPage() {
@@ -45,19 +45,19 @@ function PrejoinPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-center text-gray-900 mb-8">
-            스터디룸 입장하기
-          </h1>
-
+        <h1 className="text-3xl font-bold text-center text-gray-900 mb-8">
+          스터디룸 입장하기
+        </h1>
+        <div className="h-full w-full bg-black rounded-lg shadow-lg p-14 px-10">
           <div className="grid lg:grid-cols-2 gap-8">
             {/* 왼쪽: 카메라 미리보기 */}
-            <div className="space-y-6">
+            <section className="flex">
+              <div className="text-white">마이크 음량</div>
               <CameraPreview />
-            </div>
+            </section>
 
             {/* 오른쪽: 방 정보 및 입장 설정 */}
-            <div className="space-y-6">
+            <section className="space-y-6">
               <RoomInfo roomId={roomIdNumber} />
 
               {/* TODO: 비밀번호 입력 */}
@@ -100,7 +100,7 @@ function PrejoinPage() {
                   '스터디룸 입장하기'
                 )}
               </button>
-            </div>
+            </section>
           </div>
         </div>
       </div>
