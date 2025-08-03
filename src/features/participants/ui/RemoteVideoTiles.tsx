@@ -1,4 +1,3 @@
-// features/participants/ui/RemoteVideoTiles.tsx
 import { useRemoteParticipantTracks } from '../model/useRemoteParticipantTracks';
 import VideoTile from './VideoTile';
 

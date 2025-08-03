@@ -1,4 +1,3 @@
-// src/processes/routing/lib/root-route.ts
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 

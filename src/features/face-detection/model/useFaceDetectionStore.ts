@@ -1,4 +1,3 @@
-// src/store/useFaceDetectionStore.ts
 import { create } from 'zustand';
 
 interface FaceDetectionStore {
