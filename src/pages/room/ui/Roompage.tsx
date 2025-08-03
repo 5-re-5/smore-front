@@ -6,7 +6,7 @@ import {
   RoomAudioRenderer,
   StartAudio,
 } from '@livekit/components-react';
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 
 // 에러 상태 컴포넌트
@@ -35,7 +35,6 @@ const LoadingState = () => (
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
   const navigate = useNavigate();
-  const search = useSearch({ from: '/room/$roomId' });
   const participantNameRef = useRef('User' + Math.floor(Math.random() * 1000));
   const participantName = participantNameRef.current;
 
@@ -45,16 +44,12 @@ function RoomPage() {
   // roomId 유효성 검사
   const roomIdNumber = parseInt(roomId, 10);
 
-  // prejoin 완료 여부 확인
-  const hasPrejoinCompleted = !!(search as { prejoinCompleted?: string })
-    .prejoinCompleted;
-
-  // 토큰 발급 (조건부로 실행)
+  // 토큰 발급
   const { data: token, error } = useLivekitTokenQuery(
     roomName,
     participantName,
     {
-      enabled: !isNaN(roomIdNumber) && hasPrejoinCompleted,
+      enabled: !isNaN(roomIdNumber),
     },
   );
 
@@ -64,13 +59,7 @@ function RoomPage() {
       navigate({ to: '/' });
       return;
     }
-
-    // prejoin 완료하지 않았으면 prejoin 페이지로 리다이렉트
-    if (!hasPrejoinCompleted) {
-      navigate({ to: '/room/$roomId/prejoin', params: { roomId } });
-      return;
-    }
-  }, [roomId, roomIdNumber, navigate, hasPrejoinCompleted]);
+  }, [roomId, roomIdNumber, navigate]);
 
   if (error) {
     return <ErrorState message={error.message} />;

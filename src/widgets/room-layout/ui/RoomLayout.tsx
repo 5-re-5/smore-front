@@ -1,11 +1,11 @@
-import { TrackToggle } from '@livekit/components-react';
-import { Track } from 'livekit-client';
-import VideoGrid from './VideoGrid';
-import { useState } from 'react';
-import ChatPanel from '@/widgets/chat/ChatPanel';
+import { PomodoroSection } from '@/features/pomodoro';
 import { StopwatchController } from '@/features/stopwatch';
 import { WhiteNoiseComponents } from '@/features/white-noise';
-import { PomodoroSection } from '@/features/pomodoro';
+import ChatPanel from '@/widgets/chat/ChatPanel';
+import { TrackToggle } from '@livekit/components-react';
+import { Track } from 'livekit-client';
+import { useState } from 'react';
+import VideoGrid from './VideoGrid';
 
 function RoomLayout() {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -29,10 +29,10 @@ function RoomLayout() {
         </div>
       )}
       {/* 기존 미디어바 */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40">
+      {/* <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40">
         <TrackToggle source={Track.Source.Microphone} />
         <TrackToggle source={Track.Source.Camera} />
-      </div>
+      </div> */}
       {/* Todo: 미디어 바 위젯 만들기 */}
       <TrackToggle source={Track.Source.Microphone} />
       <TrackToggle source={Track.Source.Camera} />

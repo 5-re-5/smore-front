@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
 import { useFaceDetection } from '@/features/face-detection/model/useFaceDetection';
 import { useAttachLocalCameraTrack } from '../model/useAttachLocalCameraTrack';
@@ -9,11 +9,11 @@ import {
 import { Track } from 'livekit-client';
 
 export function LocalVideoTile() {
-  const [isFaceDetectionEnabled, setIsFaceDetectionEnabled] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const { localParticipant } = useLocalParticipant();
-  const { faceDetected } = useFaceDetectionStore();
+  const { faceDetected, isFaceDetectionEnabled, setFaceDetectionEnabled } =
+    useFaceDetectionStore();
 
   useAttachLocalCameraTrack(videoRef);
 
@@ -35,10 +35,10 @@ export function LocalVideoTile() {
   };
 
   const handleToggleFaceDetection = () => {
-    setIsFaceDetectionEnabled((prev) => !prev);
+    setFaceDetectionEnabled(!isFaceDetectionEnabled);
   };
 
-  useFaceDetection(videoRef, isFaceDetectionEnabled);
+  useFaceDetection(videoRef);
 
   return (
     <div className="relative">
