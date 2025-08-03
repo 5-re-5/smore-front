@@ -1,6 +1,11 @@
+import { joinRoom } from '@/entities/room/api/joinRoom';
+import { useRoomQuery } from '@/entities/room/api/queries';
+import { adaptRoomFromApi } from '@/entities/room/model/adapters';
+import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
 import { CameraPreview } from '@/features/prejoin/ui/CameraPreview';
 import { PrejoinMicWaveform } from '@/features/prejoin/ui/PrejoinMicWaveform';
 import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
+import type { ApiError } from '@/shared/api/request';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 
@@ -10,24 +15,59 @@ function PrejoinPage() {
   const roomIdNumber = parseInt(roomId, 10);
   const [isJoining, setIsJoining] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  // 방 정보 조회
+  const {
+    data: roomData,
+    isLoading: roomLoading,
+    error: roomError,
+  } = useRoomQuery(roomIdNumber);
+  const room = roomData ? adaptRoomFromApi(roomData) : null;
+
+  // 얼굴 감지 설정
+  const { isFaceDetectionEnabled, setFaceDetectionEnabled } =
+    useFaceDetectionStore();
 
   const handleJoinRoom = async () => {
-    setIsJoining(true);
-    try {
-      // TODO: 실제로는 다음 작업들을 수행
-      // 1. 비밀번호 검증 (비공개 방인 경우)
-      // 2. 미디어 권한 재확인
-      // 3. 미디어 기기 설정 저장
+    // 비밀번호가 필요한 방인 경우만 비밀번호 검증
+    if (room?.hasPassword && !password.trim()) {
+      setError('비밀번호를 입력해주세요.');
+      return;
+    }
 
-      // 설정 완료 후 room으로 이동 (입장 허가 플래그 포함)
+    setIsJoining(true);
+    setError(null);
+
+    try {
+      // 비밀번호가 필요한 방만 API 호출
+      if (room?.hasPassword) {
+        await joinRoom(roomIdNumber, { password });
+      }
+
+      // 방으로 이동
       navigate({
         to: '/room/$roomId',
         params: { roomId },
-        search: { prejoinCompleted: 'true' }, // prejoin 완료 플래그
       });
     } catch (error) {
-      console.error('Failed to join room:', error);
-      // TODO: 에러 처리
+      const apiError = error as ApiError;
+
+      // 에러 코드별 메시지 처리
+      switch (apiError.code) {
+        case 401:
+          setError('비밀번호가 올바르지 않습니다.');
+          break;
+        case 404:
+          setError('존재하지 않는 방입니다.');
+          break;
+        case 409:
+          setError('방이 가득 찼습니다. 나중에 다시 시도해주세요.');
+          break;
+        default:
+          setError('방 입장에 실패했습니다. 다시 시도해주세요.');
+      }
     } finally {
       setIsJoining(false);
     }
@@ -39,6 +79,19 @@ function PrejoinPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600">잘못된 방 번호</h1>
           <p className="text-gray-600 mt-2">유효한 방 번호를 입력해주세요.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (roomError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600">
+            방을 찾을 수 없습니다
+          </h1>
+          <p className="text-gray-600 mt-2">방 번호를 확인해주세요.</p>
         </div>
       </div>
     );
@@ -63,17 +116,70 @@ function PrejoinPage() {
             {/* 오른쪽: 방 정보 및 입장 설정 */}
             <section className="space-y-6">
               <RoomInfo roomId={roomIdNumber} />
-
-              {/* TODO: 비밀번호 입력 */}
               <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">입장 설정</h3>
-                <p className="text-gray-600">비밀번호 및 AI 설정 (구현 예정)</p>
+                <h3 className="text-lg font-semibold mb-4">AI 설정</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium text-gray-900">
+                        얼굴 감지 AI
+                      </label>
+                      <p className="text-sm text-gray-600">
+                        얼굴 감지를 통해 집중도를 측정합니다
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isFaceDetectionEnabled}
+                        onChange={(e) =>
+                          setFaceDetectionEnabled(e.target.checked)
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                </div>
               </div>
+              {/* 비밀번호 입력 - 비밀번호가 필요한 방만 표시 */}
+              {room?.hasPassword && (
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4">방 비밀번호</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <input
+                        type="password"
+                        placeholder="비밀번호를 입력하세요"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !isJoining) {
+                            handleJoinRoom();
+                          }
+                        }}
+                      />
+                    </div>
+                    {error && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-red-600 text-sm">{error}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* AI 설정 */}
 
               {/* 입장하기 버튼 */}
               <button
                 onClick={handleJoinRoom}
-                disabled={isJoining}
+                disabled={
+                  isJoining ||
+                  roomLoading ||
+                  (room?.hasPassword && !password.trim())
+                }
                 className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {isJoining ? (
