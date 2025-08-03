@@ -15,10 +15,7 @@ export const useLivekitTokenQuery = (
 ) => {
   return useQuery<string>({
     queryKey: [livekitQueryKeys.TOKEN, roomName, participantName],
-    queryFn: async () => {
-      const response = await getLivekitToken(roomName, participantName);
-      return response.data.token;
-    },
+    queryFn: () => getLivekitToken(roomName, participantName),
     enabled: !!(roomName && participantName),
     ...options,
   });
