@@ -9,7 +9,7 @@ export const adaptRoomFromApi = (apiResponse: RoomApiResponse): Room => {
     title: data.title,
     description: data.description,
     thumbnailUrl: data.thumbnail_url,
-    tags: data.tag ? data.tag.split(',').map((tag) => tag.trim()) : [],
+    tags: data.tag ? data.tag.split(',').map((tag: string) => tag.trim()) : [],
     category: data.category,
     focusTime: data.focus_time ?? undefined,
     breakTime: data.break_time ?? undefined,

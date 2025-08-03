@@ -1,14 +1,19 @@
-import axios from 'axios';
 import { API_SERVER_URL } from '@/shared/config/livekit';
+import { request, REQUEST_METHOD } from './request';
 
-export const getLivekitToken = async (
-  roomName: string,
-  participantName: string,
-): Promise<string> => {
-  const { data } = await axios.post(`${API_SERVER_URL}/token`, {
-    roomName,
-    participantName,
+// API 응답 타입
+type LivekitTokenResponse = {
+  token: string;
+};
+
+// API 호출 함수
+export const getLivekitToken = (roomName: string, participantName: string) => {
+  return request<LivekitTokenResponse>({
+    method: REQUEST_METHOD.POST,
+    url: `${API_SERVER_URL}/token`,
+    data: {
+      roomName,
+      participantName,
+    },
   });
-
-  return data.token;
 };

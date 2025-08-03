@@ -1,12 +1,13 @@
-import { useRoomInfo } from '@/entities/room';
+import { useRoomQuery } from '@/entities/room/api/queries';
+import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 
 interface RoomInfoProps {
   roomId: number;
 }
 
 export const RoomInfo = ({ roomId }: RoomInfoProps) => {
-  // 🔑 도메인 모델을 직접 사용 - API 구조 변경에 영향받지 않음
-  const { data: room, isLoading, error } = useRoomInfo(roomId);
+  const { data, isLoading, error } = useRoomQuery(roomId);
+  const room = data ? adaptRoomFromApi(data) : null;
 
   if (isLoading) return <div>방 정보 로딩 중...</div>;
   if (error) return <div>방 정보를 불러올 수 없습니다.</div>;
