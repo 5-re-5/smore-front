@@ -17,6 +17,9 @@ interface DeviceSelectorProps {
   buttonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
+const DROPDOWN_OFFSET_TOP = 8;
+const DROPDOWN_OFFSET_LEFT = 100;
+
 export const DeviceSelector = ({
   isOpen,
   onClose,
@@ -72,8 +75,8 @@ export const DeviceSelector = ({
       if (buttonRef?.current) {
         const rect = buttonRef.current.getBoundingClientRect();
         setPosition({
-          top: rect.bottom + 8, // 버튼 아래 8px
-          left: rect.left - 100, // 버튼 왼쪽에서 100px 왼쪽으로
+          top: rect.bottom + DROPDOWN_OFFSET_TOP,
+          left: rect.left - DROPDOWN_OFFSET_LEFT,
         });
       }
     }
