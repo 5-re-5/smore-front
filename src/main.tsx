@@ -7,7 +7,7 @@ import { Provider as QueryProvider } from '@/shared/lib/reactQuery/Provider';
 import { router } from '@/app/routing/config/router';
 
 import '@/app/styles.css';
-import reportWebVitals from '@/app/reportWebVitals';
+import reportWebVitals, { logWebVitals } from '@/app/reportWebVitals';
 
 const showDevtools =
   import.meta.env.DEV && import.meta.env.VITE_BRANCH === 'dev';
@@ -25,4 +25,4 @@ if (rootElement && !rootElement.innerHTML) {
   );
 }
 
-reportWebVitals();
+reportWebVitals(logWebVitals);
