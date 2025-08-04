@@ -126,6 +126,15 @@ code {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Header custom colors */
+  --color-header-bg: #E3EDF7;
+  --color-header-button-bg: #ECF0F3;
+  --color-header-text: #656769;
+  --color-header-shadow-light: #FFF;
+  --color-header-shadow-dark: #B4C1D5;
+  --color-header-inset-light: #FFF;
+  --color-header-inset-dark: #C3C3C3;
 }
 
 @layer base {
