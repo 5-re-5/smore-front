@@ -21,7 +21,7 @@ export function useMediaStreamAnalyser(stream: MediaStream | null) {
 
     const audioContext = new AudioContext();
     const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 64;
+    analyser.fftSize = 128;
 
     // MediaStream을 오디오 소스로 연결
     const source = audioContext.createMediaStreamSource(stream);

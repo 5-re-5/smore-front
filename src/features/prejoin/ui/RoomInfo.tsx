@@ -1,6 +1,8 @@
 import { useRoomQuery } from '@/entities/room/api/queries';
 import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 
+const DEFAULT_FOCUS_TIME = 25;
+
 interface RoomInfoProps {
   roomId: number;
 }
@@ -48,7 +50,7 @@ export const RoomInfo = ({ roomId }: RoomInfoProps) => {
 
         <div className="text-center">
           <div className="text-2xl font-bold text-green-600">
-            {room.focusTime || 25}분
+            {room.focusTime || DEFAULT_FOCUS_TIME}분
           </div>
           <div className="text-sm text-gray-600">집중 시간</div>
         </div>
