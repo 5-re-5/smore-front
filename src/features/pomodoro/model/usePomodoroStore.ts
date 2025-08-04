@@ -25,6 +25,41 @@ interface PomodoroState {
 export const STUDY_TIME = 25 * 60; // 25 minutes in seconds
 export const BREAK_TIME = 5 * 60; // 5 minutes in seconds
 
+const getNextPhase = (currentPhase: PomodoroPhase): PomodoroPhase => {
+  return currentPhase === 'study' ? 'break' : 'study';
+};
+
+const getPhaseTime = (phase: PomodoroPhase): number => {
+  return phase === 'study' ? STUDY_TIME : BREAK_TIME;
+};
+
+const shouldIncrementCycles = (currentPhase: PomodoroPhase): boolean => {
+  return currentPhase === 'break';
+};
+
+const handlePhaseTransition = (state: PomodoroState) => {
+  const newPhase = getNextPhase(state.phase);
+  const newRemainingTime = getPhaseTime(newPhase);
+  const newTotalCycles = shouldIncrementCycles(state.phase)
+    ? state.totalCycles + 1
+    : state.totalCycles;
+
+  return {
+    phase: newPhase,
+    remainingTime: newRemainingTime,
+    totalCycles: newTotalCycles,
+    isRunning: true,
+  };
+};
+
+const createPhaseState = (phase: PomodoroPhase, isRunning = false) => {
+  return {
+    phase,
+    remainingTime: getPhaseTime(phase),
+    isRunning,
+  };
+};
+
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   phase: 'study',
   remainingTime: STUDY_TIME,
@@ -46,40 +81,26 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
 
     const newRemainingTime = state.remainingTime - 1;
 
-    if (newRemainingTime <= 0) {
-      const newPhase = state.phase === 'study' ? 'break' : 'study';
-      const newRemainingTime = newPhase === 'study' ? STUDY_TIME : BREAK_TIME;
-      const newTotalCycles =
-        state.phase === 'break' ? state.totalCycles + 1 : state.totalCycles;
-
-      set({
-        phase: newPhase,
-        remainingTime: newRemainingTime,
-        totalCycles: newTotalCycles,
-        isRunning: true,
-      });
-    } else {
+    if (newRemainingTime > 0) {
       set({ remainingTime: newRemainingTime });
+      return;
     }
+
+    set(handlePhaseTransition(state));
   },
 
   switchPhase: () => {
     const state = get();
-    const newPhase = state.phase === 'study' ? 'break' : 'study';
-    const newRemainingTime = newPhase === 'study' ? STUDY_TIME : BREAK_TIME;
-
+    const newPhase = getNextPhase(state.phase);
     set({
-      phase: newPhase,
-      remainingTime: newRemainingTime,
+      ...createPhaseState(newPhase),
       isRunning: false,
     });
   },
 
   resetTimer: () => {
     set({
-      phase: 'study',
-      remainingTime: STUDY_TIME,
-      isRunning: false,
+      ...createPhaseState('study'),
       totalCycles: 0,
     });
   },
