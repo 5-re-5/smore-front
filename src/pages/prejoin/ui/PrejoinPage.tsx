@@ -30,44 +30,52 @@ function PrejoinPage() {
   const { isFaceDetectionEnabled, setFaceDetectionEnabled } =
     useFaceDetectionStore();
 
-  const handleJoinRoom = async () => {
-    // 비밀번호가 필요한 방인 경우만 비밀번호 검증
+  const validatePassword = (): boolean => {
     if (room?.hasPassword && !password.trim()) {
       setError('비밀번호를 입력해주세요.');
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const getErrorMessage = (apiError: ApiError): string => {
+    switch (apiError.code) {
+      case 401:
+        return '비밀번호가 올바르지 않습니다.';
+      case 404:
+        return '존재하지 않는 방입니다.';
+      case 409:
+        return '방이 가득 찼습니다. 나중에 다시 시도해주세요.';
+      default:
+        return '방 입장에 실패했습니다. 다시 시도해주세요.';
+    }
+  };
+
+  const joinRoomWithPassword = async (): Promise<void> => {
+    if (room?.hasPassword) {
+      await joinRoom(roomIdNumber, { password });
+    }
+  };
+
+  const navigateToRoom = (): void => {
+    navigate({
+      to: '/room/$roomId',
+      params: { roomId },
+    });
+  };
+
+  const handleJoinRoom = async (): Promise<void> => {
+    if (!validatePassword()) return;
 
     setIsJoining(true);
     setError(null);
 
     try {
-      // 비밀번호가 필요한 방만 API 호출
-      if (room?.hasPassword) {
-        await joinRoom(roomIdNumber, { password });
-      }
-
-      // 방으로 이동
-      navigate({
-        to: '/room/$roomId',
-        params: { roomId },
-      });
+      await joinRoomWithPassword();
+      navigateToRoom();
     } catch (error) {
       const apiError = error as ApiError;
-
-      // 에러 코드별 메시지 처리
-      switch (apiError.code) {
-        case 401:
-          setError('비밀번호가 올바르지 않습니다.');
-          break;
-        case 404:
-          setError('존재하지 않는 방입니다.');
-          break;
-        case 409:
-          setError('방이 가득 찼습니다. 나중에 다시 시도해주세요.');
-          break;
-        default:
-          setError('방 입장에 실패했습니다. 다시 시도해주세요.');
-      }
+      setError(getErrorMessage(apiError));
     } finally {
       setIsJoining(false);
     }
