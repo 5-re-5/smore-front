@@ -11,7 +11,10 @@ export const PrejoinMicWaveform = ({
   dotCount = 18,
 }: PrejoinMicWaveformProps) => {
   const { level } = useMediaStreamAnalyser(stream);
-  const activeDots = Math.round(level * dotCount);
+  const activeDots = Math.min(
+    Math.max(Math.round(level * dotCount), 0),
+    dotCount,
+  );
 
   return (
     <div className="flex flex-col items-center justify-between h-100 py-4">

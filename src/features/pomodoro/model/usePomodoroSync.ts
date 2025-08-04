@@ -1,15 +1,7 @@
 import { useDataChannel } from '@livekit/components-react';
 import { usePomodoroStore } from './usePomodoroStore';
 import { usePomodoroStateBroadcaster } from './usePomodoroStateBroadcaster';
-
-interface PomodoroSyncData {
-  type: 'pomodoro-update';
-  phase: 'study' | 'break';
-  remainingTime: number;
-  isRunning: boolean;
-  totalCycles: number;
-  timestamp: number;
-}
+import type { PomodoroSyncData } from './types';
 
 export const usePomodoroSync = () => {
   const {
