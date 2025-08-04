@@ -1,4 +1,5 @@
-branches:
-  review_on:
-    - main
-    - dev
+reviews:
+  auto_review:
+    base_branches:
+      - main
+      - dev

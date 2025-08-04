@@ -5,12 +5,20 @@ import { rootRoute } from '../lib/rootRoute';
 import { aboutRoute } from '@/pages/about/route';
 import { roomRoute } from '@/pages/room/route';
 import { prejoinRoute } from '@/pages/prejoin/route';
+import { loginRoute } from '@/pages/login/route';
+import {
+  studyListRoute,
+  studyListRedirectRoute,
+} from '@/pages/studyList/route';
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   aboutRoute,
   roomRoute,
   prejoinRoute,
+  loginRoute,
+  studyListRoute,
+  studyListRedirectRoute,
   // 여기에 다른 route 추가 가능
 ]);
 
