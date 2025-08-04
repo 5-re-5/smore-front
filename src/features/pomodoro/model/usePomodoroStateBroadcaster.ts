@@ -1,15 +1,7 @@
 import { useRef } from 'react';
 import { useRoomContext } from '@livekit/components-react';
 import { ConnectionState } from 'livekit-client';
-
-interface PomodoroSyncData {
-  type: 'pomodoro-update';
-  phase: 'study' | 'break';
-  remainingTime: number;
-  isRunning: boolean;
-  totalCycles: number;
-  timestamp: number;
-}
+import type { PomodoroSyncData } from './types';
 
 interface UsePomodoroStateBroadcasterProps {
   isHost: boolean;

@@ -3,16 +3,11 @@ import {
   STUDY_TIME,
   BREAK_TIME,
 } from '../model/usePomodoroStore';
+import { formatTime } from '../model/utils';
 import { CircularProgress } from './CircularProgress';
 
 export const PomodoroViewer = () => {
   const { phase, remainingTime, isRunning, totalCycles } = usePomodoroStore();
-
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
 
   const getProgress = (): number => {
     const totalTime = phase === 'study' ? STUDY_TIME : BREAK_TIME;
