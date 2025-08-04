@@ -58,7 +58,6 @@ function ChatUserItem({ user }: { user: ChatUser }) {
 
 function ChatUserList() {
   const participants = useParticipants();
-  console.log(participants);
   const chatUsers = participants
     .map(mapParticipantToChatUser)
     .filter(Boolean) as ChatUser[];
