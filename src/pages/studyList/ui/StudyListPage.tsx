@@ -1,34 +1,93 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
-import { useUserStore } from '@/entities/user/model/userStore';
+import { useUserStore, useUserInfo, useLogoutMutation } from '@/entities/user';
+import { Button } from '@/shared/ui/button';
 
 export default function StudyListPage() {
-  const { setUid, setLogin, uid } = useUserStore();
+  const { setUid, setLogin, reset } = useUserStore();
+  const [userId, setUserId] = useState<number | null>(null);
 
-  const isLogin = uid !== -1;
+  const { data: userInfo } = useUserInfo(userId);
+  const isLogin = userId !== null && !!userInfo;
+
+  const logoutMutation = useLogoutMutation();
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        reset();
+        setUserId(null);
+        window.location.href = '/';
+      },
+      onError: (error) => {
+        console.error('로그아웃 실패:', error);
+      },
+    });
+  };
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get('userId');
+    const userIdParam = urlParams.get('userId');
 
-    if (!userId) return;
+    if (!userIdParam) return;
 
-    setUid(Number(userId));
+    const parsedUserId = Number(userIdParam);
+    setUserId(parsedUserId);
+    setUid(parsedUserId);
     setLogin(true);
   }, [setUid, setLogin]);
+
+  // if (userId !== null && isLoading) {
+  //   return (
+  //     <main className="p-8">
+  //       <div className="mb-6">
+  //         <h1 className="text-2xl font-bold">스터디 목록 📚</h1>
+  //         <p className="text-sm text-blue-600 mt-2">🔄 사용자 정보 로딩 중...</p>
+  //       </div>
+  //     </main>
+  //   );
+  // }
+
+  // if (userId !== null && error) {
+  //   return (
+  //     <main className="p-8">
+  //       <div className="mb-6">
+  //         <h1 className="text-2xl font-bold">스터디 목록 📚</h1>
+  //         <p className="text-sm text-red-600 mt-2">❌ 사용자 정보를 불러올 수 없습니다</p>
+  //       </div>
+  //     </main>
+  //   );
+  // }
 
   return (
     <main className="p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">스터디 목록 📚</h1>
-        {isLogin && (
-          <p className="text-sm text-green-600 mt-2">✅ 로그인 완료</p>
-        )}
-        {import.meta.env.DEV && uid !== -1 && (
-          <p className="text-xs text-gray-400 mt-1">
-            개발 모드 - 사용자 ID: {uid}
-          </p>
-        )}
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold">스터디 목록 📚</h1>
+            {isLogin && userInfo && (
+              <div className="mt-2">
+                <p className="text-sm text-green-600">✅ 로그인 완료</p>
+                <p className="text-sm text-gray-700">
+                  안녕하세요, {userInfo.user.nickname}님!
+                </p>
+              </div>
+            )}
+            {import.meta.env.DEV && userId !== null && (
+              <p className="text-xs text-gray-400 mt-1">
+                개발 모드 - 사용자 ID: {userId}
+              </p>
+            )}
+          </div>
+          <Button
+            onClick={handleLogout}
+            disabled={logoutMutation.isPending}
+            variant="outline"
+            size="sm"
+          >
+            {logoutMutation.isPending ? '로그아웃 중...' : '로그아웃'}
+          </Button>
+        </div>
       </div>
 
       <div className="mt-8">
