@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
+import { setupAuthInterceptor } from './interceptors';
 
 const defaultHeaders = {
   'Content-Type': 'application/json',
@@ -19,6 +20,9 @@ const axiosInstance = axios.create({
   headers: defaultHeaders,
   withCredentials: true,
 });
+
+// 인증 인터셉터 설정
+setupAuthInterceptor(axiosInstance);
 
 // 공통 응답 타입 (백엔드에 상황 보고 조정)
 type ApiResponseForm<T> = {
