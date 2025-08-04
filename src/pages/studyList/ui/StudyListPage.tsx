@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useUserStore, useUserInfo, useLogoutMutation } from '@/entities/user';
 import { Button } from '@/shared/ui/button';
+import { useRouter } from '@tanstack/react-router';
 
 export default function StudyListPage() {
+  const router = useRouter();
   const { setUid, setLogin, reset } = useUserStore();
   const [userId, setUserId] = useState<number | null>(null);
 
@@ -17,7 +19,7 @@ export default function StudyListPage() {
       onSuccess: () => {
         reset();
         setUserId(null);
-        window.location.href = '/';
+        router.navigate({ to: '/' });
       },
       onError: (error) => {
         console.error('로그아웃 실패:', error);
