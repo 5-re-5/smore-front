@@ -1,6 +1,6 @@
 import { createRoute, redirect } from '@tanstack/react-router';
-import { rootRoute } from '@/app/routing/lib/rootRoute';
 import StudyListPage from './ui/StudyListPage';
+import { rootRoute } from '@/app/routing/__root';
 
 export const studyListRoute = createRoute({
   getParentRoute: () => rootRoute,

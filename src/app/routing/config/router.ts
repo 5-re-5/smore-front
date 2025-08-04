@@ -1,7 +1,7 @@
 import { createRouter } from '@tanstack/react-router';
 import { indexRoute } from '@/pages/homepage/route';
 import { getContext } from '@/shared/lib/reactQuery/Provider';
-import { rootRoute } from '../lib/rootRoute';
+import { rootRoute } from '../__root';
 import { aboutRoute } from '@/pages/about/route';
 import { roomRoute } from '@/pages/room/route';
 import { prejoinRoute } from '@/pages/prejoin/route';
