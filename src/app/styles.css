@@ -135,6 +135,11 @@ code {
   --color-header-shadow-dark: #B4C1D5;
   --color-header-inset-light: #FFF;
   --color-header-inset-dark: #C3C3C3;
+  
+  /* Footer custom colors */
+  --color-footer-bg: #FF7300;
+  --color-footer-text: #FFFFFF;
+  --color-footer-text-secondary: #FFB88C;
 }
 
 @layer base {
