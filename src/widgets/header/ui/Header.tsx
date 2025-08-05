@@ -12,7 +12,9 @@ export const Header = () => {
   if (!isLogin) {
     return (
       <header className="flex items-center justify-between px-8 h-[5.625rem] bg-header-bg">
-        <Logo />
+        <Link to="/">
+          <Logo />
+        </Link>
         <div className="flex-1" />
         <Link to="/login">
           <Button
@@ -30,7 +32,9 @@ export const Header = () => {
 
   return (
     <header className="flex items-center justify-between px-8 gap-6 h-[5.625rem] bg-header-bg">
-      <Logo />
+      <Link to="/study-list">
+        <Logo />
+      </Link>
 
       <div className="flex-1 flex justify-center">
         <SearchBar />

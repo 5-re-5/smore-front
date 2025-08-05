@@ -14,19 +14,6 @@ export default function StudyListPage() {
 
   const logoutMutation = useLogoutMutation();
 
-  const handleLogout = () => {
-    logoutMutation.mutate(undefined, {
-      onSuccess: () => {
-        reset();
-        setUserId(null);
-        router.navigate({ to: '/' });
-      },
-      onError: (error) => {
-        console.error('로그아웃 실패:', error);
-      },
-    });
-  };
-
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const userIdParam = urlParams.get('userId');
@@ -81,14 +68,6 @@ export default function StudyListPage() {
               </p>
             )}
           </div>
-          <Button
-            onClick={handleLogout}
-            disabled={logoutMutation.isPending}
-            variant="outline"
-            size="sm"
-          >
-            {logoutMutation.isPending ? '로그아웃 중...' : '로그아웃'}
-          </Button>
         </div>
       </div>
 
