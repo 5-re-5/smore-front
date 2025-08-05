@@ -140,6 +140,14 @@ code {
   --color-footer-bg: #FF7300;
   --color-footer-text: #FFFFFF;
   --color-footer-text-secondary: #FFB88C;
+  
+  /* Study colors */
+  --color-study-primary: #29BDBC;
+  --color-study-secondary: #12B7B6;
+  --color-study-text: #434343;
+  --color-study-muted: #ABB7C2;
+  --color-study-bg: #F9F9F9;
+  --color-study-card-bg: #F3F3F3;
 }
 
 @layer base {
@@ -149,4 +157,26 @@ code {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer components {
+  .study-tag {
+    @apply px-2 py-0.5 h-4 inline-flex items-center justify-center text-center;
+    @apply bg-study-card-bg text-study-text border border-study-text;
+    border-radius: 11.84px;
+    border-width: 0.82px;
+    box-shadow: 4.08px 4.08px 8.17px 0 rgba(0, 0, 0, 0.12);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 7.35px;
+    font-weight: 700;
+    line-height: 133.4%;
+    letter-spacing: 0.04px;
+  }
+  
+  .study-card {
+    @apply bg-study-card-bg;
+    border-radius: 17.55px;
+    box-shadow: -8.17px -8.17px 20.41px 0 #FFF, 8.17px 8.17px 20.41px 0 #D2D2D2;
+  }
+  
 }
