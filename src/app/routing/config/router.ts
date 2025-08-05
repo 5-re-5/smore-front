@@ -9,7 +9,7 @@ import { loginRoute } from '@/pages/login/route';
 import {
   studyListRoute,
   studyListRedirectRoute,
-} from '@/pages/studyList/route';
+} from '@/pages/study-list/route';
 import { roomCreateRoute } from '@/pages/room-create/route';
 import { myPageRoute } from '@/pages/my-page/route';
 
