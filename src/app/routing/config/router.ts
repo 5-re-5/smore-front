@@ -10,6 +10,8 @@ import {
   studyListRoute,
   studyListRedirectRoute,
 } from '@/pages/studyList/route';
+import { roomCreateRoute } from '@/pages/room-create/route';
+import { myPageRoute } from '@/pages/my-page/route';
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -19,6 +21,8 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   studyListRoute,
   studyListRedirectRoute,
+  roomCreateRoute,
+  myPageRoute,
   // 여기에 다른 route 추가 가능
 ]);
 

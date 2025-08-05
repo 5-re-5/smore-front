@@ -6,10 +6,10 @@ export const RootLayout = () => {
   const location = useLocation();
 
   // 헤더와 푸터를 숨길 페이지들
-  const hideHeaderFooterPaths = ['/login', '/prejoin', '/room'];
-  const shouldHideHeaderFooter = hideHeaderFooterPaths.some((path) =>
-    location.pathname.startsWith(path),
-  );
+  const hideHeaderFooterPaths = ['/login', '/prejoin'];
+  const shouldHideHeaderFooter =
+    hideHeaderFooterPaths.some((path) => location.pathname.startsWith(path)) ||
+    location.pathname.startsWith('/room/');
 
   return (
     <div className="min-h-screen flex flex-col">

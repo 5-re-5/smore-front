@@ -1,6 +1,6 @@
 import { createRoute } from '@tanstack/react-router';
 import { rootRoute } from '@/app/routing/__root';
-import RoomPage from './ui/Roompage';
+import RoomPage from './ui/RoomPage';
 
 export const roomRoute = createRoute({
   getParentRoute: () => rootRoute,
