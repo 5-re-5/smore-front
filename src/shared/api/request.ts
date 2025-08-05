@@ -16,7 +16,7 @@ export const REQUEST_METHOD = {
 
 // axios 인스턴스 생성
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_APP_SERVER_URL,
+  baseURL: import.meta.env.VITE_BACK_URL,
   headers: defaultHeaders,
   withCredentials: true,
 });
