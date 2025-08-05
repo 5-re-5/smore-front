@@ -24,6 +24,7 @@ const routeTree = rootRoute.addChildren([
   roomCreateRoute,
   myPageRoute,
   // 여기에 다른 route 추가 가능
+  myPageRoute,
 ]);
 
 export const router = createRouter({
