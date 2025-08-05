@@ -5,7 +5,7 @@ import type { Participant } from 'livekit-client';
 // Participant → ChatUser로 변환하는 헬퍼 함수
 function mapParticipantToChatUser(participant: Participant): ChatUser | null {
   try {
-    console.log(participant.identity);
+    // console.log(participant.identity);
     // 로그인 코드 완성한 후 metadata를 통해 user 구분하고 필드 채울 예정
     const data = JSON.parse(participant.metadata || '{}');
     return {
