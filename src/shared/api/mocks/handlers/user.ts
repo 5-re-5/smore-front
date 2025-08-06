@@ -1,5 +1,4 @@
 import { http, HttpResponse } from 'msw';
-import type { RecentStudyResponse } from '@/entities/study';
 
 export const userRecentStudyHandlers = [
   // 최근 참가한 스터디 조회
@@ -10,7 +9,7 @@ export const userRecentStudyHandlers = [
 
       console.log('🎯 MSW: Intercepted recent study request for user:', userId);
 
-      const mockData: RecentStudyResponse = {
+      const mockData = {
         data: {
           rooms: [
             {
@@ -46,22 +45,43 @@ export const userRecentStudyHandlers = [
               thumbnailUrl:
                 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=156&h=193&fit=crop&crop=center',
             },
-            {
-              roomId: 4,
-              title: '데이터 사이언스 스터디',
-              owner: '수진',
-              category: 'AI/ML',
-              maxParticipants: 8,
-              currentParticipants: 6,
-              tag: ['Python', 'ML', '데이터'],
-              thumbnailUrl:
-                'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=156&h=193&fit=crop&crop=center',
-            },
           ],
         },
       };
 
       console.log(`Fetching recent studies for user: ${userId}`);
+
+      return HttpResponse.json(mockData);
+    },
+  ),
+];
+export const userProfileHandlers = [
+  // 사용자 프로필 조회
+  http.get(
+    `${import.meta.env.VITE_BACK_URL}/api/v1/users/:userId`,
+    ({ params }) => {
+      const { userId } = params;
+
+      console.log('🎯 MSW: Intercepted user profile request for user:', userId);
+
+      const mockData = {
+        data: {
+          userId: 1,
+          name: '김경훈',
+          email: 'qazxc155580@gmail.com',
+          nickname: '용용',
+          profileUrl: 'https://example.com/profiles/1.png',
+          goalStudyTime: 15,
+          targetDateTitle: '금융권 취업',
+          targetDate: '2026-01-02',
+          determination: '열심히 해야징~',
+          todayStudyMinute: 180,
+          createdAt: '2025-05-01',
+          level: 'OREREREO',
+        },
+      };
+
+      console.log(`Fetching user profile for user: ${userId}`);
 
       return HttpResponse.json(mockData);
     },

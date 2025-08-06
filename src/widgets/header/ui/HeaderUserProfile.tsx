@@ -1,11 +1,14 @@
 import { Link } from '@tanstack/react-router';
 
-interface UserProfileProps {
+interface HeaderUserProfileProps {
   nickname: string;
   profileUrl: string;
 }
 
-export const UserProfile = ({ nickname, profileUrl }: UserProfileProps) => {
+export const HeaderUserProfile = ({
+  nickname,
+  profileUrl,
+}: HeaderUserProfileProps) => {
   return (
     <Link
       to="/my-page"

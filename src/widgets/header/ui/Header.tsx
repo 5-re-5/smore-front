@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/button';
 import { useHeaderLogic } from '../model/useHeaderLogic';
 import { Logo } from './Logo';
 import { SearchBar } from './SearchBar';
-import { UserProfile } from './UserProfile';
+import { HeaderUserProfile } from './HeaderUserProfile';
 
 export const Header = () => {
   const { isLogin, userInfo, handleLogout } = useHeaderLogic();
@@ -51,7 +51,7 @@ export const Header = () => {
             스터디 만들기
           </Button>
         </Link>
-        <UserProfile
+        <HeaderUserProfile
           nickname={userInfo.nickname}
           profileUrl={userInfo.profileUrl}
         />

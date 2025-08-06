@@ -1,24 +1,54 @@
 import { Link } from '@tanstack/react-router';
 import { useUrlAuth, MOCK_STUDY_ROOMS } from '../model';
 import { RecentStudyCard } from './RecentStudyCard';
-import { useRecentStudyQuery } from '@/entities/user';
+import { UserInfoBox } from './UserInfoBox';
+import { useRecentStudyQuery, useUserProfileQuery } from '@/entities/user';
 
 export default function StudyListPage() {
   // URL에서 userId 파라미터 처리
   useUrlAuth();
 
   // 임시 userId - 실제로는 인증에서 가져와야 함
-  const userId = 'user123';
+  const userId = 1;
+
+  // API로 사용자 프로필 조회
+  const {
+    data: userProfileData,
+    isLoading: isUserProfileLoading,
+    error: userProfileError,
+  } = useUserProfileQuery(userId);
 
   // API로 최근 참가한 스터디 조회
   const {
     data: recentStudyData,
     isLoading: isRecentStudyLoading,
     error: recentStudyError,
-  } = useRecentStudyQuery(userId);
+  } = useRecentStudyQuery(userId.toString());
+
+  if (isUserProfileLoading) {
+    return (
+      <main className="p-8 font-['Noto_Sans_KR']" role="main">
+        <div className="text-center">사용자 정보를 불러오는 중...</div>
+      </main>
+    );
+  }
+
+  if (userProfileError || !userProfileData) {
+    return (
+      <main className="p-8 font-['Noto_Sans_KR']" role="main">
+        <div className="text-red-500 text-center">
+          사용자 정보를 불러오지 못했습니다.
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="p-8 font-['Noto_Sans_KR']" role="main">
+      {/* 내정보박스 */}
+      <section className="mb-8">
+        <UserInfoBox userProfile={userProfileData} />
+      </section>
       <header className="mb-6">
         <div className="flex justify-between items-start">
           <div>
@@ -53,11 +83,11 @@ export default function StudyListPage() {
             </div>
           )}
 
-          {recentStudyData?.data.rooms.map((room) => (
+          {recentStudyData?.rooms.map((room) => (
             <RecentStudyCard key={room.roomId} room={room} />
           ))}
 
-          {recentStudyData?.data.rooms.length === 0 && (
+          {recentStudyData?.rooms.length === 0 && (
             <div className="text-study-muted">
               최근 참가한 스터디가 없습니다.
             </div>
