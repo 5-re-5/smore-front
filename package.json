@@ -20,7 +20,8 @@
     ]
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "*"
+    "@rollup/rollup-linux-x64-gnu": "*",
+    "@esbuild/linux-x64": "*"
   },
   "dependencies": {
     "@livekit/components-react": "^2.9.14",
