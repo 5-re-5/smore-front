@@ -55,6 +55,24 @@ export const userRecentStudyHandlers = [
     },
   ),
 ];
+
+// 모킹된 사용자 데이터 (업데이트 가능하도록 let 사용)
+// eslint-disable-next-line prefer-const
+let mockUserData = {
+  userId: 1,
+  name: '김경훈',
+  email: 'qazxc155580@gmail.com',
+  nickname: '용용',
+  profileUrl: 'https://example.com/profiles/1.png',
+  goalStudyTime: 15,
+  targetDateTitle: '금융권 취업',
+  targetDate: '2026-01-02',
+  determination: '열심히 해야징~',
+  todayStudyMinute: 180,
+  createdAt: '2025-05-01',
+  level: 'OREREREO',
+};
+
 export const userProfileHandlers = [
   // 사용자 프로필 조회
   http.get(
@@ -64,26 +82,72 @@ export const userProfileHandlers = [
 
       console.log('🎯 MSW: Intercepted user profile request for user:', userId);
 
-      const mockData = {
-        data: {
-          userId: 1,
-          name: '김경훈',
-          email: 'qazxc155580@gmail.com',
-          nickname: '용용',
-          profileUrl: 'https://example.com/profiles/1.png',
-          goalStudyTime: 15,
-          targetDateTitle: '금융권 취업',
-          targetDate: '2026-01-02',
-          determination: '열심히 해야징~',
-          todayStudyMinute: 180,
-          createdAt: '2025-05-01',
-          level: 'OREREREO',
-        },
+      const responseData = {
+        data: { ...mockUserData },
       };
 
       console.log(`Fetching user profile for user: ${userId}`);
 
-      return HttpResponse.json(mockData);
+      return HttpResponse.json(responseData);
+    },
+  ),
+  // 사용자 프로필 업데이트
+  http.patch(
+    `${import.meta.env.VITE_BACK_URL}/api/v1/users/:userId`,
+    async ({ params, request }) => {
+      const { userId } = params;
+
+      console.log('🎯 MSW: Intercepted user profile update for user:', userId);
+
+      try {
+        const formData = await request.formData();
+
+        // FormData에서 설정 관련 필드만 추출 (카멜케이스)
+        const targetDateTitle = formData.get('targetDateTitle');
+        const targetDate = formData.get('targetDate');
+        const goalStudyTime = formData.get('goalStudyTime');
+        const determination = formData.get('determination');
+
+        console.log('📝 Update settings data:', {
+          targetDateTitle,
+          targetDate,
+          goalStudyTime,
+          determination,
+        });
+
+        // 모킹된 사용자 데이터 업데이트 (설정 관련 필드만)
+        if (targetDateTitle !== null) {
+          mockUserData.targetDateTitle = targetDateTitle as string;
+        }
+        if (targetDate !== null) {
+          mockUserData.targetDate = targetDate as string;
+        }
+        if (goalStudyTime !== null) {
+          mockUserData.goalStudyTime = parseFloat(goalStudyTime as string);
+        }
+        if (determination !== null) {
+          mockUserData.determination = determination as string;
+        }
+
+        const responseData = {
+          data: { ...mockUserData },
+          message: '설정이 성공적으로 업데이트되었습니다.',
+        };
+
+        console.log('✅ Settings updated successfully:', responseData.data);
+
+        return HttpResponse.json(responseData, { status: 200 });
+      } catch (error) {
+        console.error('❌ Error processing form data:', error);
+
+        return HttpResponse.json(
+          {
+            error: '설정 업데이트 중 오류가 발생했습니다.',
+            message: 'Internal server error',
+          },
+          { status: 500 },
+        );
+      }
     },
   ),
 ];
