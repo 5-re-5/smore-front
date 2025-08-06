@@ -30,7 +30,7 @@ count.txt
 .tanstack
 CLAUDE.md
 .claude
-
+.serena
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
