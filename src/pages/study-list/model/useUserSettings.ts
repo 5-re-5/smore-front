@@ -22,7 +22,8 @@ interface UseUserSettingsProps {
 export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
   const [targetHour, setTargetHour] = useState<string>('1');
   const [targetMinute, setTargetMinute] = useState<string>('0');
-  const [motivation, setMotivation] = useState<string>('');
+  const [determination, setDetermination] = useState<string>('');
+  const [targetDateTitle, setTargetDateTitle] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,9 +36,20 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
     }
 
     const goalTimeHours = userProfile.goalStudyTime || 1;
-    setTargetHour(Math.floor(goalTimeHours).toString());
-    setTargetMinute(((goalTimeHours % 1) * 60).toString());
-    setMotivation(userProfile.determination || '');
+
+    // 시간 계산 (1-24 범위로 제한)
+    const hours = Math.floor(goalTimeHours);
+    const safeHours = Math.min(Math.max(hours, 1), 24);
+
+    // 분 계산 (15분 단위로 반올림하여 0, 15, 30, 45 중 하나로 설정)
+    const exactMinutes = Math.round((goalTimeHours % 1) * 60);
+    const roundedMinutes = Math.round(exactMinutes / 15) * 15;
+    const safeMinutes = Math.min(roundedMinutes, 45);
+
+    setTargetHour(safeHours.toString());
+    setTargetMinute(safeMinutes.toString());
+    setDetermination(userProfile.determination || '');
+    setTargetDateTitle(userProfile.targetDateTitle || '');
     if (userProfile.targetDate) {
       setSelectedDate(parseServerDate(userProfile.targetDate));
     }
@@ -57,8 +69,13 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
       return false;
     }
 
-    if (!motivation.trim()) {
+    if (!determination.trim()) {
       alert('각오를 입력해주세요.');
+      return false;
+    }
+
+    if (!targetDateTitle.trim()) {
+      alert('D-DAY 제목을 입력해주세요.');
       return false;
     }
 
@@ -73,12 +90,11 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
   // API 데이터 변환 함수
   const convertToApiData = () => {
     const totalStudyTime = parseInt(targetHour) + parseInt(targetMinute) / 60;
-
     return {
       goalStudyTime: totalStudyTime,
-      determination: motivation.trim(),
+      determination: determination.trim(),
       targetDate: formatDateForServer(selectedDate!),
-      targetDateTitle: userProfile.targetDateTitle || '',
+      targetDateTitle: targetDateTitle.trim(),
     };
   };
 
@@ -115,7 +131,8 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
     // 상태
     targetHour,
     targetMinute,
-    motivation,
+    determination,
+    targetDateTitle,
     selectedDate,
     isOpen,
     isLoading: updateSettingsMutation.isPending,
@@ -123,7 +140,8 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
     // 상태 업데이트 함수
     setTargetHour,
     setTargetMinute,
-    setMotivation,
+    setDetermination,
+    setTargetDateTitle,
     setSelectedDate,
     setIsOpen,
 
