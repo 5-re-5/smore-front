@@ -47,53 +47,18 @@ export default function StudyListPage() {
     <main className="p-8 font-['Noto_Sans_KR']" role="main">
       {/* 내정보박스 */}
       <section className="mb-8">
-        <UserInfoBox userProfile={userProfileData} />
+        <UserInfoBox
+          userProfile={userProfileData}
+          recentStudyRooms={recentStudyData?.rooms}
+        />
       </section>
-      <header className="mb-6">
+      <div className="mb-6">
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold">스터디 목록 📚</h1>
           </div>
         </div>
-      </header>
-
-      {/* 최근 참가한 스터디 섹션 */}
-      <section className="mb-8" aria-labelledby="recent-studies">
-        <h2
-          id="recent-studies"
-          className="text-[1.50rem] font-bold leading-[2.00rem] tracking-[0.08rem] text-study-text mb-4"
-          style={{
-            fontSize: '1.50rem',
-            fontWeight: '700',
-            lineHeight: '2.00rem',
-            letterSpacing: '0.08rem',
-            fontFamily: 'Noto Sans KR',
-          }}
-        >
-          최근 참가한 스터디
-        </h2>
-        <div className="flex gap-4 flex-wrap">
-          {isRecentStudyLoading && (
-            <div className="text-study-muted">최근 스터디를 불러오는 중...</div>
-          )}
-
-          {recentStudyError && (
-            <div className="text-red-500">
-              스터디 목록을 불러오지 못했습니다: {recentStudyError.message}
-            </div>
-          )}
-
-          {recentStudyData?.rooms.map((room) => (
-            <RecentStudyCard key={room.roomId} room={room} />
-          ))}
-
-          {recentStudyData?.rooms.length === 0 && (
-            <div className="text-study-muted">
-              최근 참가한 스터디가 없습니다.
-            </div>
-          )}
-        </div>
-      </section>
+      </div>
 
       <section className="mt-8" aria-labelledby="available-studies">
         <h2 id="available-studies" className="text-lg font-semibold mb-4">

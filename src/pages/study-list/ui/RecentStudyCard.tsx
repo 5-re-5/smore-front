@@ -1,6 +1,7 @@
 import type { RecentStudyRoom } from '@/entities/study';
 import { Button } from '@/shared/ui/button';
 import { GroupIcon, ArrowIcon } from '@/shared/ui/icons';
+import { CustomProgress } from '@/shared/ui/custom-progress';
 
 interface RecentStudyCardProps {
   room: RecentStudyRoom;
