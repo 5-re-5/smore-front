@@ -22,7 +22,7 @@ export const UserInfoBox = ({
 
   return (
     <div
-      className="max-w-[1280px] mx-auto p-20 pb-13 rounded-[25px] space-y-10"
+      className="max-w-[1280px] mx-auto p-20 pt-16 pb-13 rounded-[25px] space-y-10"
       style={{
         width: '100%',
         height: '100%',
@@ -61,7 +61,7 @@ export const UserInfoBox = ({
         progressPercentage={progressPercentage}
       />
 
-      <div className="pt-6 space-y-5">
+      <div className="space-y-5">
         <div className="text-2xl font-semibold text-gray-700">
           최근 참가한 스터디
         </div>

@@ -1,9 +1,16 @@
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import type { UserProfile } from '@/entities/user';
 import { Button } from '@/shared/ui/button';
 import { Calendar } from '@/shared/ui/calendar';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -18,15 +25,8 @@ import {
   SelectValue,
 } from '@/shared/ui/select';
 import { SettingsIcon } from '@/shared/ui/settings-icon';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { DialogFooter } from '@/shared/ui/dialog';
-import type { UserProfile } from '@/entities/user';
+import { CalendarIcon } from 'lucide-react';
 import { useUserSettings } from '../model/useUserSettings';
 
 interface UserSettingsModalProps {
@@ -63,8 +63,8 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
                   <SelectTrigger>
                     <SelectValue placeholder="시간" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((hour) => (
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    {Array.from({ length: 24 }, (_, i) => i + 1).map((hour) => (
                       <SelectItem key={hour} value={hour.toString()}>
                         {hour}시간
                       </SelectItem>
@@ -95,15 +95,15 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
           {/* 각오 */}
           <div>
             <Label
-              htmlFor="motivation"
+              htmlFor="determination"
               className="text-sm font-bold mb-2 block"
             >
               각오
             </Label>
             <Input
-              id="motivation"
-              value={userSettings.motivation}
-              onChange={(e) => userSettings.setMotivation(e.target.value)}
+              id="determination"
+              value={userSettings.determination}
+              onChange={(e) => userSettings.setDetermination(e.target.value)}
               placeholder="오늘의 각오를 입력해주세요"
               className="w-full"
             />
@@ -111,7 +111,16 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
 
           {/* D-DAY 설정 */}
           <div>
-            <Label className="text-sm font-bold mb-2 block">D-DAY</Label>
+            <Label className="text-sm font-bold mb-2 block">D-DAY 제목</Label>
+            <Input
+              value={userSettings.targetDateTitle}
+              onChange={(e) => userSettings.setTargetDateTitle(e.target.value)}
+              placeholder="예: 수능, 토익, 프로젝트 마감일 등"
+              className="w-full mb-3"
+              maxLength={10}
+            />
+
+            <Label className="text-sm font-bold mb-2 block">D-DAY 날짜</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
