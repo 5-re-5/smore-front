@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 import { useUrlAuth, MOCK_STUDY_ROOMS } from '../model';
-import { RecentStudyCard } from './RecentStudyCard';
 import { UserInfoBox } from './UserInfoBox';
 import { useRecentStudyQuery, useUserProfileQuery } from '@/entities/user';
 
@@ -19,11 +18,7 @@ export default function StudyListPage() {
   } = useUserProfileQuery(userId);
 
   // API로 최근 참가한 스터디 조회
-  const {
-    data: recentStudyData,
-    isLoading: isRecentStudyLoading,
-    error: recentStudyError,
-  } = useRecentStudyQuery(userId.toString());
+  const { data: recentStudyData } = useRecentStudyQuery(userId.toString());
 
   if (isUserProfileLoading) {
     return (
