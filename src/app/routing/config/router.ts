@@ -1,7 +1,7 @@
 import { createRouter } from '@tanstack/react-router';
 import { indexRoute } from '@/pages/homepage/route';
-import { getContext } from '@/shared/lib/reactQuery/Provider';
-import { rootRoute } from '../lib/rootRoute';
+import { getContext } from '@/shared/lib/reactQuery/context';
+import { rootRoute } from '../__root';
 import { aboutRoute } from '@/pages/about/route';
 import { roomRoute } from '@/pages/room/route';
 import { prejoinRoute } from '@/pages/prejoin/route';
@@ -10,6 +10,8 @@ import {
   studyListRoute,
   studyListRedirectRoute,
 } from '@/pages/studyList/route';
+import { roomCreateRoute } from '@/pages/room-create/route';
+import { myPageRoute } from '@/pages/my-page/route';
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -19,6 +21,8 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   studyListRoute,
   studyListRedirectRoute,
+  roomCreateRoute,
+  myPageRoute,
   // 여기에 다른 route 추가 가능
 ]);
 

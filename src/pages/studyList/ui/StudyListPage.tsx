@@ -1,33 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from '@tanstack/react-router';
-import { useUserStore, useUserInfo, useLogoutMutation } from '@/entities/user';
-import { Button } from '@/shared/ui/button';
-import { useRouter } from '@tanstack/react-router';
+import { useAuth } from '@/entities/user';
 
 export default function StudyListPage() {
-  const router = useRouter();
-  const { setUid, setLogin, reset } = useUserStore();
+  const { login } = useAuth();
   const [userId, setUserId] = useState<number | null>(null);
 
-  const { data: userInfo } = useUserInfo(userId);
-  const isLogin = userId !== null && !!userInfo;
-
-  const logoutMutation = useLogoutMutation();
-
-  const handleLogout = () => {
-    logoutMutation.mutate(undefined, {
-      onSuccess: () => {
-        reset();
-        setUserId(null);
-        router.navigate({ to: '/' });
-      },
-      onError: (error) => {
-        console.error('로그아웃 실패:', error);
-      },
-    });
-  };
-
-  useEffect(() => {
+  const handleUserIdFromUrl = useCallback(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const userIdParam = urlParams.get('userId');
 
@@ -35,9 +14,17 @@ export default function StudyListPage() {
 
     const parsedUserId = Number(userIdParam);
     setUserId(parsedUserId);
-    setUid(parsedUserId);
-    setLogin(true);
-  }, [setUid, setLogin]);
+
+    // useAuthStore에 저장 (persist됨)
+    login(parsedUserId);
+
+    // URL에서 파라미터 제거
+    window.history.replaceState({}, '', window.location.pathname);
+  }, [login]);
+
+  useEffect(() => {
+    handleUserIdFromUrl();
+  }, [handleUserIdFromUrl]);
 
   // if (userId !== null && isLoading) {
   //   return (
@@ -67,28 +54,12 @@ export default function StudyListPage() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold">스터디 목록 📚</h1>
-            {isLogin && userInfo && (
-              <div className="mt-2">
-                <p className="text-sm text-green-600">✅ 로그인 완료</p>
-                <p className="text-sm text-gray-700">
-                  안녕하세요, {userInfo.user.nickname}님!
-                </p>
-              </div>
-            )}
             {import.meta.env.DEV && userId !== null && (
               <p className="text-xs text-gray-400 mt-1">
                 개발 모드 - 사용자 ID: {userId}
               </p>
             )}
           </div>
-          <Button
-            onClick={handleLogout}
-            disabled={logoutMutation.isPending}
-            variant="outline"
-            size="sm"
-          >
-            {logoutMutation.isPending ? '로그아웃 중...' : '로그아웃'}
-          </Button>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 import { Button } from '@/shared/ui/button';
 import { Link } from '@tanstack/react-router';
 
-export default function Homepage() {
+export default function HomePage() {
   return (
     <main className="p-8">
       <div className="text-center max-w-2xl mx-auto">
