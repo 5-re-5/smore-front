@@ -10,7 +10,5 @@ export interface RecentStudyRoom {
 }
 
 export interface RecentStudyResponse {
-  data: {
-    rooms: RecentStudyRoom[];
-  };
+  rooms: RecentStudyRoom[];
 }

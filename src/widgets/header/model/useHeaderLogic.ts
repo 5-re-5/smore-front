@@ -6,7 +6,7 @@ export const useHeaderLogic = () => {
 
   return {
     isLogin: isAuthenticated,
-    userInfo: userInfo?.user || { nickname: '', profileUrl: '' },
+    userInfo: userInfo || { nickname: '', profileUrl: '' },
     handleLogout,
   };
 };
