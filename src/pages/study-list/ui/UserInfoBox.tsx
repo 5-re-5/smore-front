@@ -22,11 +22,10 @@ export const UserInfoBox = ({
 
   return (
     <div
-      className="max-w-[1280px] mx-auto p-20 pt-16 pb-13 rounded-[25px] space-y-10"
+      className="max-w-[1280px] mx-auto p-20 pt-16 pb-13 rounded-[25px] space-y-10 bg-study-card-bg"
       style={{
         width: '100%',
         height: '100%',
-        background: '#F3F3F3',
         boxShadow:
           '18.143999099731445px 18.143999099731445px 45.3599967956543px #D2D2D2',
         borderRadius: 25,
