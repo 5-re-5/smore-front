@@ -30,30 +30,11 @@ function PrejoinPage() {
   const { isFaceDetectionEnabled, setFaceDetectionEnabled } =
     useFaceDetectionStore();
 
-  // 컴포넌트 언마운트 시 stream cleanup
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    };
-
-    const handlePageHide = () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('pagehide', handlePageHide);
-
     return () => {
-      // 컴포넌트 언마운트 시 stream 정리
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('pagehide', handlePageHide);
     };
   }, [stream]);
 

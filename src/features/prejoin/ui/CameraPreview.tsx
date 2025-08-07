@@ -67,12 +67,8 @@ export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
 
     initCamera();
 
-    // 컴포넌트 언마운트 시 스트림 정리
     return () => {
       isMountedRef.current = false;
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
       onStreamChange?.(null);
     };
   }, [onStreamChange]);
