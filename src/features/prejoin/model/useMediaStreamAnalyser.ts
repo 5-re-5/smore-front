@@ -21,7 +21,7 @@ export function useMediaStreamAnalyser(stream: MediaStream | null) {
 
     const audioContext = new AudioContext();
     const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 128;
+    analyser.fftSize = 128; // 주파수 정밀도
 
     // MediaStream을 오디오 소스로 연결
     const source = audioContext.createMediaStreamSource(stream);
@@ -32,12 +32,13 @@ export function useMediaStreamAnalyser(stream: MediaStream | null) {
     analyserRef.current = analyser;
     sourceRef.current = source;
 
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    // // 바이트 단위 (8비트) Array
+    const dataArray = new Uint8Array(analyser.frequencyBinCount); // 주파수 세기 초기화
 
     const update = () => {
       if (!analyserRef.current) return;
 
-      analyserRef.current.getByteFrequencyData(dataArray);
+      analyserRef.current.getByteFrequencyData(dataArray); // 주파수 세기 측정
       const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
       setLevel(average / 256); // Normalize to 0 ~ 1
       rafRef.current = requestAnimationFrame(update);
