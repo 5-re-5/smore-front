@@ -1,4 +1,4 @@
-import { useLivekitTokenQuery } from '@/shared/api/livekit-queries';
+import { useJoinTokenQuery } from '@/entities/room/api/queries';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
 import { RoomLayout } from '@/widgets';
 import {
@@ -7,17 +7,7 @@ import {
   StartAudio,
 } from '@livekit/components-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useEffect, useRef } from 'react';
-
-// 에러 상태 컴포넌트
-const ErrorState = ({ message }: { message: string }) => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center">
-      <h1 className="text-2xl font-bold text-red-600">연결 오류</h1>
-      <p className="text-gray-600 mt-2">{message}</p>
-    </div>
-  </div>
-);
+import { useEffect } from 'react';
 
 // 로딩 상태 컴포넌트
 const LoadingState = () => (
@@ -35,23 +25,13 @@ const LoadingState = () => (
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
   const navigate = useNavigate();
-  const participantNameRef = useRef('User' + Math.floor(Math.random() * 1000));
-  const participantName = participantNameRef.current;
-
-  // roomName은 roomId를 문자열로 사용 (나중에 실제 방 이름으로 변경 가능)
-  const roomName = `room-${roomId}`;
 
   // roomId 유효성 검사
   const roomIdNumber = parseInt(roomId, 10);
 
-  // 토큰 발급
-  const { data: token, error } = useLivekitTokenQuery(
-    roomName,
-    participantName,
-    {
-      enabled: !isNaN(roomIdNumber),
-    },
-  );
+  // 저장된 토큰 조회
+  const { data: joinTokenData } = useJoinTokenQuery(roomIdNumber);
+  const token = joinTokenData?.accessToken;
 
   useEffect(() => {
     // 잘못된 roomId인 경우 홈으로 리다이렉트
@@ -59,12 +39,19 @@ function RoomPage() {
       navigate({ to: '/' });
       return;
     }
-  }, [roomId, roomIdNumber, navigate]);
 
-  if (error) {
-    return <ErrorState message={error.message} />;
-  }
+    // 토큰이 없는 경우 prejoin 페이지로 리다이렉트
+    if (!token) {
+      alert('방의 토큰이 존재하지 않습니다.');
+      navigate({
+        to: '/room/$roomId/prejoin',
+        params: { roomId },
+      });
+      return;
+    }
+  }, [roomId, roomIdNumber, token, navigate]);
 
+  // 토큰이 없으면 로딩 상태 (리다이렉트 전까지)
   if (!token) {
     return <LoadingState />;
   }
