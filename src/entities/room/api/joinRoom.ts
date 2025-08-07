@@ -7,8 +7,8 @@ export type JoinRoomRequest = {
 
 // 방 입장 응답 타입
 export type JoinRoomResponse = {
-  room_id: number;
-  joined_at: string;
+  roomId: number;
+  joinedAt: string;
 };
 
 // 방 입장 API 함수
