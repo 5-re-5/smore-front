@@ -1,12 +1,15 @@
-// src/features/chat/ui/ChatMessageList.tsx
 import ChatMessage from './ChatMessage';
 import type { ChatMessage as ChatMessageType } from '@/shared/types/chatMessage.interface';
 
 interface ChatMessageListProps {
   messages: ChatMessageType[];
+  isLoadingHistory?: boolean;
 }
 
-export default function ChatMessageList({ messages }: ChatMessageListProps) {
+export default function ChatMessageList({
+  messages,
+  isLoadingHistory,
+}: ChatMessageListProps) {
   if (messages.length === 0) {
     return (
       <div className="flex justify-center items-center h-full text-gray-400 text-sm">

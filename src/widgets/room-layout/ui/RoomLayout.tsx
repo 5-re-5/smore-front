@@ -1,7 +1,7 @@
 import { PomodoroSection } from '@/features/pomodoro';
 import { StopwatchController } from '@/features/stopwatch';
 import { WhiteNoiseComponents } from '@/features/white-noise';
-import ChatPanel from '@/widgets/chat/ChatPanel';
+import ChatPanel from '@/features/chat/ui/ChatPanel';
 import { TrackToggle } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { useState } from 'react';
@@ -25,7 +25,7 @@ function RoomLayout() {
       {/* 채팅 패널 */}
       {isChatOpen && (
         <div className="absolute right-0 top-0 h-full z-40">
-          <ChatPanel />
+          <ChatPanel isOpen={isChatOpen} />
         </div>
       )}
       {/* 기존 미디어바 */}
