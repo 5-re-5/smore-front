@@ -450,10 +450,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
           </div>
         )}
 
-        <ChatMessageList
-          messages={filteredMessages}
-          isLoadingHistory={isLoadingHistory}
-        />
+        <ChatMessageList messages={filteredMessages} />
       </div>
       {/* 새 메시지 알림 버튼 */}
       {showNewMessageButton && (

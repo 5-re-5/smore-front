@@ -6,10 +6,7 @@ interface ChatMessageListProps {
   isLoadingHistory?: boolean;
 }
 
-export default function ChatMessageList({
-  messages,
-  isLoadingHistory,
-}: ChatMessageListProps) {
+export default function ChatMessageList({ messages }: ChatMessageListProps) {
   if (messages.length === 0) {
     return (
       <div className="flex justify-center items-center h-full text-gray-400 text-sm">

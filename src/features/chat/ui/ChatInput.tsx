@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useLiveKitChat } from '../hooks/useLiveKitChat';
 import { useParticipants } from '@livekit/components-react';
 import { useStompChat } from '../hooks/useStompChat';
 

@@ -1,5 +1,5 @@
 // hooks/useLiveKitChat.ts
-import { useLocalParticipant, useRoomContext } from '@livekit/components-react';
+import { useLocalParticipant } from '@livekit/components-react';
 import { useChatMessageStore } from '../model/useChatMessageStore';
 import type { ChatMessage } from '@/shared/types/chatMessage.interface';
 
