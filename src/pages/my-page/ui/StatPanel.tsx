@@ -1,34 +1,21 @@
-// StatPanel.tsx
-const dummyPanel = {
-  maxFocusTime: '오전 6시-오전 8시',
-  avgFocusDuration: '1시간 5분',
-  aiFeedback: '오늘은 집중력이 좋아요! 내일도 화이팅!',
-};
+//StatPanel.tsx
+import type { FunctionComponent } from 'react';
+import styles from './StatPanel.module.css';
 
-export default function StatPanel() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 24,
-        background: '#fff',
-        borderRadius: 16,
-        padding: 24,
-        marginTop: 16,
-      }}
-    >
-      <div>
-        <h5>최고 집중 시간대</h5>
-        <p>{dummyPanel.maxFocusTime}</p>
-      </div>
-      <div>
-        <h5>평균 집중 유지 시간</h5>
-        <p>{dummyPanel.avgFocusDuration}</p>
-      </div>
-      <div>
-        <h5>AI 피드백</h5>
-        <p>{dummyPanel.aiFeedback}</p>
-      </div>
+const StatPanel: FunctionComponent = () => (
+  <div className={styles.statpanel}>
+    <div className={styles.panelSection}>
+      <div className={styles.label}>최고 집중 시간대</div>
+      <div className={styles.value}>오전 6시~오전8시</div>
     </div>
-  );
-}
+    <div className={styles.panelSection}>
+      <div className={styles.label}>최저 집중 시간대</div>
+      <div className={styles.value}>오후 1시~오후2시</div>
+    </div>
+    <div className={styles.panelSection}>
+      <div className={styles.label}>평균 집중 유지 시간</div>
+      <div className={styles.value}>1시간 5분</div>
+    </div>
+  </div>
+);
+export default StatPanel;

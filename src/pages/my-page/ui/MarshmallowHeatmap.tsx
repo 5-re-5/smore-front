@@ -1,29 +1,43 @@
-const dummyData = [
-  { date: '2025-08-01', level: 3 },
-  { date: '2025-08-02', level: 1 },
-  { date: '2025-08-03', level: 5 },
-  { date: '2025-08-04', level: 2 },
-  { date: '2025-08-05', level: 4 },
-  { date: '2025-08-06', level: 1 },
-  { date: '2025-08-07', level: 2 },
-];
+//MarshmallowHeatmap.tsx
+import type { FunctionComponent } from 'react';
+import styles from './MarshmallowHeatmap.module.css';
 
-export default function MarshmallowHeatmap() {
-  return (
-    <div style={{ display: 'flex', gap: 4 }}>
-      {dummyData.map((d) => (
-        <div
-          key={d.date}
-          title={`${d.date} 공부 레벨: ${d.level}`}
-          style={{
-            width: 20,
-            height: 20,
-            backgroundColor: `rgba(255, 123, 148, ${d.level / 5})`,
-            borderRadius: 4,
-            cursor: 'pointer',
-          }}
-        />
-      ))}
+// 예시: 7x15(열x행) 2D 배열, 실제 백엔드 데이터는 props로 받아도 됨
+const days = Array(7).fill(0); // 요일
+const weeks = Array(15).fill(0); // 15주
+
+// 예시 잔디값(0~4: None~Deep)
+const getRandom = () => Math.floor(Math.random() * 5);
+
+const mockData: number[][] = Array(weeks.length)
+  .fill(null)
+  .map(() => Array(days.length).fill(0).map(getRandom));
+
+const MarshmallowHeatmap: FunctionComponent = () => (
+  <div className={styles.heatmapWrap}>
+    <div className={styles.grid}>
+      {mockData.map((week, xi) =>
+        week.map((v, yi) => (
+          <div
+            key={xi + '-' + yi}
+            className={`${styles.cell} ${styles['cell' + v]}`}
+          />
+        )),
+      )}
     </div>
-  );
-}
+    <div className={styles.labelRow}>
+      <span>월</span>
+      <span>수</span>
+      <span>금</span>
+    </div>
+    <div className={styles.intensityKey}>
+      <span>Less</span>
+      {[0, 1, 2, 3, 4].map((v) => (
+        <span key={v} className={`${styles.colorKey} ${styles['cell' + v]}`} />
+      ))}
+      <span>More</span>
+    </div>
+  </div>
+);
+
+export default MarshmallowHeatmap;

@@ -1,0 +1,54 @@
+/*MarshmallowHeatmap.module.css*/
+.heatmapWrap {
+  width: 100%;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(15, 16px);
+  grid-template-rows: repeat(7, 16px);
+  gap: 4px;
+  margin-bottom: 15px;
+}
+
+.cell {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  box-sizing: border-box;
+  background: #e7e7ef;
+}
+
+.cell0 { background: #eee6da; }
+.cell1 { background: #f9ccb4; }
+.cell2 { background: #f9a57b; }
+.cell3 { background: #d67739; }
+.cell4 { background: #7e4420; }
+
+.labelRow {
+  display: flex;
+  gap: 40px;
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+  margin-left: 0;
+}
+
+.intensityKey {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  margin-top: 3px;
+}
+.colorKey {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-block;
+}

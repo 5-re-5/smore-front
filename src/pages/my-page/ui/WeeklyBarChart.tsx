@@ -1,44 +1,48 @@
-// WeeklyBarChart.tsx
-import { Bar } from 'react-chartjs-2';
+//WeeklyBarChart.tsx
+import type { FunctionComponent } from 'react';
+import styles from './WeeklyBarChart.module.css';
 
-const dummyData = [
-  { day: '월', hours: 3 },
-  { day: '화', hours: 4 },
-  { day: '수', hours: 2 },
-  { day: '목', hours: 5 },
-  { day: '금', hours: 4 },
-  { day: '토', hours: 6 },
-  { day: '일', hours: 1 },
-];
+const weekday_graph = [6, 4, 2, 12, 4, 0, 3];
+const maxValue = 12;
+const dayLabels = ['일', '토', '금', '목', '수', '화', '월'];
+const MAX_BAR_HEIGHT = 328; // px
 
-export default function WeeklyBarChart() {
-  return (
-    <div style={{ background: '#fff', borderRadius: 16, padding: 16 }}>
-      <h4>주간 공부 시간 통계</h4>
-      <Bar
-        data={{
-          labels: dummyData.map((d) => d.day),
-          datasets: [
-            {
-              label: '공부 시간(시간)',
-              data: dummyData.map((d) => d.hours),
-              backgroundColor: '#1792FF',
-              borderRadius: 6,
-              barThickness: 32,
-            },
-          ],
-        }}
-        options={{
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y}시간` } },
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#222' } },
-            y: { beginAtZero: true, ticks: { color: '#222' } },
-          },
-        }}
-      />
+const WeeklyBarChart: FunctionComponent = () => (
+  <div className={styles.sectionWrap}>
+    <div className={styles.title}>주간 공부 시간 통계</div>
+    <div className={styles.chart}>
+      {/* y축 숫자/라인 */}
+      {[0, 2, 4, 6, 8, 10, 12].map((num) => (
+        <div
+          key={num}
+          className={styles.yLabel}
+          style={{ bottom: `${(num / maxValue) * MAX_BAR_HEIGHT}px` }}
+        >
+          {num}
+        </div>
+      ))}
+      {[0, 2, 4, 6, 8, 10, 12].map((num) => (
+        <div
+          key={num}
+          className={styles.guideLine}
+          style={{ bottom: `${(num / maxValue) * MAX_BAR_HEIGHT}px` }}
+        />
+      ))}
+      {/* bars: bottom: 0에서 위로 height만큼 자라게! */}
+      <div className={styles.barsArea}>
+        {weekday_graph.map((v, i) => (
+          <div key={i} className={styles.barAndLabel}>
+            <div
+              className={styles.bar}
+              style={{ height: `${(v / maxValue) * MAX_BAR_HEIGHT}px` }}
+            >
+              {v > 0 && <span className={styles.value}>{v}</span>}
+            </div>
+            <span className={styles.dayLabel}>{dayLabels[i]}</span>
+          </div>
+        ))}
+      </div>
     </div>
-  );
-}
+  </div>
+);
+export default WeeklyBarChart;
