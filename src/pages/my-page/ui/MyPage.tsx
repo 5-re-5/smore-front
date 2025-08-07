@@ -1,11 +1,11 @@
 // src/pages/my-page/MyPage.tsx
-import styles from './MyPage.module.css';
+import styles from '../MyPage.module.css';
 
-import ProfileCard from './ui/ProfileCard';
-import AiFocusLineChart from './ui/AiFocusLineChart';
-import StatPanel from './ui/StatPanel';
-import WeeklyBarChart from './ui/WeeklyBarChart';
-import MonthlyLineChart from './ui/MonthlyLineChart';
+import ProfileCard from './ProfileCard';
+import AiFocusLineChart from './AiFocusLineChart';
+import StatPanel from './StatPanel';
+import WeeklyBarChart from './WeeklyBarChart';
+import MonthlyLineChart from './MonthlyLineChart';
 
 const MyPage = () => {
   return (
