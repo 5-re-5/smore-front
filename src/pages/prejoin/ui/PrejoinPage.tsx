@@ -29,11 +29,8 @@ function PrejoinPage() {
     userInfo?.nickname || `User${Math.floor(Math.random() * 1000)}`;
 
   // 방 정보 조회
-  const {
-    data: roomData,
-    isLoading: roomLoading,
-    error: roomError,
-  } = useRoomInfoQuery(roomIdNumber);
+  const { data: roomData, isLoading: roomLoading } =
+    useRoomInfoQuery(roomIdNumber);
   const room = roomData ? adaptRoomFromApi(roomData) : null;
 
   // 방 입장 mutation
