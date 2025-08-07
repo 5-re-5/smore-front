@@ -7,6 +7,8 @@ interface CameraPreviewProps {
 
 export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const isMountedRef = useRef(true);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [deviceChangeMessage, setDeviceChangeMessage] = useState<string | null>(
@@ -14,7 +16,7 @@ export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
   );
 
   useEffect(() => {
-    let currentStream: MediaStream | null = null;
+    isMountedRef.current = true;
 
     const initCamera = async () => {
       try {
@@ -42,7 +44,12 @@ export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
           );
         }
 
-        currentStream = videoStream;
+        if (!isMountedRef.current) {
+          videoStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        streamRef.current = videoStream;
         setStream(videoStream);
         setHasPermission(true);
         onStreamChange?.(videoStream);
@@ -52,6 +59,7 @@ export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
         }
       } catch (error) {
         console.error('Failed to get camera permission:', error);
+        if (!isMountedRef.current) return;
         setHasPermission(false);
         onStreamChange?.(null);
       }
@@ -61,8 +69,9 @@ export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
 
     // 컴포넌트 언마운트 시 스트림 정리
     return () => {
-      if (currentStream) {
-        currentStream.getTracks().forEach((track) => track.stop());
+      isMountedRef.current = false;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
       onStreamChange?.(null);
     };
@@ -142,6 +151,7 @@ export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
 
         // 기존 스트림 정지
         stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = newStream;
         setStream(newStream);
         onStreamChange?.(newStream);
 
