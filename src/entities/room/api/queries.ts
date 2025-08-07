@@ -1,13 +1,13 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getRoom, getRooms, verifyRoomPassword } from './room';
+import { getRoomInfo, getRooms, verifyRoomPassword } from './room';
 import type { RoomListParams } from './type';
 import { roomQueryKeys } from './queryKeys';
 
 // Room 상세 조회
-export const useRoomQuery = (roomId: number) => {
+export const useRoomInfoQuery = (roomId: number) => {
   return useQuery({
     queryKey: [roomQueryKeys.ROOM, roomId],
-    queryFn: () => getRoom(roomId),
+    queryFn: () => getRoomInfo(roomId),
     enabled: !!roomId,
   });
 };

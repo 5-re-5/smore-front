@@ -1,5 +1,5 @@
 import { joinRoom } from '@/entities/room/api/joinRoom';
-import { useRoomQuery } from '@/entities/room/api/queries';
+import { useRoomInfoQuery } from '@/entities/room/api/queries';
 import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
 import { CameraPreview } from '@/features/prejoin/ui/CameraPreview';
@@ -23,7 +23,7 @@ function PrejoinPage() {
     data: roomData,
     isLoading: roomLoading,
     error: roomError,
-  } = useRoomQuery(roomIdNumber);
+  } = useRoomInfoQuery(roomIdNumber);
   const room = roomData ? adaptRoomFromApi(roomData) : null;
 
   // 얼굴 감지 설정

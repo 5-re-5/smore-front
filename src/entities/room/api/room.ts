@@ -2,7 +2,7 @@ import { request, REQUEST_METHOD } from '@/shared/api/request';
 import type { RoomData, RoomListParams } from './type';
 
 // Room API 호출 함수들 - 깔끔하고 직관적
-export const getRoom = async (roomId: number) => {
+export const getRoomInfo = async (roomId: number) => {
   // TODO: 임시로 mock 데이터 사용 - 나중에 실제 API로 교체
   const { mockRooms } = await import('./mockData');
   const mockRoom = mockRooms[roomId];
