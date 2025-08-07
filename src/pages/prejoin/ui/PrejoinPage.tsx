@@ -7,7 +7,7 @@ import { PrejoinMicWaveform } from '@/features/prejoin/ui/PrejoinMicWaveform';
 import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
 import type { ApiError } from '@/shared/api/request';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function PrejoinPage() {
   const { roomId } = useParams({ from: '/room/$roomId/prejoin' });
@@ -29,6 +29,33 @@ function PrejoinPage() {
   // 얼굴 감지 설정
   const { isFaceDetectionEnabled, setFaceDetectionEnabled } =
     useFaceDetectionStore();
+
+  // 컴포넌트 언마운트 시 stream cleanup
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+
+    const handlePageHide = () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      // 컴포넌트 언마운트 시 stream 정리
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [stream]);
 
   const validatePassword = (): boolean => {
     if (room?.hasPassword && !password.trim()) {
