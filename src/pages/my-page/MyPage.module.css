@@ -1,0 +1,56 @@
+/*MyPage.module.css*/
+.myPage {
+  max-width: 1440px;         /* 피그마 디자인 기준 최대 너비로 확장 */
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px 32px 80px 32px;  /* 좌우 패딩 */
+  min-height: 100vh;
+  background: #f8fafc;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  overflow-x: visible;     /* 가로 스크롤 방지 */
+}
+
+.section {
+  width: 100%;              /* 부모 100% 꽉 채우기 */
+  background: #fff;
+  margin-bottom: 48px;
+  border-radius: 18px;
+  box-shadow: 0 2px 24px rgba(60,70,113,0.05),
+              0 1.5px 3px rgba(93,100,148,0.04);
+  padding: 42px 48px 36px 48px;  /* 좌우 패딩도 늘림 */
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  box-sizing: border-box;
+  transition: box-shadow 0.2s;
+  max-width: 1400px;         /* 약간 마진 두고 자식 섹션 최대폭 지정 */
+}
+
+.section:hover {
+  box-shadow: 0 4px 30px rgba(54,60,113,0.10);
+}
+
+.headerWrap {
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.footerWrap {
+  width: 100%;
+  margin-top: 40px;
+  color: #8792a2;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* 반응형 : 1024px 이하 화면에서 패딩과 최대폭 재조정 */
+@media (max-width: 1024px) {
+  .myPage, .section {
+    max-width: 100%;
+    padding: 24px 16px 36px 16px;
+  }
+}
