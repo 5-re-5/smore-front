@@ -5,19 +5,19 @@ export const adaptRoomFromApi = (apiResponse: RoomApiResponse): Room => {
   const { data } = apiResponse;
 
   return {
-    id: data.room_id,
+    id: data.roomId,
     title: data.title,
     description: data.description,
-    thumbnailUrl: data.thumbnail_url,
+    thumbnailUrl: data.thumbnailUrl,
     tags: data.tag ? data.tag.split(',').map((tag: string) => tag.trim()) : [],
     category: data.category,
-    focusTime: data.focus_time ?? undefined,
-    breakTime: data.break_time ?? undefined,
-    maxParticipants: data.max_participants,
-    currentParticipants: data.current_participants,
+    focusTime: data.focusTime ?? undefined,
+    breakTime: data.breakTime ?? undefined,
+    maxParticipants: data.maxParticipants,
+    currentParticipants: data.currentParticipants,
     hasPassword: !!data.password,
-    createdAt: new Date(data.created_at),
-    creatorId: data.creator.user_id,
+    createdAt: new Date(data.createdAt),
+    creatorId: data.creator.userId,
     creatorName: data.creator.nickname,
   };
 };
@@ -29,11 +29,11 @@ export const adaptRoomToApi = (
   return {
     title: room.title,
     description: room.description,
-    thumbnail_url: room.thumbnailUrl,
+    thumbnailUrl: room.thumbnailUrl,
     tag: room.tags?.join(','),
     category: room.category,
-    focus_time: room.focusTime,
-    break_time: room.breakTime,
-    max_participants: room.maxParticipants,
+    focusTime: room.focusTime,
+    breakTime: room.breakTime,
+    maxParticipants: room.maxParticipants,
   };
 };
