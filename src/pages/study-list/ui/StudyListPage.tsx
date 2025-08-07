@@ -1,24 +1,44 @@
 import { Link } from '@tanstack/react-router';
 import { useUrlAuth, MOCK_STUDY_ROOMS } from '../model';
 import { UserInfoBox } from './UserInfoBox';
-import { useRecentStudyQuery, useUserProfileQuery } from '@/entities/user';
+import {
+  useRecentStudyQuery,
+  useUserProfileQuery,
+  useAuth,
+} from '@/entities/user';
 
 export default function StudyListPage() {
   // URL에서 userId 파라미터 처리
   useUrlAuth();
 
-  // 임시 userId - 실제로는 인증에서 가져와야 함
-  const userId = 1;
+  // 인증된 사용자 ID 가져오기
+  const { userId } = useAuth();
 
   // API로 사용자 프로필 조회
   const {
     data: userProfileData,
     isLoading: isUserProfileLoading,
     error: userProfileError,
-  } = useUserProfileQuery(userId);
+  } = useUserProfileQuery(userId || 0);
 
   // API로 최근 참가한 스터디 조회
-  const { data: recentStudyData } = useRecentStudyQuery(userId.toString());
+  const { data: recentStudyData } = useRecentStudyQuery(
+    userId?.toString() || '',
+  );
+
+  // 인증되지 않은 경우 처리
+  if (!userId) {
+    return (
+      <main className="p-8 font-['Noto_Sans_KR']" role="main">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">로그인이 필요합니다.</div>
+          <Link to="/" className="text-blue-600 hover:text-blue-800 underline">
+            홈으로 이동
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   if (isUserProfileLoading) {
     return (
