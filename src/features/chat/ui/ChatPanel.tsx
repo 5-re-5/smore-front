@@ -6,6 +6,7 @@ import { useChatMessageStore } from '../model/useChatMessageStore';
 import { useChatHistory } from '../hooks/useChatHistory';
 import { useRoomContext, useParticipants } from '@livekit/components-react';
 import { useUserStore } from '@/entities/user/model/useUserStore';
+import { useStompChat } from '../hooks/useStompChat';
 
 interface ChatPanelProps {
   isOpen?: boolean;
@@ -17,6 +18,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
     useState<string>('');
   const [roomId, setRoomId] = useState<string>('');
   const [roomIdLoading, setRoomIdLoading] = useState(true);
+  const { connectionStatus, reconnectAttempts } = useStompChat();
 
   // 스크롤 관리를 위한 상태
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -395,7 +397,29 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
           </div>
         </div>
       )}
-
+      {connectionStatus === 'disconnected' && (
+        <div className="bg-red-600/20 border border-red-600/50 text-red-200 p-2 mx-3 mt-2 rounded text-sm">
+          🔴 연결이 끊어졌습니다
+        </div>
+      )}
+      {connectionStatus === 'reconnecting' && (
+        <div className="bg-yellow-600/20 border border-yellow-600/50 text-yellow-200 p-2 mx-3 mt-2 rounded text-sm">
+          🔄 재연결 중... ({reconnectAttempts}/5)
+        </div>
+      )}
+      {connectionStatus === 'failed' && (
+        <div className="bg-red-600/20 border border-red-600/50 text-red-200 p-2 mx-3 mt-2 rounded text-sm">
+          <div className="flex items-center justify-between">
+            <span>❌ 연결 실패 - 네트워크를 확인해주세요</span>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-red-300 hover:text-red-100 text-xs underline"
+            >
+              새로고침
+            </button>
+          </div>
+        </div>
+      )}
       {/* 로딩 표시 */}
       {isLoading && (
         <div className="bg-blue-600/20 text-blue-200 p-2 mx-3 mt-2 rounded text-sm text-center">

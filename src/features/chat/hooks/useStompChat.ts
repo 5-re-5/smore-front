@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createStompClient } from '@/shared/lib/stompClient';
 import { useChatMessageStore } from '../model/useChatMessageStore';
 import { useUserStore } from '../../../entities/user/model/useUserStore';
@@ -11,6 +11,11 @@ export const useStompChat = () => {
   const room = useRoomContext();
   const clientRef = useRef<ReturnType<typeof createStompClient> | null>(null);
   const isConnectedRef = useRef(false);
+  // 재연결 관련 상태 추가
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const maxReconnectAttempts = 5;
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Room ID 가져오기
   const getRoomId = async () => {
@@ -24,69 +29,98 @@ export const useStompChat = () => {
     return 'default-room';
   };
 
-  useEffect(() => {
-    const connectStomp = async () => {
-      const client = createStompClient();
-      clientRef.current = client;
-      const roomId = await getRoomId();
+  // connectStomp를 useCallback으로 감싸기
+  const connectStomp = useCallback(async () => {
+    const client = createStompClient();
+    clientRef.current = client;
+    const roomId = await getRoomId();
 
-      client.onConnect = () => {
-        console.log('[STOMP] 연결 성공');
-        isConnectedRef.current = true;
+    client.onConnect = () => {
+      console.log('[STOMP] 연결 성공');
+      isConnectedRef.current = true;
+      setConnectionStatus('connected');
+      setReconnectAttempts(0);
 
-        // 전체 채팅 구독
-        client.subscribe(`/sub/room/${roomId}`, (msg) => {
-          try {
-            const message = JSON.parse(msg.body);
-            console.log('전체 메시지 수신:', message);
-            addMessage(message);
-          } catch (error) {
-            console.error('전체 메시지 파싱 에러:', error);
-          }
-        });
+      // 구독 로직들...
+      client.subscribe(`/sub/room/${roomId}`, (msg) => {
+        try {
+          const message = JSON.parse(msg.body);
+          console.log('전체 메시지 수신:', message);
+          addMessage(message);
+        } catch (error) {
+          console.error('전체 메시지 파싱 에러:', error);
+        }
+      });
 
-        // 개인 채팅 구독
-        client.subscribe(`/sub/user/${userId}`, (msg) => {
-          try {
-            const message = JSON.parse(msg.body);
-            console.log('개인 메시지 수신:', message);
-            addMessage(message);
-          } catch (error) {
-            console.error('개인 메시지 파싱 에러:', error);
-          }
-        });
+      client.subscribe(`/sub/user/${userId}`, (msg) => {
+        try {
+          const message = JSON.parse(msg.body);
+          console.log('개인 메시지 수신:', message);
+          addMessage(message);
+        } catch (error) {
+          console.error('개인 메시지 파싱 에러:', error);
+        }
+      });
 
-        // 시스템 메시지 구독
-        client.subscribe('/sub/system', (msg) => {
-          try {
-            const message = JSON.parse(msg.body);
-            console.log('시스템 메시지 수신:', message);
-            addMessage(message);
-          } catch (error) {
-            console.error('시스템 메시지 파싱 에러:', error);
-          }
-        });
-      };
-
-      client.onDisconnect = () => {
-        console.log('[STOMP] 연결 해제');
-        isConnectedRef.current = false;
-      };
-
-      client.onStompError = (frame) => {
-        console.error('[STOMP] 에러:', frame);
-        isConnectedRef.current = false;
-      };
-
-      client.activate();
+      client.subscribe('/sub/system', (msg) => {
+        try {
+          const message = JSON.parse(msg.body);
+          console.log('시스템 메시지 수신:', message);
+          addMessage(message);
+        } catch (error) {
+          console.error('시스템 메시지 파싱 에러:', error);
+        }
+      });
     };
 
+    client.onDisconnect = () => {
+      console.log('[STOMP] 연결 해제');
+      isConnectedRef.current = false;
+      setConnectionStatus('disconnected');
+      attemptReconnect();
+    };
+
+    client.onStompError = (frame) => {
+      console.error('[STOMP] 에러:', frame);
+      isConnectedRef.current = false;
+      setConnectionStatus('error');
+      attemptReconnect();
+    };
+
+    client.activate();
+  }, [addMessage, userId, room]);
+
+  const attemptReconnect = useCallback(async () => {
+    if (reconnectAttempts >= maxReconnectAttempts) {
+      console.log('최대 재연결 시도 횟수 초과');
+      setConnectionStatus('failed');
+      return;
+    }
+
+    setConnectionStatus('reconnecting');
+    setReconnectAttempts((prev) => prev + 1);
+
+    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+
+    console.log(
+      `재연결 시도 ${reconnectAttempts + 1}/${maxReconnectAttempts} (${delay}ms 후)`,
+    );
+
+    reconnectTimeoutRef.current = setTimeout(async () => {
+      await connectStomp();
+    }, delay);
+  }, [reconnectAttempts, maxReconnectAttempts, connectStomp]);
+
+  useEffect(() => {
     connectStomp();
 
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
       clientRef.current?.deactivate();
     };
-  }, [addMessage, userId, room]);
+  }, [connectStomp]);
 
   // 전체 채팅 전송
   const sendGroupMessage = async (content: string) => {
@@ -213,5 +247,7 @@ export const useStompChat = () => {
     sendPrivateMessage,
     sendSystemMessage,
     isConnected: isConnectedRef.current,
+    connectionStatus,
+    reconnectAttempts,
   };
 };
