@@ -7,6 +7,8 @@ import {
   useAuth,
 } from '@/entities/user';
 import { StudyCard } from './StudyCard';
+import { StudyFilters } from './StudyFilters';
+import { CategoryModal } from './CategoryModal';
 import { useState } from 'react';
 
 export default function StudyListPage() {
@@ -75,12 +77,16 @@ export default function StudyListPage() {
           recentStudyRooms={recentStudyData?.rooms}
         />
       </section>
+
+      {/* 정렬 및 필터 글자들 */}
       <div className="mb-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold">스터디 목록 📚</h1>
-          </div>
-        </div>
+        <StudyFilters
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          showPrivateOnly={showPrivateOnly}
+          onPrivateFilterChange={setShowPrivateOnly}
+          onCategoryClick={() => setShowCategoryModal(true)}
+        />
       </div>
 
       <section className="mt-8" aria-labelledby="available-studies">
@@ -94,38 +100,22 @@ export default function StudyListPage() {
           >
             {MOCK_STUDY_ROOMS.map((room) => (
               <StudyCard key={room.roodId} room={room} />
-              // <li key={room.id}>
-              //   <Link
-              //     to="/room/$roomId/prejoin"
-              //     params={{ roomId: room.id }}
-              //     className={`block p-4 border rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              //       room.isError ? 'opacity-50' : ''
-              //     }`}
-              //     aria-label={`${room.title} 스터디 방에 참여하기`}
-              //   >
-              //     <div className="font-medium">{room.title}</div>
-              //     <div className="text-sm text-gray-600">
-              //       방 ID: {room.id} •{' '}
-              //       {room.isPrivate ? '🔒 비공개방' : '공개방'}
-              //       {!room.isError && (
-              //         <span>
-              //           {' '}
-              //           • {room.currentParticipants}/{room.maxParticipants}명
-              //         </span>
-              //       )}
-              //       {room.isError && <span> • 에러 테스트</span>}
-              //     </div>
-              //     {room.owner && (
-              //       <div className="text-xs text-blue-600 mt-1">
-              //         방장: {room.owner}
-              //       </div>
-              //     )}
-              //   </Link>
-              // </li>
             ))}
           </div>
         </nav>
       </section>
+
+      {/* 카테고리 모달 */}
+      <CategoryModal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        selectedCategory={selectedCategory}
+        onCategorySelect={setSelectedCategory}
+        onComplete={() => {
+          setShowCategoryModal(false);
+          // TODO: API 호출로 카테고리 필터 적용
+        }}
+      />
     </main>
   );
 }
