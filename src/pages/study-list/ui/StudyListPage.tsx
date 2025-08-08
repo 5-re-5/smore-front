@@ -6,10 +6,18 @@ import {
   useUserProfileQuery,
   useAuth,
 } from '@/entities/user';
+import { StudyCard } from './StudyCard';
+import { useState } from 'react';
 
 export default function StudyListPage() {
   // URL에서 userId 파라미터 처리
   useUrlAuth();
+
+  // 정렬/필터 상태
+  const [sortBy, setSortBy] = useState<'popular' | 'latest'>('popular');
+  const [showPrivateOnly, setShowPrivateOnly] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   // 인증된 사용자 ID 가져오기
   const { userId } = useAuth();
@@ -80,38 +88,42 @@ export default function StudyListPage() {
           참여 가능한 스터디
         </h2>
         <nav aria-label="스터디 방 목록">
-          <ul className="space-y-2" role="list">
+          <div
+            className="grid grid-cols-2 md:grid-cols-4 gap-x-[50px] gap-y-[55px] list-none justify-items-center"
+            role="list"
+          >
             {MOCK_STUDY_ROOMS.map((room) => (
-              <li key={room.id}>
-                <Link
-                  to="/room/$roomId/prejoin"
-                  params={{ roomId: room.id }}
-                  className={`block p-4 border rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    room.isError ? 'opacity-50' : ''
-                  }`}
-                  aria-label={`${room.title} 스터디 방에 참여하기`}
-                >
-                  <div className="font-medium">{room.title}</div>
-                  <div className="text-sm text-gray-600">
-                    방 ID: {room.id} •{' '}
-                    {room.isPrivate ? '🔒 비공개방' : '공개방'}
-                    {!room.isError && (
-                      <span>
-                        {' '}
-                        • {room.currentParticipants}/{room.maxParticipants}명
-                      </span>
-                    )}
-                    {room.isError && <span> • 에러 테스트</span>}
-                  </div>
-                  {room.owner && (
-                    <div className="text-xs text-blue-600 mt-1">
-                      방장: {room.owner}
-                    </div>
-                  )}
-                </Link>
-              </li>
+              <StudyCard key={room.roodId} room={room} />
+              // <li key={room.id}>
+              //   <Link
+              //     to="/room/$roomId/prejoin"
+              //     params={{ roomId: room.id }}
+              //     className={`block p-4 border rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              //       room.isError ? 'opacity-50' : ''
+              //     }`}
+              //     aria-label={`${room.title} 스터디 방에 참여하기`}
+              //   >
+              //     <div className="font-medium">{room.title}</div>
+              //     <div className="text-sm text-gray-600">
+              //       방 ID: {room.id} •{' '}
+              //       {room.isPrivate ? '🔒 비공개방' : '공개방'}
+              //       {!room.isError && (
+              //         <span>
+              //           {' '}
+              //           • {room.currentParticipants}/{room.maxParticipants}명
+              //         </span>
+              //       )}
+              //       {room.isError && <span> • 에러 테스트</span>}
+              //     </div>
+              //     {room.owner && (
+              //       <div className="text-xs text-blue-600 mt-1">
+              //         방장: {room.owner}
+              //       </div>
+              //     )}
+              //   </Link>
+              // </li>
             ))}
-          </ul>
+          </div>
         </nav>
       </section>
     </main>
