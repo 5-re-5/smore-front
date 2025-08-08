@@ -2,7 +2,7 @@ interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedCategory: string | null;
-  onCategorySelect: (category: string) => void;
+  onCategorySelect: (category: string | null) => void;
   onComplete: () => void;
 }
 
@@ -43,7 +43,11 @@ export const CategoryModal = ({
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => onCategorySelect(category.id)}
+              onClick={() =>
+                onCategorySelect(
+                  selectedCategory === category.id ? null : category.id,
+                )
+              }
               className={`cursor-pointer aspect-square p-4 rounded-lg flex flex-col items-center justify-center gap-2 transition-all border-2 ${
                 selectedCategory === category.id
                   ? 'bg-gray-100 shadow-inner transform scale-95'
