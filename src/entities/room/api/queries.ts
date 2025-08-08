@@ -1,8 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { getRoomInfo, getRooms, verifyRoomPassword } from './room';
 import { joinRoom } from './joinRoom';
+import { leaveRoom } from './leaveRoom';
+import { useRoomTokenStore } from '../model/useRoomTokenStore';
 import type { RoomListParams } from './type';
-import type { JoinRoomResponse } from './joinRoom';
 import { roomQueryKeys } from './queryKeys';
 
 // Room 상세 조회
@@ -32,7 +33,7 @@ export const useVerifyRoomPasswordMutation = () => {
 
 // Room 입장 (토큰 발급 포함)
 export const useJoinRoomMutation = () => {
-  const queryClient = useQueryClient();
+  const { setToken } = useRoomTokenStore();
 
   return useMutation({
     mutationFn: ({
@@ -47,24 +48,35 @@ export const useJoinRoomMutation = () => {
       password?: string;
     }) => joinRoom(roomId, userId, identity, password),
     onSuccess: (data, variables) => {
-      // 토큰을 query cache에 저장
-      queryClient.setQueryData(
-        [roomQueryKeys.JOIN_TOKEN, variables.roomId],
-        data,
-      );
+      if (!data.accessToken) {
+        throw new Error('서버에서 유효한 토큰을 받지 못했습니다.');
+      }
+
+      // 토큰을 store에 저장
+      setToken(variables.roomId, data.accessToken);
+    },
+    onError: () => {
+      console.error('❌ joinRoom API 실패:');
+    },
+  });
+};
+
+export const useLeaveRoomMutation = () => {
+  const { clearToken } = useRoomTokenStore();
+
+  return useMutation({
+    mutationFn: ({ roomId, userId }: { roomId: number; userId: number }) =>
+      leaveRoom(roomId, userId),
+    onSuccess: (_, variables) => {
+      // 방 나가기 성공 시 토큰 삭제
+      clearToken(variables.roomId);
     },
   });
 };
 
 // 저장된 입장 토큰 조회
-export const useJoinTokenQuery = (roomId: number) => {
-  return useQuery<JoinRoomResponse | undefined>({
-    queryKey: [roomQueryKeys.JOIN_TOKEN, roomId],
-    queryFn: () => {
-      // cache에서만 데이터를 가져오고, 없으면 undefined 반환
-      return undefined;
-    },
-    enabled: false, // 자동 fetch 방지
-    staleTime: Infinity, // 캐시된 데이터를 항상 fresh로 취급
-  });
+// Room Token Hook (store 기반)
+export const useRoomToken = (roomId: number) => {
+  const { getToken } = useRoomTokenStore();
+  return getToken(roomId);
 };

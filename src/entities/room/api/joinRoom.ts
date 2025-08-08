@@ -1,7 +1,7 @@
 import { request, REQUEST_METHOD } from '@/shared/api/request';
 
 // 고정값 상수
-const TOKEN_EXPIRY_SECONDS = 7200;
+const TOKEN_EXPIRY_SECONDS = 3600;
 const CAN_PUBLISH = true;
 const CAN_SUBSCRIBE = true;
 
@@ -42,6 +42,15 @@ export const joinRoom = async (
       canPublish: CAN_PUBLISH,
       canSubscribe: CAN_SUBSCRIBE,
     },
+  });
+
+  return response.data;
+};
+
+export const leaveRoom = async (roomId: number, userId: number) => {
+  const response = await request({
+    method: REQUEST_METHOD.DELETE,
+    url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/${roomId}/participants?userId=${userId}`,
   });
 
   return response.data;
