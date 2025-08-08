@@ -1,16 +1,16 @@
 interface StudyFiltersProps {
   sortBy: 'popular' | 'latest';
   onSortChange: (sort: 'popular' | 'latest') => void;
-  showPrivateOnly: boolean;
-  onPrivateFilterChange: (show: boolean) => void;
+  hideFullRooms: boolean;
+  onHideFullRoomsChange: (hide: boolean) => void;
   onCategoryClick: () => void;
 }
 
 export const StudyFilters = ({
   sortBy,
   onSortChange,
-  showPrivateOnly,
-  onPrivateFilterChange,
+  hideFullRooms,
+  onHideFullRoomsChange,
   onCategoryClick,
 }: StudyFiltersProps) => {
   return (
@@ -38,8 +38,8 @@ export const StudyFilters = ({
         {/* 필터 버튼 */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onPrivateFilterChange(!showPrivateOnly)}
-            className={`text-sm transition-colors ${showPrivateOnly ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => onHideFullRoomsChange(!hideFullRooms)}
+            className={`text-sm transition-colors ${hideFullRooms ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
           >
             바로 참여가능
           </button>

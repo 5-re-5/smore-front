@@ -18,7 +18,7 @@ export default function StudyListPage() {
 
   // 정렬/필터 상태
   const [sortBy, setSortBy] = useState<'popular' | 'latest'>('latest');
-  const [showPrivateOnly, setShowPrivateOnly] = useState(false);
+  const [hideFullRooms, setHideFullRooms] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
 
@@ -35,7 +35,7 @@ export default function StudyListPage() {
     limit: 20,
     sort: sortBy,
     category: selectedCategory || undefined,
-    hideFullRooms: showPrivateOnly,
+    hideFullRooms: hideFullRooms,
   });
 
   // API로 사용자 프로필 조회
@@ -97,8 +97,8 @@ export default function StudyListPage() {
         <StudyFilters
           sortBy={sortBy}
           onSortChange={setSortBy}
-          showPrivateOnly={showPrivateOnly}
-          onPrivateFilterChange={setShowPrivateOnly}
+          hideFullRooms={hideFullRooms}
+          onHideFullRoomsChange={setHideFullRooms}
           onCategoryClick={() => setShowCategoryModal(true)}
         />
       </div>

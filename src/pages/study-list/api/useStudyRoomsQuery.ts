@@ -43,7 +43,7 @@ const fetchStudyRooms = async (
   if (params.search) searchParams.append('search', params.search);
   if (params.category) searchParams.append('category', params.category);
   if (params.sort) searchParams.append('sort', params.sort);
-  if (params.hideFullRooms) searchParams.append('hideFullRooms', 'false');
+  if (params.hideFullRooms) searchParams.append('hideFullRooms', 'true');
 
   const response = await request<StudyRoomsResponse>({
     method: 'GET',
