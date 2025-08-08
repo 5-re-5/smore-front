@@ -1,24 +1,29 @@
-import type { RecentStudyRoom } from '@/entities/study';
-import type { UserProfile } from '@/entities/user';
+import {
+  useAuth,
+  useRecentStudyQuery,
+  type UserProfile,
+} from '@/entities/user';
 import { RecentStudyCard } from './RecentStudyCard';
 import { UserProgressSection } from './UserProgressSection';
 import { UserSettingsModal } from './UserSettingsModal';
 
 interface UserInfoBoxProps {
   userProfile: UserProfile;
-  recentStudyRooms?: RecentStudyRoom[];
 }
 
-export const UserInfoBox = ({
-  userProfile,
-  recentStudyRooms,
-}: UserInfoBoxProps) => {
+export const UserInfoBox = ({ userProfile }: UserInfoBoxProps) => {
   const todayMinutes = userProfile?.todayStudyMinute ?? 0;
   const goalMinutes = (userProfile?.goalStudyTime ?? 0) * 60;
   const progressPercentage =
     goalMinutes > 0
       ? Math.round((todayMinutes / goalMinutes) * 100 * 100) / 100
       : 0;
+
+  const { userId } = useAuth();
+
+  const { data: recentStudyData } = useRecentStudyQuery(
+    userId?.toString() || '',
+  );
 
   return (
     <div
@@ -65,8 +70,8 @@ export const UserInfoBox = ({
           최근 참가한 스터디
         </div>
         <div className="flex gap-4 justify-between">
-          {recentStudyRooms && recentStudyRooms.length > 0 ? (
-            recentStudyRooms.slice(0, 3).map((room) => (
+          {recentStudyData?.rooms && recentStudyData.rooms.length > 0 ? (
+            recentStudyData.rooms.slice(0, 3).map((room) => (
               <div key={room.roomId} className="flex-shrink-0">
                 <RecentStudyCard room={room} />
               </div>

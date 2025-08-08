@@ -1,7 +1,7 @@
 import { request, REQUEST_METHOD } from '@/shared/api/request';
 
 // 고정값 상수
-const TOKEN_EXPIRY_SECONDS = 7200;
+const TOKEN_EXPIRY_SECONDS = 3600;
 const CAN_PUBLISH = true;
 const CAN_SUBSCRIBE = true;
 
