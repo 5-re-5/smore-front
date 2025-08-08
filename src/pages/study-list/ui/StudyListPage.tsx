@@ -121,22 +121,9 @@ export default function StudyListPage() {
                 스터디 목록을 불러오지 못했습니다.
               </div>
             ) : studyRoomsData?.content?.length ? (
-              studyRoomsData.content.map((apiRoom) => {
-                // API 응답을 StudyRoom 형식으로 변환
-                const room = {
-                  roodId: apiRoom.roomId,
-                  title: apiRoom.title,
-                  thumbnail: apiRoom.thumbnailUrl,
-                  tags: apiRoom.tag,
-                  category: apiRoom.category,
-                  maxParticipants: apiRoom.maxParticipants,
-                  currentParticipants: apiRoom.currentParticipants,
-                  isPomodoro: apiRoom.isPomodoro,
-                  isPrivate: apiRoom.isPrivate,
-                  createrNickname: apiRoom.creator.nickname,
-                };
-                return <StudyCard key={room.roodId} room={room} />;
-              })
+              studyRoomsData.content.map((room) => (
+                <StudyCard key={room.roodId} room={room} />
+              ))
             ) : (
               <div className="col-span-full text-center py-8 text-gray-500">
                 조건에 맞는 스터디가 없습니다.

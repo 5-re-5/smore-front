@@ -52,10 +52,28 @@ const fetchStudyRooms = async (
   return response.data;
 };
 
+// API 응답을 StudyRoom 타입으로 변환하는 함수
+const transformApiRoomToStudyRoom = (apiRoom: ApiStudyRoom): StudyRoom => ({
+  roodId: apiRoom.roomId,
+  title: apiRoom.title,
+  thumbnail: apiRoom.thumbnailUrl,
+  tags: apiRoom.tag,
+  category: apiRoom.category,
+  maxParticipants: apiRoom.maxParticipants,
+  currentParticipants: apiRoom.currentParticipants,
+  isPomodoro: apiRoom.isPomodoro,
+  isPrivate: apiRoom.isPrivate,
+  createrNickname: apiRoom.creator.nickname,
+});
+
 export const useStudyRoomsQuery = (params: StudyRoomsParams) => {
   return useQuery({
     queryKey: ['study-rooms', params],
     queryFn: () => fetchStudyRooms(params),
     staleTime: 30000, // 30초간 캐시 유지
+    select: (data) => ({
+      ...data,
+      content: data.content.map(transformApiRoomToStudyRoom),
+    }),
   });
 };
