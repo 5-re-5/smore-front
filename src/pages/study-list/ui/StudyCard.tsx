@@ -90,7 +90,7 @@ export function StudyCard({ room, onJoinClick }: StudyCardProps) {
   return (
     <>
       {/* 메인 카드 - 세로형 레이아웃 */}
-      <div className="w-[270px] study-card rounded-[30px] overflow-hidden">
+      <div className="w-[270px] h-[380px] study-card rounded-[30px] overflow-hidden flex flex-col">
         {/* 썸네일 섹션 */}
         <div className="relative mt-[11px] mx-[10px]">
           <img
@@ -111,42 +111,45 @@ export function StudyCard({ room, onJoinClick }: StudyCardProps) {
         </div>
 
         {/* 정보 섹션 */}
-        <div className="p-4 space-y-3">
-          {/* 스터디 제목과 참여자 수 */}
-          <div className="flex items-start justify-between mt-[21px]">
-            <h3 className="text-study-text text-lg font-bold leading-tight flex-1">
-              {room.title}
-            </h3>
-            <div className="flex items-center gap-1 text-study-text text-sm ml-2">
-              <UserIcon className="w-4 h-4 text-study-primary" />
-              <span>
-                {room.currentParticipants}/{room.maxParticipants}
-              </span>
+        <div className="p-4 flex-1 flex flex-col">
+          {/* 상단 콘텐츠 (제목, 참여자, 태그) */}
+          <div className="space-y-[25px]">
+            {/* 스터디 제목과 참여자 수 */}
+            <div className="flex items-start justify-between mt-[21px]">
+              <h3 className="text-study-text text-lg font-bold leading-tight flex-1 h-[48px] overflow-hidden line-clamp-2">
+                {room.title}
+              </h3>
+              <div className="flex items-center gap-1 text-study-text text-sm ml-2">
+                <UserIcon className="w-4 h-4 text-study-primary" />
+                <span>
+                  {room.currentParticipants}/{room.maxParticipants}
+                </span>
+              </div>
             </div>
-          </div>
 
-          {/* 태그 */}
-          <div className="flex flex-wrap gap-2 mt-[25px]">
-            {room.tags.slice(0, 3).map((tag, index) => (
-              <span
-                key={index}
-                className="text-study-secondary text-xs py-1 font-bold"
-              >
-                #{tag}
-              </span>
-            ))}
-            {room.tags.length > 3 && (
-              <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 font-medium">
-                +{room.tags.length - 3}
-              </span>
-            )}
+            {/* 태그 */}
+            <div className="flex flex-wrap gap-2">
+              {room.tags.slice(0, 3).map((tag, index) => (
+                <span
+                  key={index}
+                  className="text-study-secondary text-xs py-1 font-bold"
+                >
+                  #{tag}
+                </span>
+              ))}
+              {room.tags.length > 3 && (
+                <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 font-medium">
+                  +{room.tags.length - 3}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* 참가하기 버튼 */}
           <Button
             variant="ghost"
             onClick={handleJoinClick}
-            className="w-full h-[2.17rem] mt-[21px] bg-study-bg hover:bg-gray-200 text-study-secondary font-bold border-0 relative flex items-center justify-center rounded-[1.08rem] transition-colors"
+            className="w-full h-[2.17rem] mt-auto bg-study-bg hover:bg-gray-200 text-study-secondary font-bold border-0 relative flex items-center justify-center rounded-[1.08rem] transition-colors"
             style={{
               boxShadow:
                 '-4.08px -4.08px 8.17px 0 #FFF, 4.08px 4.08px 8.17px 0 rgba(0, 0, 0, 0.08)',
