@@ -25,5 +25,5 @@ export interface StudyRoom {
   createrNickname: string;
   isPrivate: boolean;
   isPomodoro: boolean;
-  isError: boolean;
+  // isError: boolean;
 }

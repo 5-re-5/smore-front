@@ -9,6 +9,7 @@ import {
 import { StudyCard } from './StudyCard';
 import { StudyFilters } from './StudyFilters';
 import { CategoryModal } from './CategoryModal';
+import { useStudyRoomsQuery } from '../api/useStudyRoomsQuery';
 import { useState } from 'react';
 
 export default function StudyListPage() {
@@ -16,13 +17,26 @@ export default function StudyListPage() {
   useUrlAuth();
 
   // 정렬/필터 상태
-  const [sortBy, setSortBy] = useState<'popular' | 'latest'>('popular');
+  const [sortBy, setSortBy] = useState<'popular' | 'latest'>('latest');
   const [showPrivateOnly, setShowPrivateOnly] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   // 인증된 사용자 ID 가져오기
   const { userId } = useAuth();
+
+  // 스터디 룸 목록 API 호출
+  const {
+    data: studyRoomsData,
+    isLoading: isStudyRoomsLoading,
+    error: studyRoomsError,
+  } = useStudyRoomsQuery({
+    page: 1,
+    limit: 20,
+    sort: sortBy,
+    category: selectedCategory || undefined,
+    hideFullRooms: showPrivateOnly,
+  });
 
   // API로 사용자 프로필 조회
   const {
@@ -98,9 +112,36 @@ export default function StudyListPage() {
             className="grid grid-cols-2 md:grid-cols-4 gap-x-[50px] gap-y-[55px] list-none justify-items-center"
             role="list"
           >
-            {MOCK_STUDY_ROOMS.map((room) => (
-              <StudyCard key={room.roodId} room={room} />
-            ))}
+            {isStudyRoomsLoading ? (
+              <div className="col-span-full text-center py-8 text-gray-500">
+                스터디 목록을 불러오는 중...
+              </div>
+            ) : studyRoomsError ? (
+              <div className="col-span-full text-center py-8 text-red-500">
+                스터디 목록을 불러오지 못했습니다.
+              </div>
+            ) : studyRoomsData?.content?.length ? (
+              studyRoomsData.content.map((apiRoom) => {
+                // API 응답을 StudyRoom 형식으로 변환
+                const room = {
+                  roodId: apiRoom.roomId,
+                  title: apiRoom.title,
+                  thumbnail: apiRoom.thumbnailUrl,
+                  tags: apiRoom.tag,
+                  category: apiRoom.category,
+                  maxParticipants: apiRoom.maxParticipants,
+                  currentParticipants: apiRoom.currentParticipants,
+                  isPomodoro: apiRoom.isPomodoro,
+                  isPrivate: apiRoom.isPrivate,
+                  createrNickname: apiRoom.creator.nickname,
+                };
+                return <StudyCard key={room.roodId} room={room} />;
+              })
+            ) : (
+              <div className="col-span-full text-center py-8 text-gray-500">
+                조건에 맞는 스터디가 없습니다.
+              </div>
+            )}
           </div>
         </nav>
       </section>
