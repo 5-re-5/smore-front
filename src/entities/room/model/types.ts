@@ -19,20 +19,20 @@ export interface Room {
 // API 응답 타입 - 백엔드 스키마 그대로
 export interface RoomApiResponse {
   data: {
-    room_id: number;
+    roomId: number;
     title: string;
     description?: string;
-    thumbnail_url?: string;
+    thumbnailUrl?: string;
     tag?: string;
     category: string;
-    focus_time?: number | null;
-    break_time?: number | null;
-    max_participants: number;
-    current_participants: number;
+    focusTime?: number | null;
+    breakTime?: number | null;
+    maxParticipants: number;
+    currentParticipants: number;
     password?: string | null;
-    created_at: string;
+    createdAt: string;
     creator: {
-      user_id: number;
+      userId: number;
       nickname: string;
     };
   };

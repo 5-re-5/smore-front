@@ -6,7 +6,7 @@ import {
   type UpdateUserProfileData,
   type UpdateUserSettingsData,
 } from './userApi';
-import { userQueryKeys } from './queries';
+import { userProfileQueryKeys } from './queries/userQueries';
 
 export const useLogoutMutation = () => {
   return useMutation({
@@ -29,13 +29,13 @@ export const useUpdateUserProfileMutation = () => {
       const { userId } = variables;
 
       // 특정 사용자 프로필 쿼리 캐시 업데이트
-      queryClient.setQueryData(userQueryKeys.profile(userId), {
+      queryClient.setQueryData(userProfileQueryKeys.profile(userId), {
         data: updatedProfile,
       });
 
       // 해당 사용자의 프로필 쿼리만 무효화
       queryClient.invalidateQueries({
-        queryKey: userQueryKeys.profile(userId),
+        queryKey: userProfileQueryKeys.profile(userId),
       });
     },
   });
@@ -56,13 +56,13 @@ export const useUpdateUserSettingsMutation = () => {
       const { userId } = variables;
 
       // 특정 사용자 프로필 쿼리 캐시 업데이트
-      queryClient.setQueryData(userQueryKeys.profile(userId), {
+      queryClient.setQueryData(userProfileQueryKeys.profile(userId), {
         data: updatedProfile,
       });
 
       // 해당 사용자의 프로필 쿼리만 무효화
       queryClient.invalidateQueries({
-        queryKey: userQueryKeys.profile(userId),
+        queryKey: userProfileQueryKeys.profile(userId),
       });
     },
   });

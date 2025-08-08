@@ -1,11 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useUrlAuth, MOCK_STUDY_ROOMS } from '../model';
 import { UserInfoBox } from './UserInfoBox';
-import {
-  useRecentStudyQuery,
-  useUserProfileQuery,
-  useAuth,
-} from '@/entities/user';
+import { useUserProfileQuery, useAuth } from '@/entities/user';
 
 export default function StudyListPage() {
   // URL에서 userId 파라미터 처리
@@ -20,11 +16,6 @@ export default function StudyListPage() {
     isLoading: isUserProfileLoading,
     error: userProfileError,
   } = useUserProfileQuery(userId || 0);
-
-  // API로 최근 참가한 스터디 조회
-  const { data: recentStudyData } = useRecentStudyQuery(
-    userId?.toString() || '',
-  );
 
   // 인증되지 않은 경우 처리
   if (!userId) {
@@ -62,10 +53,7 @@ export default function StudyListPage() {
     <main className="p-8 font-['Noto_Sans_KR']" role="main">
       {/* 내정보박스 */}
       <section className="mb-8">
-        <UserInfoBox
-          userProfile={userProfileData}
-          recentStudyRooms={recentStudyData?.rooms}
-        />
+        <UserInfoBox userProfile={userProfileData} />
       </section>
       <div className="mb-6">
         <div className="flex justify-between items-start">

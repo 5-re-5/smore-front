@@ -1,4 +1,4 @@
-import { useRoomQuery } from '@/entities/room/api/queries';
+import { useRoomInfoQuery } from '@/entities/room/api/queries';
 import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 
 const DEFAULT_FOCUS_TIME = 25;
@@ -8,7 +8,7 @@ interface RoomInfoProps {
 }
 
 export const RoomInfo = ({ roomId }: RoomInfoProps) => {
-  const { data, isLoading, error } = useRoomQuery(roomId);
+  const { data, isLoading, error } = useRoomInfoQuery(roomId);
   const room = data ? adaptRoomFromApi(data) : null;
 
   if (isLoading) return <RoomInfoSkeleton />;

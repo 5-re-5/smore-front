@@ -1,7 +1,7 @@
 // Study room constants
 export const MOCK_STUDY_ROOMS = [
   {
-    id: '123',
+    id: '3',
     title: 'JavaScript 심화 스터디',
     isPrivate: false,
     currentParticipants: 4,
@@ -10,7 +10,7 @@ export const MOCK_STUDY_ROOMS = [
     isError: false,
   },
   {
-    id: '456',
+    id: '2',
     title: 'React 심화 스터디',
     isPrivate: true,
     currentParticipants: 2,
@@ -19,7 +19,7 @@ export const MOCK_STUDY_ROOMS = [
     isError: false,
   },
   {
-    id: '789',
+    id: '1',
     title: '알고리즘 스터디',
     isPrivate: false,
     currentParticipants: 6,
