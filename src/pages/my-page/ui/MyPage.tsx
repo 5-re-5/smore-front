@@ -1,35 +1,35 @@
-// src/pages/my-page/MyPage.tsx
-import styles from '../MyPage.module.css';
+import React from 'react';
 
 import ProfileCard from './ProfileCard';
 import AiFocusLineChart from './AiFocusLineChart';
 import StatPanel from './StatPanel';
-import WeeklyBarChart from './WeeklyBarChart';
 import MonthlyLineChart from './MonthlyLineChart';
+import WeeklyBarChartToggle from './WeeklyBarChartToggle';
 
-const MyPage = () => {
+const MyPage: React.FC = () => {
   return (
-    <main className={styles.myPage}>
-      <div className={styles.headerWrap}>{/* 고정 헤더 분리 가능 */}</div>
+    <main className="max-w-[1440px] w-full min-h-screen mx-auto px-12 py-16 bg-[#EBF3FF] flex flex-col items-center box-border overflow-x-visible">
+      {/* 고정 헤더 영역 */}
+      <div className="w-full mb-10">{/* 헤더 컴포넌트 또는 자리 */}</div>
 
-      {/* ProfileCard는 section 없이 바로 렌더링 (흰색박스 제거) */}
-      <ProfileCard />
+      {/* 프로필 */}
+      <div className="w-full max-w-[1200px] mx-auto">
+        <ProfileCard />
+      </div>
 
-      {/* 나머지는 기존대로 section 래핑 유지 */}
-      <section className={styles.section}>
-        <AiFocusLineChart />
-      </section>
-      <section className={styles.section}>
+      {/* 자식 컴포넌트들 */}
+      <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-40 mt-14 pb-48 min-h-[900px]">
+        <AiFocusLineChart userId="1" />
         <StatPanel />
-      </section>
-      <section className={styles.section}>
-        <WeeklyBarChart />
-      </section>
-      <section className={styles.section}>
-        <MonthlyLineChart />
-      </section>
+        {/* 토글 그래프 컴포넌트 */}
+        <WeeklyBarChartToggle userId="1" />
+        <MonthlyLineChart userId="1" />
+      </div>
 
-      <div className={styles.footerWrap}>{/* 고정 푸터 분리 가능 */}</div>
+      {/* 푸터 */}
+      <footer className="w-full max-w-[1200px] mx-auto mt-32 text-center text-gray-500 text-sm">
+        {/* 푸터 컴포넌트 또는 텍스트 */}
+      </footer>
     </main>
   );
 };

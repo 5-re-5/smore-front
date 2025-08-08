@@ -1,100 +1,87 @@
-// src/pages/my-page/ui/ProfileCard.tsx
 import type { FunctionComponent } from 'react';
-import { useState } from 'react';
-import MarshmallowHeatmap from './MarshmallowHeatmap';
-import styles from './ProfileCard.module.css';
-
-// 등급별 동적 과자 배열 (이후 gradeLevel을 API 등에서 받아올 경우 대응)
-const getSnackIcons = (level: number) =>
-  Array.from({ length: level }, (_, i) => (
-    <img
-      key={i}
-      className={styles.snackIcon}
-      src="/images/snack_o.png" // 과자 아이콘 (PNG, 투명 배경 권장)
-      alt="등급 과자"
-      draggable={false}
-    />
-  ));
-
-const dummyUser = {
-  name: '김종운',
-  streak: 25,
-  goal: '토익 스피킹 IH 취득',
-  grade: 'OrerereO',
-  gradeLevel: 3, // ← 등급 1~N (동적으로)
-  profileImg: '', // 실제 서비스에서 유저별 URL 사용
-};
-
-const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
-
-const ProfileImage: FunctionComponent<{
-  src: string | null | undefined;
-  alt: string;
-}> = ({ src, alt }) => {
-  const [imgSrc, setImgSrc] = useState(src || DEFAULT_PROFILE_IMG);
-  return (
-    <img
-      className={styles.profileImg}
-      src={imgSrc}
-      alt={alt}
-      onError={() => setImgSrc(DEFAULT_PROFILE_IMG)}
-      draggable={false}
-    />
-  );
-};
 
 const ProfileCard: FunctionComponent = () => {
-  const handleEditProfile = () => {
-    window.location.href = '/profile-edit';
-  };
-
   return (
-    <div className={styles.profileCard}>
-      {/* 상단 프로필/정보/등급 */}
-      <div className={styles.infoRow}>
-        <div className={styles.profileWrapper}>
-          <ProfileImage src={dummyUser.profileImg} alt="프로필 이미지" />
-          <button
-            className={styles.editButton}
-            onClick={handleEditProfile}
-            title="프로필 수정"
-          >
-            {/* svg 아이콘 유지 */}
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-              <path
-                d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7Z"
-                stroke="#888"
-                strokeWidth="2"
-              />
-              <path
-                d="M19.4 15a1.65 1.65 0 0 1 0 2.83l-.5.29a2 2 0 0 1-2.74-.7l-.14-.24a5.31 5.31 0 0 1-1.78.32 5.31 5.31 0 0 1-1.77-.32l-.15.25a2 2 0 0 1-2.74.7l-.5-.28A1.65 1.65 0 0 1 4.6 15c.07-.18.11-.37.14-.56a5.27 5.27 0 0 1-.34-1.87c0-.65.13-1.29.34-1.87-.03-.18-.07-.37-.14-.55a1.65 1.65 0 0 1 0-2.83l.5-.29a2 2 0 0 1 2.74.7l.15.24c.57.17 1.16.26 1.77.32a5.31 5.31 0 0 1 1.77-.32l.15-.25a2 2 0 0 1 2.74-.7l.5.28a1.65 1.65 0 0 1 0 2.83c-.07.18-.11.37-.14.56a5.27 5.27 0 0 1 .34 1.87c0 .65-.13 1.29-.34 1.87.03.18.07.37.14.55Z"
-                stroke="#888"
-                strokeWidth="2"
-              />
-            </svg>
-          </button>
+    <div
+      className="
+      w-[1200px] h-[700px]
+      bg-aliceblue
+      shadow-[-10px_-10px_20px_#fff,_10px_10px_20px_rgba(0,_0,_0,_0.09)]
+      rounded-[25px]
+      relative
+      text-left text-[1.5rem] text-dimgray font-montserrat
+      mx-auto
+      flex flex-col
+      justify-start
+      items-center
+    "
+    >
+      {/* 상단 3개 영역: 프로필, 텍스트, 음각박스 */}
+      <div className="w-full flex flex-row items-start justify-between pt-16 pr-8">
+        {/* 1. 프로필 이미지 (좌측) */}
+        <img
+          className="w-[180px] h-[180px] rounded-[45px] object-cover ml-[56px]" // <== 하단 left와 "일치"시키기 위해 left margin을 56px로!
+          alt=""
+          src="프로필 이미지.png"
+        />
+
+        {/* 2. 출석/닉네임 영역(중앙) */}
+        <div className="flex flex-col justify-center items-start min-w-[220px] relative h-[180px] ml-8">
+          <b className="mb-3 block tracking-[0.01em] leading-[133.4%] h-[36px]">
+            연속 25일 출석!
+          </b>
+          <b className="text-[2rem] text-darkslategray block mb-3 tracking-[0.01em] leading-[133.4%] h-[32px]">
+            김종운
+          </b>
+          <b className="block tracking-[0.01em] leading-[133.4%] text-lightseagreen h-[34px]">
+            토익 스피킹 IH 취득
+          </b>
         </div>
-        <div className={styles.infoWrapper}>
-          <div
-            className={styles.streak}
-          >{`연속 ${dummyUser.streak}일 출석!`}</div>
-          <div className={styles.name}>{dummyUser.name}</div>
-          <div className={styles.goal}>{dummyUser.goal}</div>
-        </div>
-        <div className={styles.gradeNeumorph}>
-          <span className={styles.gradeText}>{dummyUser.grade}</span>
-          <div className={styles.snackRow}>
-            {getSnackIcons(dummyUser.gradeLevel)}
-          </div>
+
+        {/* 3. 음각(우측) 영역 카드 */}
+        <div
+          className="
+            relative
+            w-[450px] h-[190px]
+            flex-shrink-0
+            flex flex-col items-center
+            rounded-[43px]
+            bg-aliceblue
+            shadow-[-8px_-8px_16px_#fff_inset,_8px_8px_16px_#d0d3d7_inset]
+            mr-[56px]  // 박스 오른쪽 공간도 동일하게 균형
+          "
+          style={{ left: 0 }} // left 속성 없거나 값이 0이면 x축 정렬 보장
+        >
+          <img
+            className="absolute top-[-18px] left-[160px] rounded-[141px] w-[150px] h-[45px]"
+            alt=""
+            src="등급 버튼.svg"
+          />
+          <b className="absolute top-[12px] left-[202px] tracking-[0.01em] leading-[133.4%] text-[1.25rem]">
+            <span>O</span>
+            <span className="text-darkgray">rerere</span>
+            <span>O</span>
+          </b>
         </div>
       </div>
 
-      {/* 하단 마시멜로 히트맵, 음각 테두리 카드 */}
-      <div className={styles.heatmapCard}>
-        <div className={styles.heatmapTitleWrap}>
-          <span className={styles.heatmapTitle}>마시멜로 굽기</span>
+      {/* 하단(absolute 박스라인) - 동일 left값(56px)로 두 영역의 좌측 정렬이 "정확히 맞음" */}
+      <div
+        className="
+        absolute left-[56px] top-[350px]
+        w-[1087px] h-[286px] flex flex-row items-start justify-start
+        pt-[22px] pb-[24px] pl-[22px] pr-[24px] box-border
+      "
+      >
+        <div className="w-full h-full absolute m-0 top-0 right-0 bottom-0 left-0 z-[0]">
+          <div className="absolute h-full w-full top-0 right-0 bottom-0 left-0 shadow-[-1px_-1px_0px_#fff_inset,_-2px_-2px_2px_#b8cce0_inset,_-1px_-1px_0px_#fff,_-2px_-2px_2px_#b8cce0] rounded-[32px] bg-aliceblue" />
         </div>
-        <MarshmallowHeatmap />
+      </div>
+      <div className="absolute top-[300px] left-[56px] tracking-[0.01em] leading-[133.4%] font-semibold text-darkslategray inline-block w-[200px] h-[40px]">
+        마시멜로 굽기
+      </div>
+      <div className="absolute top-[318px] left-[1018px] text-[0.875rem] tracking-[-0.02em] leading-[100%] font-medium font-dm-sans text-gray">
+        최근 1년 간 공부 기록
       </div>
     </div>
   );
