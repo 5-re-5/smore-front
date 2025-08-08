@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { StudyRoom } from '@/entities/study';
 import { UserIcon, LockIcon, ClockIcon } from '@/shared/ui/icons';
 import { Button } from '@/shared/ui';
+import { useJoinStudyMutation } from '../api/useJoinStudyMutation';
 
 interface StudyCardProps {
   room: StudyRoom;
@@ -13,10 +14,14 @@ const StudyModal = ({
   isOpen,
   onClose,
   room,
+  onJoin,
+  isJoining,
 }: {
   isOpen: boolean;
   onClose: () => void;
   room: StudyRoom;
+  onJoin: (roomId: number) => void;
+  isJoining: boolean;
 }) => {
   if (!isOpen) return null;
 
@@ -66,12 +71,13 @@ const StudyModal = ({
           </button>
           <button
             onClick={() => {
-              console.log(`스터디 ${room.roodId}에 참가합니다`);
+              onJoin(room.roodId);
               onClose();
             }}
-            className="flex-1 py-3 px-4 bg-study-primary text-white font-medium rounded-lg hover:opacity-90 transition-colors"
+            disabled={isJoining}
+            className="flex-1 py-3 px-4 bg-study-primary text-white font-medium rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
           >
-            참가하기
+            {isJoining ? '참가 중...' : '참가하기'}
           </button>
         </div>
       </div>
@@ -81,6 +87,7 @@ const StudyModal = ({
 
 export function StudyCard({ room, onJoinClick }: StudyCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const joinMutation = useJoinStudyMutation();
 
   const handleJoinClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -184,6 +191,8 @@ export function StudyCard({ room, onJoinClick }: StudyCardProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         room={room}
+        onJoin={(roomId) => joinMutation.mutate({ roomId })}
+        isJoining={joinMutation.isPending}
       />
     </>
   );

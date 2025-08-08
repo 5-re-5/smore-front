@@ -139,9 +139,9 @@ export default function StudyListPage() {
         onClose={() => setShowCategoryModal(false)}
         selectedCategory={selectedCategory}
         onCategorySelect={setSelectedCategory}
-        onComplete={() => {
+        onComplete={(category) => {
+          setSelectedCategory(category);
           setShowCategoryModal(false);
-          // TODO: API 호출로 카테고리 필터 적용
         }}
       />
     </main>
