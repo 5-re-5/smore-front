@@ -1,9 +1,11 @@
+import { useState, useEffect } from 'react';
+
 interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedCategory: string | null;
   onCategorySelect: (category: string | null) => void;
-  onComplete: () => void;
+  onComplete: (category: string | null) => void;
 }
 
 const categories = [
@@ -22,6 +24,17 @@ export const CategoryModal = ({
   onCategorySelect,
   onComplete,
 }: CategoryModalProps) => {
+  const [tempCategory, setTempCategory] = useState<string | null>(
+    selectedCategory,
+  );
+
+  // 모달이 열릴 때마다 현재 선택된 카테고리로 초기화
+  useEffect(() => {
+    if (isOpen) {
+      setTempCategory(selectedCategory);
+    }
+  }, [isOpen, selectedCategory]);
+
   if (!isOpen) return null;
 
   return (
@@ -44,12 +57,12 @@ export const CategoryModal = ({
             <button
               key={category.id}
               onClick={() =>
-                onCategorySelect(
-                  selectedCategory === category.id ? null : category.id,
+                setTempCategory(
+                  tempCategory === category.id ? null : category.id,
                 )
               }
               className={`cursor-pointer aspect-square p-4 rounded-lg flex flex-col items-center justify-center gap-2 transition-all border-2 ${
-                selectedCategory === category.id
+                tempCategory === category.id
                   ? 'bg-gray-100 shadow-inner transform scale-95'
                   : 'bg-gray-100 hover:bg-gray-200 border-transparent shadow-md hover:shadow-lg'
               }`}
@@ -64,7 +77,7 @@ export const CategoryModal = ({
 
         {/* 완료 버튼 */}
         <button
-          onClick={onComplete}
+          onClick={() => onComplete(tempCategory)}
           className="cursor-pointer w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 rounded-lg transition-colors"
         >
           완료
