@@ -1,13 +1,13 @@
-import { useRef } from 'react';
-import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
 import { useFaceDetection } from '@/features/face-detection/model/useFaceDetection';
-import { useAttachLocalCameraTrack } from '../model/useAttachLocalCameraTrack';
+import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
+import { useAutoCaptureScheduler } from '@/features/focus-capture';
 import {
   TrackMutedIndicator,
   useLocalParticipant,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
-import { CaptureButton } from '@/features/focus-capture';
+import { useRef } from 'react';
+import { useAttachLocalCameraTrack } from '../model/useAttachLocalCameraTrack';
 
 export function LocalVideoTile() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -41,6 +41,10 @@ export function LocalVideoTile() {
 
   useFaceDetection(videoRef);
 
+  useAutoCaptureScheduler(videoRef, {
+    enabled: true,
+  });
+
   return (
     <div className="relative">
       <video
@@ -52,7 +56,7 @@ export function LocalVideoTile() {
         style={{ transform: 'scaleX(-1)' }}
       />
       {!faceDetected && (
-        <div className="absolute top-0 left-0 w-full text-center text-red-600 font-bold bg-transparent">
+        <div className="absolute top-0 left-0 w-full text-center text-red-600 font-bold bg-black/50 px-2 py-1 rounded-b">
           얼굴 감지 불가능
         </div>
       )}
@@ -75,9 +79,6 @@ export function LocalVideoTile() {
       </div>
       {/* 하단 컨트롤 버튼들 */}
       <div className="absolute bottom-2 right-2 flex flex-col gap-2">
-        {/* AI 집중도 분석 캡쳐 버튼 */}
-        <CaptureButton videoRef={videoRef} className="text-xs" />
-
         {/* 얼굴 감지 on/off 버튼 */}
         <button
           onClick={handleToggleFaceDetection}

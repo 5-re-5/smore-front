@@ -18,12 +18,7 @@ export {
 } from './model/performanceTest';
 
 // Auto capture scheduling
-export {
-  useAutoCaptureScheduler,
-  AutoCaptureConfigManager,
-  DEFAULT_AUTO_CAPTURE_CONFIG,
-  type AutoCaptureConfig,
-} from './model/useAutoCaptureScheduler';
+export { useAutoCaptureScheduler } from './model/useAutoCaptureScheduler';
 
 // UI Components
 export { CaptureButton } from './ui/CaptureButton';
