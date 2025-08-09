@@ -1,7 +1,7 @@
+import ChatPanel from '@/features/chat/ui/ChatPanel';
 import { PomodoroSection } from '@/features/pomodoro';
 import { StopwatchController } from '@/features/stopwatch';
 import { WhiteNoiseComponents } from '@/features/white-noise';
-import ChatPanel from '@/features/chat/ui/ChatPanel';
 import { TrackToggle } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { useState } from 'react';
@@ -14,6 +14,11 @@ function RoomLayout() {
     <>
       <VideoGrid />
       {/* 채팅 아이콘 버튼 */}
+      스톱워치
+      <StopwatchController />
+      화이트 노이즈
+      <WhiteNoiseComponents />
+      <PomodoroSection />
       <div className="absolute bottom-4 right-4 z-50">
         <button
           onClick={() => setIsChatOpen((prev) => !prev)}
@@ -36,11 +41,6 @@ function RoomLayout() {
       {/* Todo: 미디어 바 위젯 만들기 */}
       <TrackToggle source={Track.Source.Microphone} />
       <TrackToggle source={Track.Source.Camera} />
-      <PomodoroSection />
-      스톱워치
-      <StopwatchController />
-      화이트 노이즈
-      <WhiteNoiseComponents />
     </>
   );
 }
