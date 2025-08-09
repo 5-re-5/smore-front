@@ -64,7 +64,7 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
                     <SelectValue placeholder="시간" />
                   </SelectTrigger>
                   <SelectContent className="max-h-60 overflow-y-auto">
-                    {Array.from({ length: 24 }, (_, i) => i + 1).map((hour) => (
+                    {Array.from({ length: 23 }, (_, i) => i + 1).map((hour) => (
                       <SelectItem key={hour} value={hour.toString()}>
                         {hour}시간
                       </SelectItem>

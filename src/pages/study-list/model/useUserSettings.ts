@@ -37,9 +37,9 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
 
     const goalTimeHours = userProfile.goalStudyTime || 1;
 
-    // 시간 계산 (1-24 범위로 제한)
+    // 시간 계산 (1-23 범위로 제한)
     const hours = Math.floor(goalTimeHours);
-    const safeHours = Math.min(Math.max(hours, 1), 24);
+    const safeHours = Math.min(Math.max(hours, 1), 23);
 
     // 분 계산 (15분 단위로 반올림하여 0, 15, 30, 45 중 하나로 설정)
     const exactMinutes = Math.round((goalTimeHours % 1) * 60);
@@ -60,36 +60,9 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
     resetFormToDefaults();
   }, [resetFormToDefaults]);
 
-  // 유효성 검사 함수
-  const validateFormData = (): boolean => {
-    const totalStudyTime = parseInt(targetHour) + parseInt(targetMinute) / 60;
-
-    if (totalStudyTime === 0) {
-      alert('목표 시간을 설정해주세요.');
-      return false;
-    }
-
-    if (!determination.trim()) {
-      alert('각오를 입력해주세요.');
-      return false;
-    }
-
-    if (!targetDateTitle.trim()) {
-      alert('D-DAY 제목을 입력해주세요.');
-      return false;
-    }
-
-    if (!selectedDate) {
-      alert('D-DAY 날짜를 선택해주세요.');
-      return false;
-    }
-
-    return true;
-  };
-
   // API 데이터 변환 함수
   const convertToApiData = () => {
-    const totalStudyTime = parseInt(targetHour) + parseInt(targetMinute) / 60;
+    const totalStudyTime = parseInt(targetHour) * 60 + parseInt(targetMinute);
     return {
       goalStudyTime: totalStudyTime,
       determination: determination.trim(),
@@ -116,8 +89,6 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
   };
 
   const handleSave = async () => {
-    if (!validateFormData()) return;
-
     const apiData = convertToApiData();
     await saveUserSettings(apiData);
   };
