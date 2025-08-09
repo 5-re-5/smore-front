@@ -1,12 +1,40 @@
+import { useRejoinRoomMutation } from '@/entities/room/api/queries';
 import type { RecentStudyRoom } from '@/entities/study';
 import { Button } from '@/shared/ui/button';
-import { GroupIcon, ArrowIcon } from '@/shared/ui/icons';
+import { ArrowIcon, GroupIcon } from '@/shared/ui/icons';
+import { useNavigate } from '@tanstack/react-router';
 
 interface RecentStudyCardProps {
   room: RecentStudyRoom;
+  userId: number;
 }
 
-export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
+export const RecentStudyCard = ({ room, userId }: RecentStudyCardProps) => {
+  const navigate = useNavigate();
+  const rejoinMutation = useRejoinRoomMutation();
+
+  const handleReJoin = () => {
+    if (!userId) {
+      console.error('사용자 ID를 찾을 수 없습니다.');
+      return;
+    }
+
+    rejoinMutation.mutate(
+      { roomId: room.roomId, userId },
+      {
+        onSuccess: () => {
+          navigate({
+            to: '/room/$roomId',
+            params: { roomId: room.roomId.toString() },
+          });
+        },
+        onError: (error) => {
+          console.error('방 재입장 실패:', error);
+        },
+      },
+    );
+  };
+
   return (
     <div className="w-[22.19rem] h-[13.56rem] p-[0.75rem] study-card">
       <div className="flex gap-[0.75rem] h-full">
@@ -62,10 +90,7 @@ export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
                 boxShadow:
                   '-4.08px -4.08px 8.17px 0 #FFF, 4.08px 4.08px 8.17px 0 rgba(0, 0, 0, 0.08)',
               }}
-              onClick={() => {
-                // TODO: 재입장 로직 구현
-                console.log('재입장:', room.roomId);
-              }}
+              onClick={handleReJoin}
             >
               재입장하기
               <div
