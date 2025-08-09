@@ -35,7 +35,7 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
       return;
     }
 
-    const goalTimeHours = userProfile.goalStudyTime || 1;
+    const goalTimeHours = userProfile.goalStudyTime / 60 || 1;
 
     // 시간 계산 (1-23 범위로 제한)
     const hours = Math.floor(goalTimeHours);
