@@ -68,7 +68,7 @@ export const UserInfoBox = ({ userProfile }: UserInfoBoxProps) => {
           {recentStudyData?.rooms && recentStudyData.rooms.length > 0 ? (
             recentStudyData.rooms.slice(0, 3).map((room) => (
               <div key={room.roomId} className="flex-shrink-0">
-                <RecentStudyCard room={room} />
+                <RecentStudyCard room={room} userId={userId ?? 0} />
               </div>
             ))
           ) : (
