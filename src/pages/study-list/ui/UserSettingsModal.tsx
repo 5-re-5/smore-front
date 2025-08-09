@@ -106,7 +106,21 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
               onChange={(e) => userSettings.setDetermination(e.target.value)}
               placeholder="오늘의 각오를 입력해주세요"
               className="w-full"
+              maxLength={20}
             />
+            <div className="flex justify-end mt-1">
+              <span
+                className={`text-xs ${
+                  userSettings.determination.length >= 20
+                    ? 'text-red-500'
+                    : userSettings.determination.length >= 18
+                      ? 'text-orange-500'
+                      : 'text-gray-500'
+                }`}
+              >
+                {userSettings.determination.length}/20
+              </span>
+            </div>
           </div>
 
           {/* D-DAY 설정 */}
@@ -116,9 +130,22 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
               value={userSettings.targetDateTitle}
               onChange={(e) => userSettings.setTargetDateTitle(e.target.value)}
               placeholder="예: 수능, 토익, 프로젝트 마감일 등"
-              className="w-full mb-3"
+              className="w-full"
               maxLength={10}
             />
+            <div className="flex justify-end mt-1">
+              <span
+                className={`text-xs ${
+                  userSettings.targetDateTitle.length >= 10
+                    ? 'text-red-500'
+                    : userSettings.targetDateTitle.length >= 8
+                      ? 'text-orange-500'
+                      : 'text-gray-500'
+                }`}
+              >
+                {userSettings.targetDateTitle.length}/10
+              </span>
+            </div>
 
             <Label className="text-sm font-bold mb-2 block">D-DAY 날짜</Label>
             <Popover>
