@@ -22,8 +22,19 @@ interface UseUserSettingsProps {
 export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
   const [targetHour, setTargetHour] = useState<string>('1');
   const [targetMinute, setTargetMinute] = useState<string>('0');
-  const [determination, setDetermination] = useState<string>('');
-  const [targetDateTitle, setTargetDateTitle] = useState<string>('');
+  const [determination, setDeterminationState] = useState<string>('');
+
+  const setDetermination = useCallback((value: string) => {
+    const limitedValue = value.length > 20 ? value.slice(0, 20) : value;
+    setDeterminationState(limitedValue);
+  }, []);
+  const [targetDateTitle, setTargetDateTitleState] = useState<string>('');
+
+  // D-DAY 제목 설정 함수 (10자 제한)
+  const setTargetDateTitle = useCallback((value: string) => {
+    const limitedValue = value.length > 10 ? value.slice(0, 10) : value;
+    setTargetDateTitleState(limitedValue);
+  }, []);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -48,8 +59,8 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
 
     setTargetHour(safeHours.toString());
     setTargetMinute(safeMinutes.toString());
-    setDetermination(userProfile.determination || '');
-    setTargetDateTitle(userProfile.targetDateTitle || '');
+    setDeterminationState(userProfile.determination || '');
+    setTargetDateTitleState(userProfile.targetDateTitle || '');
     if (userProfile.targetDate) {
       setSelectedDate(parseServerDate(userProfile.targetDate));
     }
