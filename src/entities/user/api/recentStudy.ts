@@ -47,6 +47,5 @@ export const getRecentStudy = async (userId: string) => {
     url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/${userId}/recent-study`,
     method: REQUEST_METHOD.GET,
   });
-  console.log('reacmte', response);
   return adaptRecentStudyData(response.data);
 };
