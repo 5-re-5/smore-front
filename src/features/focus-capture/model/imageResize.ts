@@ -1,3 +1,9 @@
+import {
+  setupSharedCanvas,
+  drawToSharedCanvas,
+  sharedCanvasToBlob,
+} from '@/shared/utils/canvasManager';
+
 const RESIZE_CONFIG = {
   MAX_FILE_SIZE_KB: 100,
   MAX_FILE_SIZE_BYTES: 100 * 1024, // 100KB
@@ -38,7 +44,7 @@ export const resizeImageToTargetSize = async (
 
   // 원본 이미지를 Image 객체로 로드
   const image = await loadImageFromBlob(originalBlob);
-  console.log('originalBlob', originalBlob.size);
+
   // 초기 상태에서 목표 크기보다 작으면 그대로 반환
   if (originalBlob.size <= maxSizeBytes) {
     return {
@@ -105,37 +111,19 @@ const loadImageFromBlob = (blob: Blob): Promise<HTMLImageElement> => {
 /**
  * Image 객체에서 지정된 품질로 Blob을 생성합니다.
  */
-const createResizedBlob = (
+const createResizedBlob = async (
   image: HTMLImageElement,
   quality: number,
   format: string,
 ): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+  // 공유 Canvas 설정
+  setupSharedCanvas(image.width, image.height);
 
-    if (!ctx) {
-      reject(new Error('Canvas 컨텍스트를 가져올 수 없습니다'));
-      return;
-    }
+  // 이미지를 Canvas에 그리기
+  drawToSharedCanvas(image, 0, 0);
 
-    canvas.width = image.width;
-    canvas.height = image.height;
-
-    ctx.drawImage(image, 0, 0);
-
-    canvas.toBlob(
-      (blob) => {
-        if (blob) {
-          resolve(blob);
-        } else {
-          reject(new Error('이미지 Blob 생성 실패'));
-        }
-      },
-      format,
-      quality,
-    );
-  });
+  // Canvas를 Blob으로 변환
+  return sharedCanvasToBlob(format, quality);
 };
 
 /**
@@ -183,39 +171,21 @@ const resizeByDimensions = async (
 /**
  * 지정된 크기와 품질로 이미지 Blob을 생성합니다.
  */
-const createResizedBlobWithDimensions = (
+const createResizedBlobWithDimensions = async (
   image: HTMLImageElement,
   width: number,
   height: number,
   quality: number,
   format: string,
 ): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+  // 공유 Canvas 설정
+  setupSharedCanvas(width, height);
 
-    if (!ctx) {
-      reject(new Error('Canvas 컨텍스트를 가져올 수 없습니다'));
-      return;
-    }
+  // 이미지를 Canvas에 그리기 (크기 조정)
+  drawToSharedCanvas(image, 0, 0, width, height);
 
-    canvas.width = width;
-    canvas.height = height;
-
-    ctx.drawImage(image, 0, 0, width, height);
-
-    canvas.toBlob(
-      (blob) => {
-        if (blob) {
-          resolve(blob);
-        } else {
-          reject(new Error('이미지 Blob 생성 실패'));
-        }
-      },
-      format,
-      quality,
-    );
-  });
+  // Canvas를 Blob으로 변환
+  return sharedCanvasToBlob(format, quality);
 };
 
 /**
