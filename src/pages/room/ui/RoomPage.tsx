@@ -3,6 +3,7 @@ import {
   useRoomToken,
 } from '@/entities/room/api/queries';
 import { useAuth } from '@/entities/user';
+import { useStopwatchStore } from '@/features/stopwatch';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
 import { Button } from '@/shared/ui/button';
 import { RoomLayout } from '@/widgets';
@@ -37,7 +38,7 @@ function RoomPage() {
     'connecting' | 'connected' | 'disconnected' | 'error'
   >('connecting');
   const [errorMessage, setErrorMessage] = useState<string>('');
-
+  const { reset } = useStopwatchStore();
   const [retryCount, setRetryCount] = useState<number>(0);
 
   // roomId 유효성 검사
@@ -95,6 +96,11 @@ function RoomPage() {
       return;
     }
   }, [roomId, roomIdNumber, token, navigate]);
+
+  // 스톱워치 초기화
+  useEffect(() => {
+    return () => reset();
+  }, [reset]);
 
   // 토큰이 없으면 로딩 상태 (리다이렉트 전까지)
   if (!token) {

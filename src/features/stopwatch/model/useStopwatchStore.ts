@@ -15,6 +15,7 @@ interface StopwatchState {
   isApiLoading: boolean;
   start: () => Promise<void>;
   pause: () => Promise<void>;
+  reset: () => void;
   updateTimes: () => void;
   syncWithServer: () => Promise<void>;
 }
@@ -77,6 +78,10 @@ export const useStopwatchStore = create<StopwatchState>((set, get) => ({
         isRunning: false, // 일시정지는 로컬에서도 적용
       });
     }
+  },
+
+  reset: () => {
+    set({ curStudyTime: 0 });
   },
 
   updateTimes: () =>
