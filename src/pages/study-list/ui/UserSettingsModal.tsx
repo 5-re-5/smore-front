@@ -1,11 +1,6 @@
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import type { UserProfile } from '@/entities/user';
+import { Calendar } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
-import { Calendar } from '@/shared/ui/calendar';
 import {
   Dialog,
   DialogContent,
@@ -15,8 +10,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/shared/ui/dialog';
+import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import {
   Select,
   SelectContent,
@@ -24,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui/select';
-import { SettingsIcon } from '@/shared/ui/settings-icon';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useUserSettings } from '../model/useUserSettings';
@@ -35,7 +31,6 @@ interface UserSettingsModalProps {
 
 export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
   const userSettings = useUserSettings({ userProfile });
-
   return (
     <Dialog open={userSettings.isOpen} onOpenChange={userSettings.setIsOpen}>
       <DialogTrigger asChild>
@@ -167,6 +162,7 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
                   mode="single"
                   selected={userSettings.selectedDate}
                   onSelect={userSettings.setSelectedDate}
+                  captionLayout={'dropdown'}
                   disabled={(date) =>
                     date < new Date() || date < new Date('1900-01-01')
                   }
