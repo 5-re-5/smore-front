@@ -1,5 +1,6 @@
 import {
   useLeaveRoomMutation,
+  useRejoinRoomMutation,
   useRoomToken,
 } from '@/entities/room/api/queries';
 import { useAuth } from '@/entities/user';
@@ -16,28 +17,19 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { DisconnectReason } from 'livekit-client';
 import { useEffect, useState } from 'react';
 
-// 로딩 상태 컴포넌트
-const LoadingState = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-      <h2 className="text-xl font-semibold mt-4 text-gray-900">
-        스터디룸에 연결 중...
-      </h2>
-      <p className="text-gray-600 mt-2">잠시만 기다려주세요</p>
-    </div>
-  </div>
-);
-
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
   const navigate = useNavigate();
   const leaveRoomMutation = useLeaveRoomMutation();
+  const rejoinMutation = useRejoinRoomMutation();
   const { userId } = useAuth();
   const [connectionStatus, setConnectionStatus] = useState<
     'connecting' | 'connected' | 'disconnected' | 'error'
   >('connecting');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [autoRejoinStatus, setAutoRejoinStatus] = useState<
+    'idle' | 'attempting' | 'success' | 'failed'
+  >('idle');
   const resetStopwatch = useStopwatchStore((state) => state.resetStopwatch);
   const [retryCount, setRetryCount] = useState<number>(0);
 
@@ -79,6 +71,34 @@ function RoomPage() {
   // 저장된 토큰 조회
   const token = useRoomToken(roomIdNumber);
 
+  // 자동 재입장 시도
+  const attemptAutoRejoin = async () => {
+    if (!userId || autoRejoinStatus === 'attempting') {
+      return;
+    }
+
+    setAutoRejoinStatus('attempting');
+
+    rejoinMutation.mutate(
+      { roomId: roomIdNumber, userId },
+      {
+        onSuccess: () => {
+          setAutoRejoinStatus('success');
+        },
+        onError: (error) => {
+          console.error('자동 재입장 실패:', error);
+          setAutoRejoinStatus('failed');
+          setErrorMessage('방에 재입장할 수 없습니다.');
+
+          navigate({
+            to: '/room/$roomId/prejoin',
+            params: { roomId },
+          });
+        },
+      },
+    );
+  };
+
   useEffect(() => {
     // 잘못된 roomId인 경우 홈으로 리다이렉트
     if (isNaN(roomIdNumber)) {
@@ -86,8 +106,14 @@ function RoomPage() {
       return;
     }
 
-    // 토큰이 없는 경우 prejoin 페이지로 리다이렉트
-    if (!token) {
+    // 토큰이 없는 경우 자동 재입장 시도
+    if (!token && autoRejoinStatus === 'idle' && userId) {
+      attemptAutoRejoin();
+      return;
+    }
+
+    // 토큰이 없고 사용자 정보도 없는 경우 prejoin으로 이동
+    if (!token && !userId) {
       setErrorMessage('다시 입장해주세요.');
       navigate({
         to: '/room/$roomId/prejoin',
@@ -95,16 +121,28 @@ function RoomPage() {
       });
       return;
     }
-  }, [roomId, roomIdNumber, token, navigate]);
+  }, [roomId, roomIdNumber, token, userId, autoRejoinStatus, navigate]);
 
   // 스톱워치 초기화
   useEffect(() => {
     return () => resetStopwatch();
   }, [resetStopwatch]);
 
-  // 토큰이 없으면 로딩 상태 (리다이렉트 전까지)
-  if (!token) {
-    return <LoadingState />;
+  // 토큰이 없거나 재입장 중이면 로딩 상태
+  if (!token || autoRejoinStatus === 'attempting') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <h2 className="text-xl font-semibold mt-4 text-gray-900">
+            {autoRejoinStatus === 'attempting'
+              ? '방에 재입장 중...'
+              : '스터디룸에 연결 중...'}
+          </h2>
+          <p className="text-gray-600 mt-2">잠시만 기다려주세요</p>
+        </div>
+      </div>
+    );
   }
 
   // 연결 오류 상태 표시
