@@ -38,7 +38,7 @@ function RoomPage() {
     'connecting' | 'connected' | 'disconnected' | 'error'
   >('connecting');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const { reset } = useStopwatchStore();
+  const resetStopwatch = useStopwatchStore((state) => state.resetStopwatch);
   const [retryCount, setRetryCount] = useState<number>(0);
 
   // roomId 유효성 검사
@@ -99,8 +99,8 @@ function RoomPage() {
 
   // 스톱워치 초기화
   useEffect(() => {
-    return () => reset();
-  }, [reset]);
+    return () => resetStopwatch();
+  }, [resetStopwatch]);
 
   // 토큰이 없으면 로딩 상태 (리다이렉트 전까지)
   if (!token) {
