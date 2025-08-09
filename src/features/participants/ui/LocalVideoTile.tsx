@@ -7,6 +7,7 @@ import {
   useLocalParticipant,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
+import { CaptureButton } from '@/features/focus-capture';
 
 export function LocalVideoTile() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -72,13 +73,19 @@ export function LocalVideoTile() {
           />
         )}
       </div>
-      {/* 얼굴 감지 on/off 버튼 */}
-      <button
-        onClick={handleToggleFaceDetection}
-        className="absolute bottom-2 right-2 bg-blue-500 text-white p-2 rounded"
-      >
-        {isFaceDetectionEnabled ? '얼굴 감지 비활성화' : '얼굴 감지 활성화'}
-      </button>
+      {/* 하단 컨트롤 버튼들 */}
+      <div className="absolute bottom-2 right-2 flex flex-col gap-2">
+        {/* AI 집중도 분석 캡쳐 버튼 */}
+        <CaptureButton videoRef={videoRef} className="text-xs" />
+
+        {/* 얼굴 감지 on/off 버튼 */}
+        <button
+          onClick={handleToggleFaceDetection}
+          className="bg-blue-500 text-white p-2 rounded text-xs"
+        >
+          {isFaceDetectionEnabled ? '얼굴 감지 비활성화' : '얼굴 감지 활성화'}
+        </button>
+      </div>
     </div>
   );
 }
