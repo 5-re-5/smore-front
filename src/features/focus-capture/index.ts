@@ -10,13 +10,6 @@ export {
   type ImageResizerInterface,
 } from './model/imageResize';
 
-// Performance testing utilities
-export {
-  PerformanceProfiler,
-  runCaptureBenchmark,
-  PerformanceTestUtils,
-} from './model/performanceTest';
-
 // Auto capture scheduling
 export { useAutoCaptureScheduler } from './model/useAutoCaptureScheduler';
 
