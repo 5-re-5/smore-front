@@ -1,19 +1,19 @@
 import {
-  useRoomToken,
   useLeaveRoomMutation,
+  useRoomToken,
 } from '@/entities/room/api/queries';
+import { useAuth } from '@/entities/user';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
+import { Button } from '@/shared/ui/button';
 import { RoomLayout } from '@/widgets';
 import {
   LiveKitRoom,
   RoomAudioRenderer,
   StartAudio,
 } from '@livekit/components-react';
-import { DisconnectReason } from 'livekit-client';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { Button } from '@/shared/ui/button';
-import { useAuth } from '@/entities/user';
+import { DisconnectReason } from 'livekit-client';
+import { useEffect, useState } from 'react';
 
 // 로딩 상태 컴포넌트
 const LoadingState = () => (
