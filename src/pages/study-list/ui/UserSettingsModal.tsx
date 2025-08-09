@@ -21,8 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui/select';
-import { format } from 'date-fns';
+import { addYears, format, startOfDay } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import { useUserSettings } from '../model/useUserSettings';
 
 interface UserSettingsModalProps {
@@ -31,6 +32,10 @@ interface UserSettingsModalProps {
 
 export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
   const userSettings = useUserSettings({ userProfile });
+  const today = useMemo(() => startOfDay(new Date()), []);
+  const minDate = useMemo(() => new Date(2010, 0, 1), []);
+  const maxDate = useMemo(() => addYears(today, 5), [today]); // 오늘로부터 5년
+
   return (
     <Dialog open={userSettings.isOpen} onOpenChange={userSettings.setIsOpen}>
       <DialogTrigger asChild>
@@ -157,14 +162,22 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent
+                className="w-auto p-1"
+                align="start"
+                side="top"
+                avoidCollisions={false}
+              >
                 <Calendar
                   mode="single"
                   selected={userSettings.selectedDate}
                   onSelect={userSettings.setSelectedDate}
                   captionLayout={'dropdown'}
+                  startMonth={minDate}
+                  endMonth={maxDate}
                   disabled={(date) =>
-                    date < new Date() || date < new Date('1900-01-01')
+                    date < new Date() ||
+                    date.getFullYear() > new Date().getFullYear() + 5
                   }
                 />
               </PopoverContent>
