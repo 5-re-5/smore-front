@@ -75,10 +75,10 @@ export const UserProgressSection = ({
         <div className="flex flex-row justify-between items-start">
           <div className="flex flex-1 space-x-24 text-center">
             <div className="text-2xl font-semibold text-gray-700 mb-2">
-              My Goal
+              내 각오
             </div>
             <div className="text-2xl font-bold text-study-primary mb-1">
-              {userProfile?.determination}
+              {userProfile?.determination || '각오를 설정해보세요'}
             </div>
           </div>
 
@@ -87,10 +87,10 @@ export const UserProgressSection = ({
               D-DAY
             </div>
             <div className="text-2xl font-bold text-study-primary">
-              {userProfile?.targetDateTitle}{' '}
+              {userProfile?.targetDateTitle || '디데이 목표를 설정해보세요'}{' '}
               {userProfile?.targetDate
                 ? calculateDDay(userProfile.targetDate)
-                : 'D-?'}
+                : ''}
             </div>
           </div>
         </div>
