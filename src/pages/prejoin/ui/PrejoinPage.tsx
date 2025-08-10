@@ -10,8 +10,26 @@ import { CameraPreview } from '@/features/prejoin/ui/CameraPreview';
 import { PrejoinMicWaveform } from '@/features/prejoin/ui/PrejoinMicWaveform';
 import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
 import type { ApiError } from '@/shared/api/request';
+import { Button } from '@/shared/ui/button';
+import { ArrowIcon } from '@/shared/ui/icons';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
+
+const SmoreLogoHeader = () => {
+  return (
+    <h1
+      className="flex-1 text-center text-4xl font-black"
+      style={{ fontFamily: 'Black Han Sans' }}
+    >
+      <span className="text-white">S</span>
+      <span className="text-white">'</span>
+      <span className="text-white">m</span>
+      <span className="text-[#F75804]">o</span>
+      <span className="text-white">r</span>
+      <span className="text-white">e</span>
+    </h1>
+  );
+};
 
 function PrejoinPage() {
   const { roomId } = useParams({ from: '/room/$roomId/prejoin' });
@@ -77,6 +95,12 @@ function PrejoinPage() {
     });
   };
 
+  const handleGoBack = (): void => {
+    navigate({
+      to: '/study-list',
+    });
+  };
+
   const handleJoinRoom = async (): Promise<void> => {
     if (!validatePassword()) return;
     if (!userId) {
@@ -127,9 +151,19 @@ function PrejoinPage() {
   return (
     <div className="min-h-screen bg-black">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center text-white mb-8">
-          스터디룸 입장하기
-        </h1>
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleGoBack}
+            className="text-white hover:bg-white/10 hover:text-white"
+            aria-label="목록으로 돌아가기"
+          >
+            <ArrowIcon className="rotate-180" />
+          </Button>
+          <SmoreLogoHeader />
+          <div className="w-9" /> {/* 균형을 위한 spacer */}
+        </div>
         <div className="h-full w-full bg-[#202020] rounded-lg shadow-lg p-14 px-10">
           <div className="grid lg:grid-cols-2 gap-8">
             {/* 왼쪽: 카메라 미리보기 */}
