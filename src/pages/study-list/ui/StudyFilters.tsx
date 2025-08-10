@@ -26,14 +26,14 @@ export const StudyFilters = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onSortChange('popular')}
-            className={`text-sm transition-colors cursor-pointer ${sortBy === 'popular' ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`text-sm transition-colors cursor-pointer ${sortBy === 'popular' ? 'text-black font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
           >
             인기 순
           </button>
           <span className="text-gray-400">|</span>
           <button
             onClick={() => onSortChange('latest')}
-            className={`text-sm transition-colors cursor-pointer ${sortBy === 'latest' ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`text-sm transition-colors cursor-pointer ${sortBy === 'latest' ? 'text-black font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
           >
             최신 순
           </button>

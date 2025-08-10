@@ -1,18 +1,13 @@
 import { Link } from '@tanstack/react-router';
 import { useUrlAuth } from '../model';
 import { UserInfoBox } from './UserInfoBox';
-import {
-  useRecentStudyQuery,
-  useUserProfileQuery,
-  useAuth,
-} from '@/entities/user';
+import { useUserProfileQuery, useAuth } from '@/entities/user';
 import { StudyCard } from './StudyCard';
 import { StudyFilters } from './StudyFilters';
 import { CategoryModal } from './CategoryModal';
 import { useInfiniteStudyRoomsQuery } from '../api/useStudyRoomsQuery';
 import { useIntersectionObserver } from '@/shared/hooks/useIntersectionObserver';
 import { useState, useMemo } from 'react';
-import { useUserProfileQuery, useAuth } from '@/entities/user';
 
 export default function StudyListPage() {
   // URL에서 userId 파라미터 처리
@@ -71,11 +66,6 @@ export default function StudyListPage() {
     isLoading: isUserProfileLoading,
     error: userProfileError,
   } = useUserProfileQuery(userId || 0);
-
-  // API로 최근 참가한 스터디 조회
-  const { data: recentStudyData } = useRecentStudyQuery(
-    userId?.toString() || '',
-  );
 
   // 스터디 목록 렌더링 함수
   const renderStudyContent = () => {
@@ -208,7 +198,6 @@ export default function StudyListPage() {
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
         selectedCategory={selectedCategory}
-        onCategorySelect={setSelectedCategory}
         onComplete={(category) => {
           setSelectedCategory(category);
           setShowCategoryModal(false);

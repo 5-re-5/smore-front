@@ -69,7 +69,7 @@ export function StudyModal({ isOpen, onClose, room }: StudyModalProps) {
                 <ClockIcon className="w-6 h-6 text-gray-700" />
               </div>
               <span className="text-xs text-gray-600 font-medium">
-                뽀모도로 {room.isPomodoro ? 'X' : 'O'}
+                뽀모도로 {room.isPomodoro ? 'O' : 'X'}
               </span>
             </div>
 

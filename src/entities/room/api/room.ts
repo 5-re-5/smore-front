@@ -1,7 +1,6 @@
 import { request, REQUEST_METHOD } from '@/shared/api/request';
 import type { RoomData, RoomListParams } from './type';
 
-
 export const getRoomInfo = async (roomId: number) => {
   return request<RoomData>({
     method: REQUEST_METHOD.GET,
@@ -19,14 +18,15 @@ export const getRooms = (params?: RoomListParams) => {
 
 export const verifyRoomPassword = async (roomId: number, password: string) => {
   // TODO: 임시로 mock 데이터 사용 - 나중에 실제 API로 교체
-  const { mockRooms } = await import('./mockData');
-  const mockRoom = mockRooms[roomId];
+  const { mockStudyRooms } = await import('./mockData');
+  const mockRoom = mockStudyRooms.find((room) => room.roomId === roomId);
   if (!mockRoom) {
     throw new Error(`Room ${roomId} not found`);
   }
 
   await new Promise((resolve) => setTimeout(resolve, 300));
-  const isValid = mockRoom.data.password === password;
+  const expectedPassword = mockRoom.isPrivate ? 'test123' : null;
+  const isValid = expectedPassword === password;
   return { valid: isValid };
 
   // 실제 API 호출 (나중에 활성화)

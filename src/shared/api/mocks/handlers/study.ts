@@ -92,7 +92,7 @@ export const studyRoomHandlers = [
 
   // 스터디룸 참가 API
   http.post(
-    `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/:roomId`,
+    `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/:roomId/join`,
     ({ params }) => {
       const roomId = parseInt(params.roomId as string);
 
@@ -118,15 +118,16 @@ export const studyRoomHandlers = [
         );
       }
 
-      // 성공 응답 (LiveKit 토큰 정보 등)
+      // 성공 응답 (JoinRoomResponse 형식)
       const responseData = {
         data: {
-          roomId: room.roomId,
-          title: room.title,
           accessToken: `mock-token-${roomId}-${Date.now()}`,
-          serverUrl:
-            import.meta.env.VITE_LIVEKIT_WS_URL || 'ws://localhost:7880',
-          participantName: `User${Math.floor(Math.random() * 1000)}`,
+          roomName: room.title,
+          identity: `User${Math.floor(Math.random() * 1000)}`,
+          expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1시간 후
+          canPublish: true,
+          canSubscribe: true,
+          createdAt: new Date().toISOString(),
         },
       };
 
@@ -138,7 +139,7 @@ export const studyRoomHandlers = [
 
   // PrejoinPage용 Room API (MSW 데이터 활용)
   http.get(
-    `${import.meta.env.VITE_BACK_URL}/api/v1/rooms/:roomId`,
+    `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/:roomId`,
     ({ params }) => {
       const roomId = parseInt(params.roomId as string);
 
@@ -156,23 +157,23 @@ export const studyRoomHandlers = [
         );
       }
 
-      // PrejoinPage가 기대하는 형식으로 변환
+      // PrejoinPage가 기대하는 형식으로 변환 (camelCase)
       const responseData = {
         data: {
-          room_id: room.roomId,
+          roomId: room.roomId,
           title: room.title,
           description: room.description || '관리자가 전합니다. 항상 파이팅~~!!',
-          thumbnail_url: room.thumbnailUrl,
+          thumbnailUrl: room.thumbnailUrl,
           tag: room.tag.join(','), // 배열을 문자열로
           category: room.category,
-          focus_time: room.isPomodoro ? 25 : null,
-          break_time: room.isPomodoro ? 5 : null,
-          max_participants: room.maxParticipants,
-          current_participants: room.currentParticipants,
+          focusTime: room.isPomodoro ? 25 : null,
+          breakTime: room.isPomodoro ? 5 : null,
+          maxParticipants: room.maxParticipants,
+          currentParticipants: room.currentParticipants,
           password: room.isPrivate ? 'test123' : null,
-          created_at: room.createdAt,
+          createdAt: room.createdAt,
           creator: {
-            user_id: 12345,
+            userId: 12345,
             nickname: room.creator.nickname,
           },
         },

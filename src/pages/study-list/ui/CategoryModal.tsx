@@ -4,7 +4,6 @@ interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedCategory: string | null;
-  onCategorySelect: (category: string | null) => void;
   onComplete: (category: string | null) => void;
 }
 

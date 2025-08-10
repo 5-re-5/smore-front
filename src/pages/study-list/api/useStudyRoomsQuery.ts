@@ -40,7 +40,7 @@ const fetchStudyRooms = async (
 ): Promise<StudyRoomsResponse> => {
   const searchParams = new URLSearchParams();
 
-  if (params.page) searchParams.append('page', params.page.toString());
+  if (params.page) searchParams.append('page', String(params.page));
   if (params.limit) searchParams.append('limit', params.limit.toString());
   if (params.search) searchParams.append('search', params.search);
   if (params.category) searchParams.append('category', params.category);
@@ -63,9 +63,10 @@ const transformApiRoomToStudyRoom = (apiRoom: ApiStudyRoom): StudyRoom => ({
   category: apiRoom.category,
   maxParticipants: apiRoom.maxParticipants,
   currentParticipants: apiRoom.currentParticipants,
+  createdAt: apiRoom.createdAt,
   isPomodoro: apiRoom.isPomodoro,
   isPrivate: apiRoom.isPrivate,
-  createrNickname: apiRoom.creator.nickname,
+  creatorNickname: apiRoom.creator.nickname,
   description: apiRoom.description,
 });
 //무한스크롤

@@ -23,7 +23,7 @@ export interface StudyRoom {
   maxParticipants: number;
   currentParticipants: number;
   createdAt?: string;
-  createrNickname: string;
+  creatorNickname: string;
   isPrivate: boolean;
   isPomodoro: boolean;
   description?: string;

@@ -1,6 +1,3 @@
-import { type RoomApiResponse } from '@/entities/room';
-
-
 // MSW study.ts에서 가져온 스터디룸 목 데이터
 export const mockStudyRooms = [
   {
@@ -128,30 +125,3 @@ export const mockStudyRooms = [
     },
   })),
 ];
-
-// PrejoinPage가 기대하는 형식으로 변환한 데이터
-export const mockRooms: Record<number, RoomApiResponse> = {};
-
-// mockStudyRooms 데이터를 변환해서 mockRooms에 추가
-mockStudyRooms.forEach((room) => {
-  mockRooms[room.roomId] = {
-    data: {
-      room_id: room.roomId,
-      title: room.title,
-      description: room.description || '관리자가 전합니다. 항상 파이팅~~!!',
-      thumbnail_url: room.thumbnailUrl,
-      tag: room.tag.join(','),
-      category: room.category,
-      focus_time: room.isPomodoro ? 25 : null,
-      break_time: room.isPomodoro ? 5 : null,
-      max_participants: room.maxParticipants,
-      current_participants: room.currentParticipants,
-      password: room.isPrivate ? 'test123' : null,
-      created_at: room.createdAt,
-      creator: {
-        user_id: 12345,
-        nickname: room.creator.nickname,
-      },
-    },
-  };
-});

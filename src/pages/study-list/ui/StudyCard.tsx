@@ -6,7 +6,6 @@ import { StudyModal } from './StudyModal';
 
 interface StudyCardProps {
   room: StudyRoom;
-  onJoinClick?: (roomId: number) => void;
 }
 
 export function StudyCard({ room }: StudyCardProps) {
