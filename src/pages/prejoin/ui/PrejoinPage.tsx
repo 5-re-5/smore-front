@@ -6,8 +6,9 @@ import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 import { useAuth } from '@/entities/user/model/useAuth';
 import { useUserInfo } from '@/entities/user/model/useUserInfo';
 import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
+import { PrejoinMicWaveform, useAudioState } from '@/features/prejoin';
+import { useMediaControlStore } from '@/features/prejoin/model/useMediaControlStore';
 import { CameraPreview } from '@/features/prejoin/ui/CameraPreview';
-import { PrejoinMicWaveform } from '@/features/prejoin/ui/PrejoinMicWaveform';
 import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
 import type { ApiError } from '@/shared/api/request';
 import { Button } from '@/shared/ui/button';
@@ -35,7 +36,8 @@ function PrejoinPage() {
   const { roomId } = useParams({ from: '/room/$roomId/prejoin' });
   const navigate = useNavigate();
   const roomIdNumber = parseInt(roomId, 10);
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const audioState = useAudioState();
+  const stopAllMedia = useMediaControlStore((s) => s.stopAllMedia);
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -59,13 +61,12 @@ function PrejoinPage() {
   const { isFaceDetectionEnabled, setFaceDetectionEnabled } =
     useFaceDetectionStore();
 
+  // 컴포넌트 언마운트 시 전체 미디어 정리
   useEffect(() => {
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
+      stopAllMedia();
     };
-  }, [stream]);
+  }, [stopAllMedia]);
 
   const validatePassword = (): boolean => {
     if (room?.hasPassword && !password.trim()) {
@@ -168,9 +169,9 @@ function PrejoinPage() {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* 왼쪽: 카메라 미리보기 */}
             <section className="flex items-start space-x-4">
-              <PrejoinMicWaveform stream={stream} />
+              <PrejoinMicWaveform stream={audioState.stream || null} />
               <div className="flex-1">
-                <CameraPreview onStreamChange={setStream} />
+                <CameraPreview />
               </div>
             </section>
 
