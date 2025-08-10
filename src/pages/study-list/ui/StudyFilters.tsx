@@ -18,8 +18,8 @@ export const StudyFilters = ({
   onReset,
 }: StudyFiltersProps) => {
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">스터디 목록 📚</h1>
+    <div className="max-w-[1280px] mx-auto mt-[110px]">
+      <h1 className="text-2xl font-bold mb-[55px]">스터디 목록</h1>
 
       <div className="flex justify-between items-center">
         {/* 정렬 버튼 */}

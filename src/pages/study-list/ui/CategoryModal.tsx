@@ -21,7 +21,6 @@ export const CategoryModal = ({
   isOpen,
   onClose,
   selectedCategory,
-  onCategorySelect,
   onComplete,
 }: CategoryModalProps) => {
   const [tempCategory, setTempCategory] = useState<string | null>(
@@ -55,14 +54,14 @@ export const CategoryModal = ({
         <div className="grid grid-cols-3 gap-4 mb-6">
           {categories.map((category) => (
             <button
-              key={category.id}
+              key={category.name}
               onClick={() =>
                 setTempCategory(
-                  tempCategory === category.id ? null : category.id,
+                  tempCategory === category.name ? null : category.name,
                 )
               }
               className={`cursor-pointer aspect-square p-4 rounded-lg flex flex-col items-center justify-center gap-2 transition-all border-2 ${
-                tempCategory === category.id
+                tempCategory === category.name
                   ? 'bg-gray-100 shadow-inner transform scale-95'
                   : 'bg-gray-100 hover:bg-gray-200 border-transparent shadow-md hover:shadow-lg'
               }`}

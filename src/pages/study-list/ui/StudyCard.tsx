@@ -20,7 +20,7 @@ export function StudyCard({ room, onJoinClick }: StudyCardProps) {
   return (
     <>
       {/* 메인 카드 - 세로형 레이아웃 */}
-      <div className="w-[270px] h-[380px] study-card rounded-[30px] overflow-hidden flex flex-col">
+      <div className="w-[270px] h-[360px] study-card rounded-[30px] overflow-hidden flex flex-col ">
         {/* 썸네일 섹션 */}
         <div className="relative mt-[11px] mx-[10px]">
           <img
@@ -41,12 +41,12 @@ export function StudyCard({ room, onJoinClick }: StudyCardProps) {
         </div>
 
         {/* 정보 섹션 */}
-        <div className="p-4 flex-1 flex flex-col">
+        <div className="p-4 pt-[21px] flex-1 flex flex-col">
           {/* 상단 콘텐츠 (제목, 참여자, 태그) */}
-          <div className="space-y-[25px]">
+          <div className="space-y-[20px] mb-[27px]">
             {/* 스터디 제목과 참여자 수 */}
-            <div className="flex items-start justify-between mt-[21px]">
-              <h3 className="text-study-text text-lg font-bold leading-tight flex-1 h-[48px] overflow-hidden line-clamp-2">
+            <div className="flex items-start justify-between">
+              <h3 className="text-study-text text-lg font-bold leading-tight flex-1 h-[43px] overflow-hidden line-clamp-2">
                 {room.title}
               </h3>
               <div className="flex items-center gap-1 text-study-text text-sm ml-2">
@@ -62,7 +62,7 @@ export function StudyCard({ room, onJoinClick }: StudyCardProps) {
               {room.tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}
-                  className="text-study-secondary text-xs py-1 font-bold"
+                  className="text-study-secondary text-xs font-bold"
                 >
                   #{tag}
                 </span>
@@ -76,36 +76,38 @@ export function StudyCard({ room, onJoinClick }: StudyCardProps) {
           </div>
 
           {/* 참가하기 버튼 */}
-          <Button
-            variant="ghost"
-            onClick={handleJoinClick}
-            className="w-full h-[2.17rem] mt-auto bg-study-bg hover:bg-gray-200 text-study-secondary font-bold border-0 relative flex items-center justify-center rounded-[1.08rem] transition-colors"
-            style={{
-              boxShadow:
-                '-4.08px -4.08px 8.17px 0 #FFF, 4.08px 4.08px 8.17px 0 rgba(0, 0, 0, 0.08)',
-            }}
-          >
-            참가하기
-            <div
-              className="absolute right-0 top-0 w-[2.17rem] h-[2.17rem] bg-study-bg text-study-secondary flex items-center justify-center rounded-[1.08rem]"
+          <div className="flex justify-center mb-3">
+            <Button
+              variant="ghost"
+              onClick={handleJoinClick}
+              className="w-[183.68px] h-[47px] bg-study-bg hover:bg-gray-200 text-study-secondary font-bold border-0 relative flex items-center justify-center rounded-[23.5px] transition-colors"
               style={{
-                boxShadow: '4.08px 4.08px 8.17px rgba(0, 0, 0, 0.08) inset',
+                boxShadow:
+                  '-4.08px -4.08px 8.17px 0 #FFF, 4.08px 4.08px 8.17px 0 rgba(0, 0, 0, 0.08)',
               }}
             >
-              {room.isPrivate ? (
-                <LockIcon className="w-4 h-5 text-black" />
-              ) : (
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                >
-                  <path d="M8.5 3.5L14 8l-5.5 4.5v-3H2v-3h7.5V3.5z" />
-                </svg>
-              )}
-            </div>
-          </Button>
+              참가하기
+              <div
+                className="absolute right-0 top-0 w-[47px] h-[47px] bg-study-bg text-study-secondary flex items-center justify-center rounded-full"
+                style={{
+                  boxShadow: '4.08px 4.08px 8.17px rgba(0, 0, 0, 0.08) inset',
+                }}
+              >
+                {room.isPrivate ? (
+                  <LockIcon className="w-4 h-5 text-black" />
+                ) : (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                  >
+                    <path d="M8.5 3.5L14 8l-5.5 4.5v-3H2v-3h7.5V3.5z" />
+                  </svg>
+                )}
+              </div>
+            </Button>
+          </div>
         </div>
       </div>
 

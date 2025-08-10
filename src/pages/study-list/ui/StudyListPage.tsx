@@ -18,14 +18,14 @@ export default function StudyListPage() {
 
   // 정렬/필터 상태
   const [sortBy, setSortBy] = useState<'popular' | 'latest'>('latest');
-  const [hideFullRooms, setHideFullRooms] = useState(true);
+  const [hideFullRooms, setHideFullRooms] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   // 필터 초기화 함수
   const handleReset = () => {
     setSortBy('latest');
-    setHideFullRooms(true);
+    setHideFullRooms(false);
     setSelectedCategory(null);
   };
 
@@ -112,31 +112,33 @@ export default function StudyListPage() {
       </div>
 
       <section className="mt-8" aria-labelledby="available-studies">
-        <h2 id="available-studies" className="text-lg font-semibold mb-4">
+        {/* <h2 id="available-studies" className="text-lg font-semibold mb-4">
           참여 가능한 스터디
-        </h2>
+        </h2> */}
         <nav aria-label="스터디 방 목록">
-          <div
-            className="grid grid-cols-2 md:grid-cols-4 gap-x-[50px] gap-y-[55px] list-none justify-items-center"
-            role="list"
-          >
-            {isStudyRoomsLoading ? (
-              <div className="col-span-full text-center py-8 text-gray-500">
-                스터디 목록을 불러오는 중...
-              </div>
-            ) : studyRoomsError ? (
-              <div className="col-span-full text-center py-8 text-red-500">
-                스터디 목록을 불러오지 못했습니다.
-              </div>
-            ) : studyRoomsData?.content?.length ? (
-              studyRoomsData.content.map((room) => (
-                <StudyCard key={room.roomId} room={room} />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-8 text-gray-500">
-                조건에 맞는 스터디가 없습니다.
-              </div>
-            )}
+          <div className="max-w-[1280px] mx-auto">
+            <div
+              className="grid grid-cols-2 md:grid-cols-4 gap-x-[40px] gap-y-[55px] list-none"
+              role="list"
+            >
+              {isStudyRoomsLoading ? (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  스터디 목록을 불러오는 중...
+                </div>
+              ) : studyRoomsError ? (
+                <div className="col-span-full text-center py-8 text-red-500">
+                  스터디 목록을 불러오지 못했습니다.
+                </div>
+              ) : studyRoomsData?.content?.length ? (
+                studyRoomsData.content.map((room) => (
+                  <StudyCard key={room.roomId} room={room} />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  조건에 맞는 스터디가 없습니다.
+                </div>
+              )}
+            </div>
           </div>
         </nav>
       </section>

@@ -27,11 +27,13 @@ export function StudyModal({ isOpen, onClose, room }: StudyModalProps) {
       <div className="bg-white rounded-2xl p-6 w-[400px] mx-4 shadow-lg">
         {/* 헤더 */}
         <div className="mb-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-gray-900">{room.title}</h2>
+          <div className="relative">
+            <h2 className="text-lg font-bold text-gray-900 pr-8">
+              {room.title}
+            </h2>
             <button
               onClick={onClose}
-              className="cursor-pointer text-gray-400 hover:text-gray-600 text-xl leading-none"
+              className="cursor-pointer text-gray-400 hover:text-gray-600 text-xl leading-none absolute top-0 right-0"
             >
               ✕
             </button>
