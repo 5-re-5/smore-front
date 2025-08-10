@@ -66,7 +66,8 @@ export const CameraPreview = () => {
       <div className="w-16 h-16 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
         <VideoOff color="white" />
       </div>
-      <p className="text-sm text-gray-300">카메라가 꺼져있습니다</p>
+      <p className="text-sm text-gray-300">카메라가 꺼져있습니다.</p>
+      <p className="text-sm text-gray-300">브라우저 권한에서 허용해주세요.</p>
     </div>
   );
 

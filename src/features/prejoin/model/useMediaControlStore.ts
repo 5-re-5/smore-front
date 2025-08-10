@@ -150,9 +150,10 @@ export const useMediaControlStore = create<
       audio.stream.getTracks().forEach((track) => track.stop());
     }
 
+    // 스트림만 정리하고 isEnabled 상태는 localStorage 설정 유지
     set({
-      video: { ...video, stream: null, isEnabled: false },
-      audio: { ...audio, stream: null, isEnabled: false },
+      video: { ...video, stream: null },
+      audio: { ...audio, stream: null },
     });
   },
 }));

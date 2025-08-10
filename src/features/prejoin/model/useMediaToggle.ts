@@ -32,6 +32,8 @@ export const useMediaToggle = (
 ) => {
   const { deviceId, onError, onDeviceChange, audioElement } = options;
   const currentStreamRef = useRef<MediaStream | null>(null);
+  const permissionDeniedRef = useRef(false);
+  const initializedRef = useRef(false);
 
   // 미디어 타입 매핑
   const mediaType: MediaType =
@@ -209,6 +211,42 @@ export const useMediaToggle = (
     },
     [toggle, deviceKind, mediaType, audioElement, setDeviceId, onDeviceChange],
   );
+
+  // 컴포넌트 마운트 시 localStorage 설정과 동기화
+  useEffect(() => {
+    if (initializedRef.current) return;
+
+    const syncInitialState = async () => {
+      if (deviceKind === 'audiooutput') return;
+
+      const { isEnabled, stream, isPending } = mediaState;
+
+      // localStorage에서 활성화되어 있지만 실제 스트림이 없는 경우 즉시 동기화
+      // 단, 이미 권한이 거부된 경우는 재시도하지 않음
+      if (isEnabled && !stream && !isPending && !permissionDeniedRef.current) {
+        initializedRef.current = true; // 초기화 시작 표시
+        try {
+          await toggle(true);
+        } catch (error) {
+          const err = error as Error;
+
+          // 권한 관련 에러인 경우 더 이상 시도하지 않음
+          if (
+            err.name === 'NotAllowedError' ||
+            err.name === 'PermissionDeniedError'
+          ) {
+            permissionDeniedRef.current = true;
+          }
+
+          // 미디어 접근 실패 시 localStorage 설정을 실제 상태에 맞게 업데이트
+          console.warn(`Failed to sync initial ${mediaType} state:`, error);
+          setMediaEnabled(mediaType, false);
+        }
+      }
+    };
+
+    syncInitialState();
+  }, [deviceKind, mediaType]);
 
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {

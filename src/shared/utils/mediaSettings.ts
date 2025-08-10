@@ -7,8 +7,8 @@ interface MediaSettings {
 const MEDIA_SETTINGS_KEY = 'smore-media-settings';
 
 const DEFAULT_SETTINGS: MediaSettings = {
-  video: false,
-  audio: false,
+  video: true,
+  audio: true,
   speaker: true,
 };
 

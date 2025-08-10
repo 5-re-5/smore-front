@@ -81,6 +81,13 @@ export const useRoomMediaToggle = ({
             // 마이크 켜기 - 새 트랙 생성하여 publish
             await localParticipant.setMicrophoneEnabled(true);
           }
+
+          // localStorage에 마이크 설정 저장
+          const currentSettings = loadMediaSettings();
+          saveMediaSettings({
+            ...currentSettings,
+            audio: !isEnabled, // 토글된 상태로 저장
+          });
           break;
         }
         case 'camera': {
@@ -96,6 +103,13 @@ export const useRoomMediaToggle = ({
             // 카메라 켜기 - 새 트랙 생성하여 publish
             await localParticipant.setCameraEnabled(true);
           }
+
+          // localStorage에 카메라 설정 저장
+          const currentSettings = loadMediaSettings();
+          saveMediaSettings({
+            ...currentSettings,
+            video: !isEnabled, // 토글된 상태로 저장
+          });
           break;
         }
         case 'speaker': {
