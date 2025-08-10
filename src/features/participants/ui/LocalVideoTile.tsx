@@ -63,20 +63,26 @@ export function LocalVideoTile() {
 
   return (
     <div
-      className={`relative rounded-xl border transition-all duration-300 ${
+      className={`w-80 h-60 relative rounded-xl border transition-all duration-300 ${
         isSpeaking
           ? 'border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]'
           : 'border-zinc-300'
       }`}
     >
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        playsInline
-        className="w-full h-full object-cover rounded-xl"
-        style={{ transform: 'scaleX(-1)' }}
-      />
+      {isCamMuted ? (
+        <div className="w-full h-full bg-black rounded-xl flex items-center justify-center">
+          <span className="text-white text-xl font-semibold">me</span>
+        </div>
+      ) : (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="w-full h-full object-cover rounded-xl"
+          style={{ transform: 'scaleX(-1)' }}
+        />
+      )}
       {!faceDetected && (
         <div className="absolute top-0 left-0 w-full text-center text-red-600 font-bold bg-black/50 px-2 py-1 rounded-b">
           얼굴 감지 불가능
