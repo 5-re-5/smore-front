@@ -157,7 +157,7 @@ function RoomPage() {
   }
 
   return (
-    <div className="relative">
+    <div className="h-screen flex flex-col">
       {connectionStatus === 'connecting' && (
         <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-40">
           <div className="text-center">
@@ -207,6 +207,7 @@ function RoomPage() {
             setErrorMessage(error.message || '알 수 없는 오류가 발생했습니다.');
           }
         }}
+        className="flex-1"
       >
         <RoomAudioRenderer />
         <StartAudio label="오디오 시작하기" />
