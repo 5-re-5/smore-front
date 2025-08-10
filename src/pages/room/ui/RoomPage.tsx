@@ -1,5 +1,4 @@
 import {
-  useLeaveRoomMutation,
   useRejoinRoomMutation,
   useRoomToken,
 } from '@/entities/room/api/queries';
@@ -20,7 +19,6 @@ import { useEffect, useState } from 'react';
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
   const navigate = useNavigate();
-  const leaveRoomMutation = useLeaveRoomMutation();
   const rejoinMutation = useRejoinRoomMutation();
   const { userId } = useAuth();
   const [connectionStatus, setConnectionStatus] = useState<
@@ -35,26 +33,6 @@ function RoomPage() {
 
   // roomId 유효성 검사
   const roomIdNumber = parseInt(roomId, 10);
-
-  const handleLeaveRoom = () => {
-    if (!userId) {
-      alert('사용자 정보가 없습니다.');
-      return;
-    }
-
-    leaveRoomMutation.mutate(
-      { roomId: roomIdNumber, userId },
-      {
-        onSuccess: () => {
-          navigate({ to: '/study-list' });
-        },
-        onError: (error) => {
-          console.error('방 나가기 실패:', error);
-          alert('방 나가기에 실패했습니다.');
-        },
-      },
-    );
-  };
 
   const handleRetryConnection = () => {
     const newRetryCount = retryCount + 1;
@@ -176,15 +154,6 @@ function RoomPage() {
 
   return (
     <div className="relative">
-      <Button
-        onClick={handleLeaveRoom}
-        variant="destructive"
-        className="absolute top-4 right-4 z-50 text-white"
-        disabled={leaveRoomMutation.isPending}
-      >
-        {leaveRoomMutation.isPending ? '나가는 중...' : '방 나가기'}
-      </Button>
-
       {connectionStatus === 'connecting' && (
         <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-40">
           <div className="text-center">
