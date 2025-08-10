@@ -4,6 +4,7 @@ import {
 } from '@/entities/room/api/queries';
 import { useAuth } from '@/entities/user';
 import { useStopwatchStore } from '@/features/stopwatch';
+import { loadMediaSettings } from '@/shared/utils/mediaSettings';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
 import { Button } from '@/shared/ui/button';
 import { RoomLayout } from '@/widgets';
@@ -14,7 +15,54 @@ import {
 } from '@livekit/components-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { DisconnectReason } from 'livekit-client';
+import { useLocalParticipant } from '@livekit/components-react';
 import { useEffect, useState } from 'react';
+import type { MediaSettings } from '@/shared/utils/mediaSettings';
+
+interface MediaStateControllerProps {
+  mediaSettings: MediaSettings;
+}
+
+const MediaStateController = ({ mediaSettings }: MediaStateControllerProps) => {
+  const { localParticipant } = useLocalParticipant();
+
+  useEffect(() => {
+    if (!localParticipant) return;
+
+    const applyMediaSettings = async () => {
+      try {
+        // 카메라 상태 조정
+        if (!mediaSettings.video && localParticipant.isCameraEnabled) {
+          // 카메라가 켜져있는데 설정에서는 꺼져있으면 끄기
+          await localParticipant.setCameraEnabled(false);
+        }
+
+        // 마이크 상태 조정
+        if (!mediaSettings.audio && localParticipant.isMicrophoneEnabled) {
+          // 마이크가 켜져있는데 설정에서는 꺼져있으면 끄기
+          await localParticipant.setMicrophoneEnabled(false);
+        }
+
+        // 스피커 상태 조정 (오디오 요소들의 볼륨 조정)
+        if (!mediaSettings.speaker) {
+          // 모든 오디오 요소를 음소거
+          const audioElements = document.querySelectorAll('audio');
+          audioElements.forEach((audio) => {
+            audio.muted = true;
+          });
+        }
+      } catch (error) {
+        console.warn('미디어 상태 조정 실패:', error);
+      }
+    };
+
+    // 약간의 지연 후 적용 (LiveKit 초기화 완료 대기)
+    const timer = setTimeout(applyMediaSettings, 500);
+    return () => clearTimeout(timer);
+  }, [localParticipant, mediaSettings]);
+
+  return null; // 렌더링할 내용 없음
+};
 
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
@@ -30,6 +78,9 @@ function RoomPage() {
   >('idle');
   const resetStopwatch = useStopwatchStore((state) => state.resetStopwatch);
   const [retryCount, setRetryCount] = useState<number>(0);
+
+  // 저장된 미디어 설정 로드
+  const [mediaSettings] = useState(() => loadMediaSettings());
 
   // roomId 유효성 검사
   const roomIdNumber = parseInt(roomId, 10);
@@ -170,8 +221,8 @@ function RoomPage() {
         token={token}
         serverUrl={LIVEKIT_WS_URL}
         connect
-        video
-        audio
+        video={mediaSettings.video}
+        audio={mediaSettings.audio}
         options={{
           adaptiveStream: true,
           dynacast: true,
@@ -179,7 +230,7 @@ function RoomPage() {
             simulcast: true,
           },
         }}
-        onConnected={() => {
+        onConnected={async () => {
           setConnectionStatus('connected');
           setRetryCount(0); // 성공 시 재시도 카운트 리셋
         }}
@@ -206,6 +257,7 @@ function RoomPage() {
       >
         <RoomAudioRenderer />
         <StartAudio label="오디오 시작하기" />
+        <MediaStateController mediaSettings={mediaSettings} />
         <RoomLayout />
       </LiveKitRoom>
     </div>

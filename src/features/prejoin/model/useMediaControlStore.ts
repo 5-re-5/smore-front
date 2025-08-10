@@ -1,4 +1,8 @@
 import { create } from 'zustand';
+import {
+  loadMediaSettings,
+  saveMediaSettings,
+} from '@/shared/utils/mediaSettings';
 
 export type MediaType = 'video' | 'audio' | 'speaker';
 
@@ -39,40 +43,52 @@ export interface MediaControlActions {
   stopAllMedia: () => void;
 }
 
-const INITIAL_STATE: MediaControlState = {
-  video: {
-    isEnabled: false,
-    stream: null,
-    isPending: false,
-    error: null,
-  },
-  audio: {
-    isEnabled: false,
-    stream: null,
-    isPending: false,
-    error: null,
-  },
-  speaker: {
-    isEnabled: true,
-    volume: 1,
-    isPending: false,
-    error: null,
-  },
+const getInitialState = (): MediaControlState => {
+  const savedSettings = loadMediaSettings();
+  return {
+    video: {
+      isEnabled: savedSettings.video,
+      stream: null,
+      isPending: false,
+      error: null,
+    },
+    audio: {
+      isEnabled: savedSettings.audio,
+      stream: null,
+      isPending: false,
+      error: null,
+    },
+    speaker: {
+      isEnabled: savedSettings.speaker,
+      volume: 1,
+      isPending: false,
+      error: null,
+    },
+  };
 };
 
 export const useMediaControlStore = create<
   MediaControlState & MediaControlActions
 >((set, get) => ({
-  ...INITIAL_STATE,
+  ...getInitialState(),
 
-  setMediaEnabled: (type, enabled) =>
+  setMediaEnabled: (type, enabled) => {
     set((state) => ({
       ...state,
       [type]: {
         ...state[type],
         isEnabled: enabled,
       },
-    })),
+    }));
+
+    // localStorage에 미디어 설정 저장
+    const currentState = get();
+    saveMediaSettings({
+      video: type === 'video' ? enabled : currentState.video.isEnabled,
+      audio: type === 'audio' ? enabled : currentState.audio.isEnabled,
+      speaker: type === 'speaker' ? enabled : currentState.speaker.isEnabled,
+    });
+  },
 
   setMediaPending: (type, pending) =>
     set((state) => ({
@@ -119,7 +135,7 @@ export const useMediaControlStore = create<
       },
     })),
 
-  reset: () => set(INITIAL_STATE),
+  reset: () => set(getInitialState()),
 
   stopAllMedia: () => {
     const { video, audio } = get();

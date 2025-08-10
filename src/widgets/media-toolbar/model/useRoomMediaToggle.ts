@@ -1,6 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useLocalParticipant, useRoomContext } from '@livekit/components-react';
 import { Track } from 'livekit-client';
+import {
+  loadMediaSettings,
+  saveMediaSettings,
+} from '@/shared/utils/mediaSettings';
 
 type MediaType = 'microphone' | 'camera' | 'speaker';
 
@@ -24,7 +28,10 @@ export const useRoomMediaToggle = ({
   const room = useRoomContext();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
+  const [isSpeakerMuted, setIsSpeakerMuted] = useState(() => {
+    const savedSettings = loadMediaSettings();
+    return !savedSettings.speaker;
+  });
 
   // LiveKit에서 현재 상태 가져오기
   const isEnabled = (() => {
@@ -95,6 +102,13 @@ export const useRoomMediaToggle = ({
           // 룸의 모든 오디오 트랙을 음소거/음소거 해제
           const newMutedState = !isSpeakerMuted;
           setIsSpeakerMuted(newMutedState);
+
+          // localStorage에 스피커 설정 저장
+          const currentSettings = loadMediaSettings();
+          saveMediaSettings({
+            ...currentSettings,
+            speaker: !newMutedState, // muted가 false면 speaker enabled = true
+          });
 
           if (room) {
             // 모든 원격 참가자의 오디오 트랙 음소거 제어
