@@ -31,15 +31,16 @@ interface StudyRoomsResponse {
   cursorId: string | null;
   size: number;
   content: ApiStudyRoom[];
-  hasNextPage?: boolean;
+  hasNext?: boolean;
+  nextCursor?: number;
 }
 
 const fetchStudyRooms = async (
-  params: StudyRoomsParams & { cursorId?: string },
+  params: StudyRoomsParams & { page?: number },
 ): Promise<StudyRoomsResponse> => {
   const searchParams = new URLSearchParams();
 
-  if (params.cursorId) searchParams.append('cursorId', params.cursorId);
+  if (params.page) searchParams.append('page', params.page.toString());
   if (params.limit) searchParams.append('limit', params.limit.toString());
   if (params.search) searchParams.append('search', params.search);
   if (params.category) searchParams.append('category', params.category);
@@ -72,10 +73,10 @@ export const useInfiniteStudyRoomsQuery = (params: StudyRoomsParams) => {
   return useInfiniteQuery({
     queryKey: ['study-rooms', params],
     queryFn: ({ pageParam }) =>
-      fetchStudyRooms({ ...params, cursorId: pageParam as string }),
-    initialPageParam: undefined as string | undefined,
+      fetchStudyRooms({ ...params, page: pageParam as number }),
+    initialPageParam: undefined as number | undefined,
     getNextPageParam: (lastPage) =>
-      lastPage.hasNextPage && lastPage.cursorId ? lastPage.cursorId : undefined,
+      lastPage.hasNext && lastPage.nextCursor ? lastPage.nextCursor : undefined,
     staleTime: 30000, // 30초간 캐시 유지
     select: (data) => ({
       pages: data.pages.map((page) => ({

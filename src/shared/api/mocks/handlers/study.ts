@@ -2,19 +2,19 @@ import { http, HttpResponse } from 'msw';
 import { mockStudyRooms } from '@/entities/room/api/mockData';
 
 export const studyRoomHandlers = [
-  // 스터디룸 목록 조회 (Cursor 기반)
+  // 스터디룸 목록 조회 (Page 기반)
   http.get(
     `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms`,
     ({ request }) => {
       const url = new URL(request.url);
-      const cursorId = url.searchParams.get('cursorId');
+      const page = parseInt(url.searchParams.get('page') || '1');
       const limit = parseInt(url.searchParams.get('limit') || '20');
       const sort = url.searchParams.get('sort') || 'latest';
       const category = url.searchParams.get('category');
       const hideFullRooms = url.searchParams.get('hideFullRooms') === 'true';
 
-      console.log('🎯 MSW: Intercepted study-rooms request (cursor-based):', {
-        cursorId,
+      console.log('🎯 MSW: Intercepted study-rooms request (page-based):', {
+        page,
         limit,
         sort,
         category,
@@ -49,10 +49,10 @@ export const studyRoomHandlers = [
         );
       }
 
-      // Cursor 기반 필터링
-      if (cursorId) {
+      // Page를 cursor로 사용 (page = 이전 페이지의 마지막 roomId)
+      if (page && page !== 1) {
         const cursorIndex = filteredRooms.findIndex(
-          (room) => room.roomId.toString() === cursorId,
+          (room) => room.roomId === page,
         );
 
         if (cursorIndex !== -1) {
@@ -63,7 +63,7 @@ export const studyRoomHandlers = [
 
       // 제한된 개수만 반환
       const paginatedRooms = filteredRooms.slice(0, limit);
-      const hasNextPage = filteredRooms.length > limit;
+      const hasNext = filteredRooms.length > limit;
 
       const responseData = {
         data: {
@@ -73,12 +73,16 @@ export const studyRoomHandlers = [
               : null,
           size: paginatedRooms.length,
           content: paginatedRooms,
-          hasNextPage,
+          hasNext,
+          nextCursor:
+            paginatedRooms.length > 0
+              ? paginatedRooms[paginatedRooms.length - 1].roomId
+              : null,
         },
       };
 
       console.log(
-        '✅ MSW: Returning study rooms (cursor-based):',
+        '✅ MSW: Returning study rooms (page-based):',
         responseData.data,
       );
 
