@@ -1,6 +1,7 @@
+import { VideoOff } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { MediaControls } from './MediaControls';
 import { useVideoState } from '../model/useMediaControlStore';
+import { MediaControls } from './MediaControls';
 
 export const CameraPreview = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -63,13 +64,7 @@ export const CameraPreview = () => {
   const renderVideoOffState = () => (
     <div className="text-center text-white">
       <div className="w-16 h-16 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-          <path
-            fillRule="evenodd"
-            d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A2 2 0 0017 14V6a2 2 0 00-2-2h-5.586l-.707-.707A1 1 0 007.293 3H4a2 2 0 00-2 2v8a2 2 0 002 2h1.586l.707.707a1 1 0 001.414 0L3.707 2.293zM13 6a1 1 0 11-2 0 1 1 0 012 0z"
-            clipRule="evenodd"
-          />
-        </svg>
+        <VideoOff color="white" />
       </div>
       <p className="text-sm text-gray-300">카메라가 꺼져있습니다</p>
     </div>
