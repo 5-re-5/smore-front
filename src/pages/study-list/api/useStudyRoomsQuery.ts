@@ -1,9 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { request } from '@/shared/api/request';
 import type { StudyRoom } from '@/entities/study';
 
 interface StudyRoomsParams {
-  page?: number;
   limit?: number;
   search?: string;
   category?: string;
@@ -29,17 +28,18 @@ interface ApiStudyRoom {
 }
 
 interface StudyRoomsResponse {
-  cursorId: number | null;
+  cursorId: string | null;
   size: number;
   content: ApiStudyRoom[];
+  hasNextPage?: boolean;
 }
 
 const fetchStudyRooms = async (
-  params: StudyRoomsParams,
+  params: StudyRoomsParams & { cursorId?: string },
 ): Promise<StudyRoomsResponse> => {
   const searchParams = new URLSearchParams();
 
-  if (params.page) searchParams.append('page', params.page.toString());
+  if (params.cursorId) searchParams.append('cursorId', params.cursorId);
   if (params.limit) searchParams.append('limit', params.limit.toString());
   if (params.search) searchParams.append('search', params.search);
   if (params.category) searchParams.append('category', params.category);
@@ -67,15 +67,22 @@ const transformApiRoomToStudyRoom = (apiRoom: ApiStudyRoom): StudyRoom => ({
   createrNickname: apiRoom.creator.nickname,
   description: apiRoom.description,
 });
-
-export const useStudyRoomsQuery = (params: StudyRoomsParams) => {
-  return useQuery({
+//무한스크롤
+export const useInfiniteStudyRoomsQuery = (params: StudyRoomsParams) => {
+  return useInfiniteQuery({
     queryKey: ['study-rooms', params],
-    queryFn: () => fetchStudyRooms(params),
+    queryFn: ({ pageParam }) =>
+      fetchStudyRooms({ ...params, cursorId: pageParam as string }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage && lastPage.cursorId ? lastPage.cursorId : undefined,
     staleTime: 30000, // 30초간 캐시 유지
     select: (data) => ({
-      ...data,
-      content: data.content.map(transformApiRoomToStudyRoom),
+      pages: data.pages.map((page) => ({
+        ...page,
+        content: page.content.map(transformApiRoomToStudyRoom),
+      })),
+      pageParams: data.pageParams,
     }),
   });
 };

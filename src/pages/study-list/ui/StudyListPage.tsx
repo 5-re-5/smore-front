@@ -9,8 +9,9 @@ import {
 import { StudyCard } from './StudyCard';
 import { StudyFilters } from './StudyFilters';
 import { CategoryModal } from './CategoryModal';
-import { useStudyRoomsQuery } from '../api/useStudyRoomsQuery';
-import { useState } from 'react';
+import { useInfiniteStudyRoomsQuery } from '../api/useStudyRoomsQuery';
+import { useIntersectionObserver } from '@/shared/hooks/useIntersectionObserver';
+import { useState, useMemo } from 'react';
 
 export default function StudyListPage() {
   // URL에서 userId 파라미터 처리
@@ -32,17 +33,35 @@ export default function StudyListPage() {
   // 인증된 사용자 ID 가져오기
   const { userId } = useAuth();
 
-  // 스터디 룸 목록 API 호출
+  // 스터디 룸 목록 API 호출 (무한 스크롤)
   const {
     data: studyRoomsData,
     isLoading: isStudyRoomsLoading,
     error: studyRoomsError,
-  } = useStudyRoomsQuery({
-    page: 1,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteStudyRoomsQuery({
     limit: 20,
     sort: sortBy,
     category: selectedCategory || undefined,
     hideFullRooms: hideFullRooms,
+  });
+
+  // 모든 페이지의 데이터를 flat하게 합치기
+  const allStudyRooms = useMemo(() => {
+    if (!studyRoomsData?.pages) return [];
+    return studyRoomsData.pages.flatMap((page) => page.content);
+  }, [studyRoomsData]);
+
+  // 무한 스크롤을 위한 intersection observer
+  const { ref: loadMoreRef } = useIntersectionObserver({
+    onIntersect: () => {
+      if (hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+    enabled: hasNextPage && !isFetchingNextPage,
   });
 
   // API로 사용자 프로필 조회
@@ -56,6 +75,41 @@ export default function StudyListPage() {
   const { data: recentStudyData } = useRecentStudyQuery(
     userId?.toString() || '',
   );
+
+  // 스터디 목록 렌더링 함수
+  const renderStudyContent = () => {
+    // 초기 로딩 상태
+    if (isStudyRoomsLoading && allStudyRooms.length === 0) {
+      return (
+        <div className="col-span-full text-center py-8 text-gray-500">
+          스터디 목록을 불러오는 중...
+        </div>
+      );
+    }
+
+    // 에러 상태
+    if (studyRoomsError) {
+      return (
+        <div className="col-span-full text-center py-8 text-red-500">
+          스터디 목록을 불러오지 못했습니다.
+        </div>
+      );
+    }
+
+    // 스터디 데이터가 있는 경우
+    if (allStudyRooms.length > 0) {
+      return allStudyRooms.map((room) => (
+        <StudyCard key={room.roomId} room={room} />
+      ));
+    }
+
+    // 빈 상태
+    return (
+      <div className="col-span-full text-center py-8 text-gray-500">
+        조건에 맞는 스터디가 없습니다.
+      </div>
+    );
+  };
 
   // 인증되지 않은 경우 처리
   if (!userId) {
@@ -121,26 +175,34 @@ export default function StudyListPage() {
               className="grid grid-cols-2 md:grid-cols-4 gap-x-[40px] gap-y-[55px] list-none"
               role="list"
             >
-              {isStudyRoomsLoading ? (
-                <div className="col-span-full text-center py-8 text-gray-500">
-                  스터디 목록을 불러오는 중...
-                </div>
-              ) : studyRoomsError ? (
-                <div className="col-span-full text-center py-8 text-red-500">
-                  스터디 목록을 불러오지 못했습니다.
-                </div>
-              ) : studyRoomsData?.content?.length ? (
-                studyRoomsData.content.map((room) => (
-                  <StudyCard key={room.roomId} room={room} />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-8 text-gray-500">
-                  조건에 맞는 스터디가 없습니다.
-                </div>
-              )}
+              {renderStudyContent()}
             </div>
           </div>
         </nav>
+
+        {/* 무한 스크롤 로딩 영역 */}
+        {allStudyRooms.length > 0 && (
+          <div className="max-w-[1280px] mx-auto mt-8">
+            {isFetchingNextPage && (
+              <div className="text-center py-8 text-gray-500">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
+                <p className="mt-2">더 많은 스터디를 불러오는 중...</p>
+              </div>
+            )}
+
+            {hasNextPage && !isFetchingNextPage && (
+              <div ref={loadMoreRef} className="text-center py-8 text-gray-400">
+                스크롤하여 더 보기
+              </div>
+            )}
+
+            {!hasNextPage && allStudyRooms.length > 0 && (
+              <div className="text-center py-8 text-gray-400">
+                모든 스터디를 불러왔습니다.
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* 카테고리 모달 */}
