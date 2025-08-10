@@ -1,9 +1,12 @@
+import { RefreshIcon } from '@/shared/ui/icons';
+
 interface StudyFiltersProps {
   sortBy: 'popular' | 'latest';
   onSortChange: (sort: 'popular' | 'latest') => void;
   hideFullRooms: boolean;
   onHideFullRoomsChange: (hide: boolean) => void;
   onCategoryClick: () => void;
+  onReset: () => void;
 }
 
 export const StudyFilters = ({
@@ -12,6 +15,7 @@ export const StudyFilters = ({
   hideFullRooms,
   onHideFullRoomsChange,
   onCategoryClick,
+  onReset,
 }: StudyFiltersProps) => {
   return (
     <div>
@@ -49,6 +53,14 @@ export const StudyFilters = ({
             className="text-gray-500 text-sm hover:text-gray-700 transition-colors"
           >
             카테고리
+          </button>
+          <span className="text-gray-400">|</span>
+          <button
+            onClick={onReset}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+            title="필터 초기화"
+          >
+            <RefreshIcon className="w-4 h-4" />
           </button>
         </div>
       </div>

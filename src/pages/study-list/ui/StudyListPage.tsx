@@ -22,6 +22,13 @@ export default function StudyListPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
 
+  // 필터 초기화 함수
+  const handleReset = () => {
+    setSortBy('latest');
+    setHideFullRooms(true);
+    setSelectedCategory(null);
+  };
+
   // 인증된 사용자 ID 가져오기
   const { userId } = useAuth();
 
@@ -100,6 +107,7 @@ export default function StudyListPage() {
           hideFullRooms={hideFullRooms}
           onHideFullRoomsChange={setHideFullRooms}
           onCategoryClick={() => setShowCategoryModal(true)}
+          onReset={handleReset}
         />
       </div>
 

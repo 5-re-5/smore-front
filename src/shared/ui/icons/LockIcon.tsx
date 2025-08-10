@@ -14,10 +14,10 @@ export const LockIcon = ({ className }: IconProps) => (
     <path
       d="M5 7V5a3 3 0 0 1 6 0v2h1a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h1z"
       stroke="currentColor"
-      stroke-width="1.2"
+      strokeWidth="1.2"
       fill="none"
     />
-    <path d="M6 7h4" stroke="currentColor" stroke-width="1.2" />
+    <path d="M6 7h4" stroke="currentColor" strokeWidth="1.2" />
     <circle cx="8" cy="11" r=".8" fill="currentColor" />
   </svg>
 );
