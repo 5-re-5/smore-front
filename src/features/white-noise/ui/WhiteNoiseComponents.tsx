@@ -5,14 +5,20 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { Music } from 'lucide-react';
+import { useEffect } from 'react';
 import { useWhiteNoiseStore } from '../model/useWhiteNoiseStore';
 import WhiteNoiseAudioManager from './WhiteNoiseAudioManager';
 import WhiteNoiseController from './WhiteNoiseController';
 import WhiteNoisePlayerUI from './WhiteNoisePlayerUI';
 
 function WhiteNoiseComponents() {
-  const { currentNoise, isPlaying } = useWhiteNoiseStore();
+  const { currentNoise, isPlaying, setIsPlaying } = useWhiteNoiseStore();
 
+  useEffect(() => {
+    return () => {
+      setIsPlaying(false);
+    };
+  }, []);
   return (
     <div className="relative">
       {/* 백그라운드 오디오 매니저 - 항상 동작 */}
