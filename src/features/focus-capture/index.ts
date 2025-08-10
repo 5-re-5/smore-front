@@ -12,6 +12,3 @@ export {
 
 // Auto capture scheduling
 export { useAutoCaptureScheduler } from './model/useAutoCaptureScheduler';
-
-// UI Components
-export { CaptureButton } from './ui/CaptureButton';
