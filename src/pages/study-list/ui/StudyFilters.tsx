@@ -26,14 +26,14 @@ export const StudyFilters = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onSortChange('popular')}
-            className={`text-sm transition-colors ${sortBy === 'popular' ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`text-sm transition-colors cursor-pointer ${sortBy === 'popular' ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
           >
             인기 순
           </button>
           <span className="text-gray-400">|</span>
           <button
             onClick={() => onSortChange('latest')}
-            className={`text-sm transition-colors ${sortBy === 'latest' ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`text-sm transition-colors cursor-pointer ${sortBy === 'latest' ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
           >
             최신 순
           </button>
@@ -43,21 +43,21 @@ export const StudyFilters = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onHideFullRoomsChange(!hideFullRooms)}
-            className={`text-sm transition-colors ${hideFullRooms ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`text-sm transition-colors cursor-pointer ${hideFullRooms ? 'text-black-600 font-semibold' : 'text-gray-500 hover:text-gray-700'}`}
           >
             바로 참여가능
           </button>
           <span className="text-gray-400">|</span>
           <button
             onClick={onCategoryClick}
-            className="text-gray-500 text-sm hover:text-gray-700 transition-colors"
+            className="text-gray-500 text-sm hover:text-gray-700 transition-colors cursor-pointer"
           >
             카테고리
           </button>
           <span className="text-gray-400">|</span>
           <button
             onClick={onReset}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
             title="필터 초기화"
           >
             <RefreshIcon className="w-4 h-4" />

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import type { StudyRoom } from '@/entities/study';
 import { ClockIcon, LockIcon } from '@/shared/ui/icons';
 import { useRouter } from '@tanstack/react-router';
@@ -28,7 +27,7 @@ export function StudyModal({ isOpen, onClose, room }: StudyModalProps) {
         {/* 헤더 */}
         <div className="mb-6">
           <div className="relative">
-            <h2 className="text-lg font-bold text-gray-900 pr-8">
+            <h2 className="text-xl font-bold text-gray-900 pr-8 mt-2">
               {room.title}
             </h2>
             <button
