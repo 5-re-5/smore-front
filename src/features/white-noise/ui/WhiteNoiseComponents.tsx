@@ -51,7 +51,7 @@ function WhiteNoiseComponents() {
 
         <DropdownMenuContent
           className="w-80 p-4 space-y-4"
-          align="end"
+          align="center"
           side="top"
           sideOffset={8}
         >
