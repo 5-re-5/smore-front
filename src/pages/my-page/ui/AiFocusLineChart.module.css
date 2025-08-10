@@ -1,0 +1,123 @@
+/*AiFocusLineChart.module.css*/
+.aifocuslinechart {
+  width: 100%;
+  max-width: 1440px;
+  background: #f6fcfe;
+  border-radius: 20px;
+  box-shadow: 2px 2px 18px rgba(20, 22, 108, 0.07);
+  padding: 40px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+  align-items: flex-start;
+  font-family: 'Nunito Sans', Montserrat, sans-serif;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ai {
+  font-size: 20px;
+  font-weight: 700;
+  color: #3b568f;
+  width: 100%;
+}
+.desc {
+  font-size: 16px;
+  color: #656769;
+  line-height: 1.4;
+  width: 100%;
+}
+.aiContainer {
+  font-size: 18px;
+  color: #202224;
+  width: 100%;
+}
+.span {
+  font-size: 16px;
+  color: #656769;
+}
+
+/* 그래프 */
+.graphWrapper {
+  width: 1132.5px;
+  height: 350px;
+  position: relative;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 1.5px 10px #e6f1fa6b;
+  margin: 24px 0 18px 60px;
+  box-sizing: border-box;
+}
+
+.svgLine {
+  position: absolute;
+  left: 0;
+  bottom: 28px;
+  z-index: 2;
+}
+
+.guideLine {
+  position: absolute;
+  height: 1px;
+  border-top: 1.5px dashed #c9cbcd;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.yLabel {
+  position: absolute;
+  left: -55px;
+  color: #979797;
+  font-size: 15px;
+  font-weight: 500;
+  width: 40px;
+  text-align: right;
+  z-index: 11;
+  bottom: 0;
+  transform: translateY(50%);
+}
+.xLabels {
+  position: absolute;
+  left: 60px;
+  bottom: 0;
+  width: 1132.5px;
+  height: 38px;
+  display: flex;
+  pointer-events: none;
+}
+.xLabel {
+  position: absolute;
+  color: #474b4e;
+  font-size: 17px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.maxScoreLabel {
+  font-size: 15px;
+  fill: #1971c2;
+  font-weight: 700;
+  dominant-baseline: hanging;
+}
+
+.totalStudyTime {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1971c2;
+  padding: 14px 66px 0 0;
+}
+
+@media (max-width: 1280px) {
+  .graphWrapper {
+    width: 98vw;
+    min-width: 350px;
+    max-width: 100vw;
+  }
+  .xLabels {
+    width: 98vw;
+    max-width: 100vw;
+  }
+}

@@ -3,6 +3,9 @@ import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables); //중복 캔버스 사용 문제 방지. 차트 정상 동작용
+
 import { router } from '@/app/routing/config/router';
 import { Provider as QueryProvider } from '@/shared/lib/reactQuery/Provider';
 

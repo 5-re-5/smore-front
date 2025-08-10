@@ -31,6 +31,7 @@ export const MOCK_STUDY_ROOMS = [
     isError: false,
   },
   {
+
     roodId: 3,
     title: '프론트엔드 개발자 되기',
     thumbnail:
@@ -46,6 +47,7 @@ export const MOCK_STUDY_ROOMS = [
     isError: false,
   },
   {
+
     roodId: 4,
     title: '공무원 시험 준비',
     thumbnail:

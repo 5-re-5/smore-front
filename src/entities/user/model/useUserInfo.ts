@@ -1,4 +1,4 @@
-import { useUserProfileQuery } from '../api/queries';
+import { useUserProfileQuery } from '../api/queries/userQueries';
 import { useAuth } from './useAuth';
 
 export const useUserInfo = (userId?: number | null) => {

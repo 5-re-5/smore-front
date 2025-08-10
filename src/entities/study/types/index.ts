@@ -7,6 +7,7 @@ export interface RecentStudyRoom {
   currentParticipants: number;
   tag: string[];
   thumbnailUrl: string;
+  isDelete: boolean;
 }
 
 export interface RecentStudyResponse {

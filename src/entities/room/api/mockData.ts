@@ -1,5 +1,6 @@
 import { type RoomApiResponse } from '@/entities/room';
 
+
 // MSW study.ts에서 가져온 스터디룸 목 데이터
 export const mockStudyRooms = [
   {

@@ -1,6 +1,5 @@
 import { FooterCompanyInfo } from './FooterCompanyInfo';
 import { FooterLogo } from './FooterLogo';
-import { GitLabLink } from './GitLabLink';
 
 export const Footer = () => {
   return (
@@ -23,7 +22,7 @@ export const Footer = () => {
           >
             ©2025 Smore. All rights reserved
           </p>
-          <GitLabLink />
+          {/* <GitLabLink /> */}
         </section>
       </div>
     </footer>

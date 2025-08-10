@@ -1,16 +1,37 @@
-function MyPage() {
+// src/pages/my-page/MyPage.tsx
+import styles from '../MyPage.module.css';
+
+import ProfileCard from './ProfileCard';
+import AiFocusLineChart from './AiFocusLineChart';
+import StatPanel from './StatPanel';
+import WeeklyBarChart from './WeeklyBarChart';
+import MonthlyLineChart from './MonthlyLineChart';
+
+const MyPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">마이페이지</h1>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <p className="text-gray-600">
-            사용자 프로필 및 설정 기능이 곧 추가될 예정입니다.
-          </p>
-        </div>
-      </div>
-    </div>
+    <main className={styles.myPage}>
+      <div className={styles.headerWrap}>{/* 고정 헤더 분리 가능 */}</div>
+
+      {/* ProfileCard는 section 없이 바로 렌더링 (흰색박스 제거) */}
+      <ProfileCard />
+
+      {/* 나머지는 기존대로 section 래핑 유지 */}
+      <section className={styles.section}>
+        <AiFocusLineChart />
+      </section>
+      <section className={styles.section}>
+        <StatPanel />
+      </section>
+      <section className={styles.section}>
+        <WeeklyBarChart />
+      </section>
+      <section className={styles.section}>
+        <MonthlyLineChart />
+      </section>
+
+      <div className={styles.footerWrap}>{/* 고정 푸터 분리 가능 */}</div>
+    </main>
   );
-}
+};
 
 export default MyPage;

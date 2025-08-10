@@ -12,6 +12,7 @@ import { CategoryModal } from './CategoryModal';
 import { useInfiniteStudyRoomsQuery } from '../api/useStudyRoomsQuery';
 import { useIntersectionObserver } from '@/shared/hooks/useIntersectionObserver';
 import { useState, useMemo } from 'react';
+import { useUserProfileQuery, useAuth } from '@/entities/user';
 
 export default function StudyListPage() {
   // URL에서 userId 파라미터 처리
@@ -147,10 +148,7 @@ export default function StudyListPage() {
     <main className="p-8 font-['Noto_Sans_KR']" role="main">
       {/* 내정보박스 */}
       <section className="mb-8">
-        <UserInfoBox
-          userProfile={userProfileData}
-          recentStudyRooms={recentStudyData?.rooms}
-        />
+        <UserInfoBox userProfile={userProfileData} />
       </section>
 
       {/* 정렬 및 필터 글자들 */}

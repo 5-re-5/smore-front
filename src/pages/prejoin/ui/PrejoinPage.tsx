@@ -1,34 +1,53 @@
-import { joinRoom } from '@/entities/room/api/joinRoom';
-import { useRoomQuery } from '@/entities/room/api/queries';
+import {
+  useJoinRoomMutation,
+  useRoomInfoQuery,
+} from '@/entities/room/api/queries';
 import { adaptRoomFromApi } from '@/entities/room/model/adapters';
+import { useAuth } from '@/entities/user/model/useAuth';
+import { useUserInfo } from '@/entities/user/model/useUserInfo';
 import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
 import { CameraPreview } from '@/features/prejoin/ui/CameraPreview';
 import { PrejoinMicWaveform } from '@/features/prejoin/ui/PrejoinMicWaveform';
 import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
 import type { ApiError } from '@/shared/api/request';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function PrejoinPage() {
   const { roomId } = useParams({ from: '/room/$roomId/prejoin' });
   const navigate = useNavigate();
   const roomIdNumber = parseInt(roomId, 10);
-  const [isJoining, setIsJoining] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // 사용자 정보
+  const { getUserId } = useAuth();
+  const userId = getUserId();
+  const { data: userInfo } = useUserInfo();
+  const identity =
+    userInfo?.nickname || `User${Math.floor(Math.random() * 1000)}`;
+
   // 방 정보 조회
-  const {
-    data: roomData,
-    isLoading: roomLoading,
-    error: roomError,
-  } = useRoomQuery(roomIdNumber);
+  const { data: roomData, isLoading: roomLoading } =
+    useRoomInfoQuery(roomIdNumber);
   const room = roomData ? adaptRoomFromApi(roomData) : null;
+
+  // 방 입장 mutation
+  const joinRoomMutation = useJoinRoomMutation();
+  const isJoining = joinRoomMutation.isPending;
 
   // 얼굴 감지 설정
   const { isFaceDetectionEnabled, setFaceDetectionEnabled } =
     useFaceDetectionStore();
+
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [stream]);
 
   const validatePassword = (): boolean => {
     if (room?.hasPassword && !password.trim()) {
@@ -51,12 +70,6 @@ function PrejoinPage() {
     }
   };
 
-  const joinRoomWithPassword = async (): Promise<void> => {
-    if (room?.hasPassword) {
-      await joinRoom(roomIdNumber, { password });
-    }
-  };
-
   const navigateToRoom = (): void => {
     navigate({
       to: '/room/$roomId',
@@ -66,18 +79,24 @@ function PrejoinPage() {
 
   const handleJoinRoom = async (): Promise<void> => {
     if (!validatePassword()) return;
+    if (!userId) {
+      setError('사용자 정보를 불러올 수 없습니다.');
+      return;
+    }
 
-    setIsJoining(true);
     setError(null);
 
     try {
-      await joinRoomWithPassword();
+      await joinRoomMutation.mutateAsync({
+        roomId: roomIdNumber,
+        userId,
+        identity,
+        password: room?.hasPassword ? password : undefined,
+      });
       navigateToRoom();
     } catch (error) {
       const apiError = error as ApiError;
       setError(getErrorMessage(apiError));
-    } finally {
-      setIsJoining(false);
     }
   };
 
@@ -92,18 +111,18 @@ function PrejoinPage() {
     );
   }
 
-  if (roomError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600">
-            방을 찾을 수 없습니다
-          </h1>
-          <p className="text-gray-600 mt-2">방 번호를 확인해주세요.</p>
-        </div>
-      </div>
-    );
-  }
+  // if (roomError) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="text-center">
+  //         <h1 className="text-2xl font-bold text-red-600">
+  //           방을 찾을 수 없습니다
+  //         </h1>
+  //         <p className="text-gray-600 mt-2">방 번호를 확인해주세요.</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-black">
