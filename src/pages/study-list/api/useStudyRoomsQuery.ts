@@ -22,6 +22,7 @@ interface ApiStudyRoom {
   createdAt: string;
   isPomodoro: boolean;
   isPrivate: boolean;
+  description?: string;
   creator: {
     nickname: string;
   };
@@ -54,7 +55,7 @@ const fetchStudyRooms = async (
 
 // API 응답을 StudyRoom 타입으로 변환하는 함수
 const transformApiRoomToStudyRoom = (apiRoom: ApiStudyRoom): StudyRoom => ({
-  roodId: apiRoom.roomId,
+  roomId: apiRoom.roomId,
   title: apiRoom.title,
   thumbnail: apiRoom.thumbnailUrl,
   tags: apiRoom.tag,
@@ -64,6 +65,7 @@ const transformApiRoomToStudyRoom = (apiRoom: ApiStudyRoom): StudyRoom => ({
   isPomodoro: apiRoom.isPomodoro,
   isPrivate: apiRoom.isPrivate,
   createrNickname: apiRoom.creator.nickname,
+  description: apiRoom.description,
 });
 
 export const useStudyRoomsQuery = (params: StudyRoomsParams) => {

@@ -122,7 +122,7 @@ export default function StudyListPage() {
               </div>
             ) : studyRoomsData?.content?.length ? (
               studyRoomsData.content.map((room) => (
-                <StudyCard key={room.roodId} room={room} />
+                <StudyCard key={room.roomId} room={room} />
               ))
             ) : (
               <div className="col-span-full text-center py-8 text-gray-500">

@@ -14,7 +14,7 @@ export interface RecentStudyResponse {
 }
 
 export interface StudyRoom {
-  roodId: number;
+  roomId: number;
   title: string;
   thumbnail: string;
   tags: readonly string[];
@@ -25,5 +25,6 @@ export interface StudyRoom {
   createrNickname: string;
   isPrivate: boolean;
   isPomodoro: boolean;
+  description?: string;
   // isError: boolean;
 }

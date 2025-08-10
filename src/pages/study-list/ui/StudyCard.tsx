@@ -2,92 +2,15 @@ import React, { useState } from 'react';
 import type { StudyRoom } from '@/entities/study';
 import { UserIcon, LockIcon, ClockIcon } from '@/shared/ui/icons';
 import { Button } from '@/shared/ui';
-import { useJoinStudyMutation } from '../api/useJoinStudyMutation';
+import { StudyModal } from './StudyModal';
 
 interface StudyCardProps {
   room: StudyRoom;
   onJoinClick?: (roomId: number) => void;
 }
 
-// 모달 컴포넌트
-const StudyModal = ({
-  isOpen,
-  onClose,
-  room,
-  onJoin,
-  isJoining,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  room: StudyRoom;
-  onJoin: (roomId: number) => void;
-  isJoining: boolean;
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-3xl p-6 max-w-md w-full mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-study-text">{room.title}</h2>
-          <button
-            onClick={onClose}
-            className="text-study-secondary hover:text-study-text"
-          >
-            ✕
-          </button>
-        </div>
-
-        <img
-          src={room.thumbnail || '/study-thumbnail.png'}
-          alt={`${room.title} 스터디 썸네일`}
-          className="w-full h-40 object-cover rounded-md mb-4"
-        />
-
-        <div className="mb-4">
-          <p className="text-study-secondary mb-2">카테고리: {room.category}</p>
-          <p className="text-study-secondary mb-2">
-            방장: {room.createrNickname}
-          </p>
-          <p className="text-study-secondary mb-2">
-            참여자: {room.currentParticipants}/{room.maxParticipants}명
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-[0.25rem] mb-4">
-          {room.tags.map((tag, index) => (
-            <span key={index} className="study-tag">
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 px-4 bg-study-bg text-study-secondary font-medium rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            닫기
-          </button>
-          <button
-            onClick={() => {
-              onJoin(room.roodId);
-              onClose();
-            }}
-            disabled={isJoining}
-            className="flex-1 py-3 px-4 bg-study-primary text-white font-medium rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
-          >
-            {isJoining ? '참가 중...' : '참가하기'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export function StudyCard({ room, onJoinClick }: StudyCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const joinMutation = useJoinStudyMutation();
 
   const handleJoinClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -191,8 +114,6 @@ export function StudyCard({ room, onJoinClick }: StudyCardProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         room={room}
-        onJoin={(roomId) => joinMutation.mutate({ roomId })}
-        isJoining={joinMutation.isPending}
       />
     </>
   );
