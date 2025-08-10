@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { useUrlAuth, MOCK_STUDY_ROOMS } from '../model';
+import { useUrlAuth } from '../model';
 import { UserInfoBox } from './UserInfoBox';
 import {
   useRecentStudyQuery,

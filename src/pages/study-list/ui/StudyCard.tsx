@@ -9,7 +9,7 @@ interface StudyCardProps {
   onJoinClick?: (roomId: number) => void;
 }
 
-export function StudyCard({ room, onJoinClick }: StudyCardProps) {
+export function StudyCard({ room }: StudyCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleJoinClick = (e: React.MouseEvent) => {
