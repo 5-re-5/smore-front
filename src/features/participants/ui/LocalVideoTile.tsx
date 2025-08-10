@@ -6,8 +6,9 @@ import {
   useLocalParticipant,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { useAttachLocalCameraTrack } from '../model/useAttachLocalCameraTrack';
+import { useMediaStreamAnalyser } from '@/features/prejoin';
 
 export function LocalVideoTile() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -23,6 +24,21 @@ export function LocalVideoTile() {
 
   const isMicMuted = micPub?.isMuted ?? true;
   const isCamMuted = camPub?.isMuted ?? true;
+
+  // 마이크 트랙에서 MediaStream 추출
+  const micStream = useMemo(() => {
+    if (!micPub?.track || isMicMuted) return null;
+    const mediaStreamTrack = micPub.track.mediaStreamTrack;
+    if (!mediaStreamTrack) return null;
+
+    const stream = new MediaStream();
+    stream.addTrack(mediaStreamTrack);
+    return stream;
+  }, [micPub?.track, isMicMuted]);
+
+  // 오디오 레벨 기반 말하기 감지
+  const { level } = useMediaStreamAnalyser(micStream);
+  const isSpeaking = level > 0.1; // 임계값 0.1
 
   const trackRefs = {
     camera: {
@@ -46,7 +62,13 @@ export function LocalVideoTile() {
   });
 
   return (
-    <div className="relative">
+    <div
+      className={`relative rounded-xl border transition-all duration-300 ${
+        isSpeaking
+          ? 'border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+          : 'border-zinc-300'
+      }`}
+    >
       <video
         ref={videoRef}
         autoPlay
