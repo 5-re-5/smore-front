@@ -1,3 +1,13 @@
+export {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './alert-dialog';
 export { Button, buttonVariants } from './button';
 export { Calendar, CalendarDayButton } from './calendar';
 export { CustomProgress } from './icons/custom-progress';
