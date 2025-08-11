@@ -48,6 +48,11 @@ function RoomPage() {
     useState<MediaPermissionStatus | null>(null);
   const [actualMediaSettings, setActualMediaSettings] = useState(mediaSettings);
 
+  // 스피커 상태 관리
+  const [isSpeakerMuted, setIsSpeakerMuted] = useState(() => {
+    return !loadMediaSettings().speaker;
+  });
+
   // roomId 유효성 검사
   const roomIdNumber = parseInt(roomId, 10);
 
@@ -178,6 +183,19 @@ function RoomPage() {
     clearIntentionalExit,
   ]);
 
+  // 스피커 토글 이벤트 감지하여 상태 동기화
+  useEffect(() => {
+    const handleSpeakerToggle = () => {
+      const newSettings = loadMediaSettings();
+      setIsSpeakerMuted(!newSettings.speaker);
+    };
+
+    window.addEventListener('speakerToggle', handleSpeakerToggle);
+    return () => {
+      window.removeEventListener('speakerToggle', handleSpeakerToggle);
+    };
+  }, []);
+
   // 스톱워치 초기화
   useEffect(() => {
     return () => resetStopwatch();
@@ -293,7 +311,7 @@ function RoomPage() {
         }}
         className="flex-1"
       >
-        <RoomAudioRenderer />
+        {!isSpeakerMuted && <RoomAudioRenderer />}
         <StartAudio label="" />
         <RoomLayout />
       </LiveKitRoom>

@@ -124,6 +124,9 @@ export const useRoomMediaToggle = ({
             speaker: !newMutedState, // muted가 false면 speaker enabled = true
           });
 
+          // Custom Event 발송하여 RoomPage에 변경 알림
+          window.dispatchEvent(new CustomEvent('speakerToggle'));
+
           if (room) {
             // 모든 원격 참가자의 오디오 트랙 음소거 제어
             room.remoteParticipants.forEach((participant) => {
