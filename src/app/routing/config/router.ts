@@ -2,7 +2,6 @@ import { createRouter } from '@tanstack/react-router';
 import { indexRoute } from '@/pages/homepage/route';
 import { getContext } from '@/shared/lib/reactQuery/context';
 import { rootRoute } from '../__root';
-import { aboutRoute } from '@/pages/about/route';
 import { roomRoute } from '@/pages/room/route';
 import { prejoinRoute } from '@/pages/prejoin/route';
 import { loginRoute } from '@/pages/login/route';
@@ -15,7 +14,6 @@ import { myPageRoute } from '@/pages/my-page/route';
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  aboutRoute,
   roomRoute,
   prejoinRoute,
   loginRoute,

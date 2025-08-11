@@ -1,8 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/shared/ui/button';
+import { useAuth } from '@/entities/user';
+import { useNavigate } from '@tanstack/react-router';
 
 function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate({ to: '/study-list', replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = () => {
     setIsLoading(true);
