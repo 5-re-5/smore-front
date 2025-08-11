@@ -31,8 +31,8 @@ export const useChatHistory = ({
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
 
-  // 페이지네이션 관리
-  const cursorRef = useRef<string | undefined>(undefined);
+  // 페이지네이션 관리 (cursor → page 기반)
+  const currentPageRef = useRef<number>(1);
   const isInitialLoadedRef = useRef(false);
 
   // 메시지 스토어
@@ -58,8 +58,9 @@ export const useChatHistory = ({
 
       const response: ChatHistoryResponse = await chatApi.getChatHistory(
         roomId,
-        undefined,
+        1, // 첫 페이지
         limit,
+        'TEXT', // 메시지 타입
       );
 
       console.log(`📚 히스토리 로드 완료:`, {
@@ -78,7 +79,7 @@ export const useChatHistory = ({
       setMessages(sortedMessages);
       setHasMore(response.hasMore);
       setTotalCount(response.totalCount);
-      cursorRef.current = response.nextCursor;
+      currentPageRef.current = response.currentPage;
       isInitialLoadedRef.current = true;
     } catch (err) {
       handleError(err, '초기 히스토리 로드 실패');
@@ -91,25 +92,27 @@ export const useChatHistory = ({
     }
   }, [roomId, limit, setMessages, handleError, isLoading]);
 
-  // 더 많은 히스토리 로드 (무한 스크롤)
+  // 더 많은 히스토리 로드 (페이지 기반)
   const loadMoreHistory = useCallback(async () => {
-    if (isLoadingMore || !hasMore || !cursorRef.current) return;
+    if (isLoadingMore || !hasMore) return;
 
     setIsLoadingMore(true);
     setError(null);
 
     try {
-      console.log(`📚 추가 히스토리 로드: cursor=${cursorRef.current}`);
+      const nextPage = currentPageRef.current + 1;
+      console.log(`📚 추가 히스토리 로드: page=${nextPage}`);
 
       const response: ChatHistoryResponse = await chatApi.getChatHistory(
         roomId,
-        cursorRef.current,
+        nextPage,
         limit,
+        'TEXT',
       );
 
       console.log(`📚 추가 히스토리 로드 완료: ${response.messages.length}개`);
 
-      // 기존 메시지 앞에 추가 (오래된 메시지가 앞쪽에)
+      // 기존 메시지 앞에 추가 (과거 메시지가 상단에)
       const sortedNewMessages = response.messages.sort(
         (a, b) =>
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
@@ -117,7 +120,7 @@ export const useChatHistory = ({
 
       addMessages(sortedNewMessages, 'prepend'); // 앞쪽에 추가
       setHasMore(response.hasMore);
-      cursorRef.current = response.nextCursor;
+      currentPageRef.current = response.currentPage;
     } catch (err) {
       handleError(err, '추가 히스토리 로드 실패');
     } finally {
@@ -156,7 +159,7 @@ export const useChatHistory = ({
 
         setMessages(sortedMessages);
         setHasMore(response.hasMore);
-        cursorRef.current = response.nextCursor;
+        currentPageRef.current = response.currentPage;
       } catch (err) {
         handleError(err, '개인 히스토리 로드 실패');
         setMessages([]);
@@ -178,7 +181,7 @@ export const useChatHistory = ({
     console.log('🔄 채팅 히스토리 새로고침');
 
     // 상태 초기화
-    cursorRef.current = undefined;
+    currentPageRef.current = 1;
     isInitialLoadedRef.current = false;
     setHasMore(true);
     setTotalCount(0);

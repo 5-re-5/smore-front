@@ -19,7 +19,7 @@ function RoomLayout() {
           onClick={() => setIsChatOpen((prev) => !prev)}
           className="p-2 rounded-full bg-white shadow"
         >
-          💬
+          !!!!!💬!!!!!!
         </button>
       </div>
       {/* 채팅 패널 */}

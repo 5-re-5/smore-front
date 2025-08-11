@@ -5,7 +5,7 @@ import ChatInput from './ChatInput';
 import { useChatMessageStore } from '../model/useChatMessageStore';
 import { useChatHistory } from '../hooks/useChatHistory';
 import { useRoomContext, useParticipants } from '@livekit/components-react';
-import { useUserStore } from '@/entities/user/model/useUserStore';
+import { useAuth } from '@/entities/user/model/useAuth';
 import { useStompChat } from '../hooks/useStompChat';
 
 interface ChatPanelProps {
@@ -30,7 +30,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
 
   // 스토어 및 훅들
   const { messages } = useChatMessageStore();
-  const { userId: currentUserId } = useUserStore();
+  const { userId: currentUserId } = useAuth();
   const room = useRoomContext();
   const participants = useParticipants();
 

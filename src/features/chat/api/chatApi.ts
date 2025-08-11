@@ -65,13 +65,72 @@ const initializeMockData = () => {
   }
 };
 ////////////////////////////////////////////////////////////
-// API 응답 타입들
+// API 응답 타입들 (camelCase 통일)
+export interface BackendChatMessage {
+  messageId: number;
+  roomId: number;
+  userId: number;
+  content: string;
+  type: string;
+  createdAt: string;
+  sender: {
+    userId: number;
+    nickname: string;
+    profileUrl: string;
+  };
+}
+
+export interface BackendChatResponse {
+  data: {
+    messages: BackendChatMessage[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalMessages: number;
+      messagesPerPage: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+    roomInfo: {
+      roomId: number;
+      title: string;
+      currentParticipants: number;
+    };
+  };
+}
+
+// 프론트엔드 사용 타입 (기존과 동일)
 export interface ChatHistoryResponse {
   messages: ChatMessage[];
   hasMore: boolean;
-  nextCursor?: string;
+  currentPage: number;
   totalCount: number;
 }
+
+// Adapter 함수 (간단해짐)
+const adaptChatMessage = (backendMsg: BackendChatMessage): ChatMessage => {
+  return {
+    type: backendMsg.type as 'GROUP' | 'PRIVATE' | 'SYSTEM',
+    sender: {
+      userId: backendMsg.sender.userId,
+      nickname: backendMsg.sender.nickname,
+      profileUrl: backendMsg.sender.profileUrl,
+    },
+    content: backendMsg.content,
+    timestamp: backendMsg.createdAt,
+  };
+};
+
+const adaptChatResponse = (
+  backendResponse: BackendChatResponse,
+): ChatHistoryResponse => {
+  return {
+    messages: backendResponse.data.messages.map(adaptChatMessage),
+    hasMore: backendResponse.data.pagination.hasNext,
+    currentPage: backendResponse.data.pagination.currentPage,
+    totalCount: backendResponse.data.pagination.totalMessages,
+  };
+};
 
 export interface SendMessageRequest {
   type: 'GROUP' | 'PRIVATE' | 'SYSTEM';
@@ -88,27 +147,29 @@ export interface SendMessageResponse {
 
 // 채팅 API 클래스
 class ChatAPI {
-  private baseUrl = '/api/chat'; // 백엔드 API 기본 URL
+  private baseUrl = `${import.meta.env.VITE_BACK_URL}`; // 백엔드 API 기본 URL
 
   // Mock 데이터 초기화 메서드 (외부에서 호출 가능)
   initializeMockData() {
     initializeMockData();
   }
 
-  // 메시지 히스토리 조회 (Mock버전)
+  // 메시지 히스토리 조회 (새로운 명세)
   async getChatHistory(
     roomId: string,
-    cursor?: string,
+    page: number = 1,
     limit: number = 50,
+    type: string = 'TEXT',
   ): Promise<ChatHistoryResponse> {
     try {
       const params = new URLSearchParams({
+        page: page.toString(),
         limit: limit.toString(),
-        ...(cursor && { cursor }),
+        type,
       });
 
       const response = await fetch(
-        `${this.baseUrl}/rooms/${roomId}/history?${params}`,
+        `${this.baseUrl}/study-rooms/${roomId}/messages?${params}`,
         {
           method: 'GET',
           headers: {
@@ -122,49 +183,35 @@ class ChatAPI {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      return await response.json();
+      const backendResponse: BackendChatResponse = await response.json();
+      return adaptChatResponse(backendResponse);
     } catch (error) {
       console.error('채팅 히스토리 조회 실패:', error);
 
-      // Mock 데이터로 페이지네이션 시뮬레이션 (이미 초기화된 데이터 사용)
+      // Mock 데이터로 페이지네이션 시뮬레이션 (page 기반)
       if (mockMessagesStore.length === 0) {
         initializeMockData();
       }
 
-      let endIndex = mockMessagesStore.length; // 최신 메시지부터 시작
-
-      // cursor가 있으면 해당 시점 이전 메시지들 찾기 (과거 메시지 로딩)
-      if (cursor) {
-        const cursorIndex = mockMessagesStore.findIndex(
-          (msg) => msg.timestamp === cursor,
-        );
-        endIndex = cursorIndex > -1 ? cursorIndex : mockMessagesStore.length;
-      }
-
-      // 최신 메시지부터 limit개만큼 슬라이스 (역방향)
-      const startIndex = Math.max(0, endIndex - limit);
+      // 페이지 기반 계산
+      const startIndex = (page - 1) * limit;
+      const endIndex = Math.min(startIndex + limit, mockMessagesStore.length);
       const messages = mockMessagesStore.slice(startIndex, endIndex);
-      const hasMore = startIndex > 0;
-      const nextCursor =
-        hasMore && messages.length > 0
-          ? messages[0].timestamp // 가장 오래된 메시지의 timestamp
-          : undefined;
+      const hasMore = endIndex < mockMessagesStore.length;
 
-      console.log(
-        '📚 Mock 히스토리 응답:',
-        // {
-        //   startIndex,
-        //   returnedCount: messages.length,
-        //   hasMore,
-        //   totalInStore: mockMessagesStore.length,
-        //   nextCursor: nextCursor?.slice(-8) // 마지막 8자리만 로그
-        // }
-      );
+      console.log('📚 Mock 히스토리 응답 (페이지 기반):', {
+        page,
+        startIndex,
+        endIndex,
+        returnedCount: messages.length,
+        hasMore,
+        totalInStore: mockMessagesStore.length,
+      });
 
       return {
         messages,
         hasMore,
-        nextCursor,
+        currentPage: page,
         totalCount: mockMessagesStore.length,
       };
       // 백엔드 없을 때 임시 응답
@@ -312,9 +359,10 @@ export const chatApi = new ChatAPI();
 
 export const getChatHistory = (
   roomId: string,
-  cursor?: string,
+  page?: number,
   limit?: number,
-) => chatApi.getChatHistory(roomId, cursor, limit);
+  type?: string,
+) => chatApi.getChatHistory(roomId, page, limit, type);
 
 export const getPrivateHistory = (
   roomId: string,
