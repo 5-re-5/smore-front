@@ -4,6 +4,7 @@ import {
 } from '@/entities/room/api/queries';
 import { useAuth } from '@/entities/user';
 import { useStopwatchStore } from '@/features/stopwatch';
+import { useRoomStateStore } from '@/features/room';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
 import { Button } from '@/shared/ui/button';
 import { loadMediaSettings } from '@/shared/utils/mediaSettings';
@@ -15,7 +16,7 @@ import {
 } from '@livekit/components-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { DisconnectReason } from 'livekit-client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
@@ -30,6 +31,7 @@ function RoomPage() {
     'idle' | 'attempting' | 'success' | 'failed'
   >('idle');
   const resetStopwatch = useStopwatchStore((state) => state.resetStopwatch);
+  const { isIntentionalExit, clearIntentionalExit } = useRoomStateStore();
   const [retryCount, setRetryCount] = useState<number>(0);
 
   // 저장된 미디어 설정 로드
@@ -54,7 +56,7 @@ function RoomPage() {
   const token = useRoomToken(roomIdNumber);
 
   // 자동 재입장 시도
-  const attemptAutoRejoin = async () => {
+  const attemptAutoRejoin = useCallback(async () => {
     if (!userId || autoRejoinStatus === 'attempting') {
       return;
     }
@@ -79,7 +81,14 @@ function RoomPage() {
         },
       },
     );
-  };
+  }, [
+    roomIdNumber,
+    userId,
+    rejoinMutation,
+    navigate,
+    roomId,
+    autoRejoinStatus,
+  ]);
 
   useEffect(() => {
     // 잘못된 roomId인 경우 홈으로 리다이렉트
@@ -88,8 +97,20 @@ function RoomPage() {
       return;
     }
 
+    // 의도적 나가기인 경우 즉시 study-list로 이동
+    if (isIntentionalExit(roomIdNumber)) {
+      clearIntentionalExit(roomIdNumber);
+      navigate({ to: '/study-list' });
+      return;
+    }
+
     // 토큰이 없는 경우 자동 재입장 시도
-    if (!token && autoRejoinStatus === 'idle' && userId) {
+    if (
+      !token &&
+      autoRejoinStatus === 'idle' &&
+      userId &&
+      !isIntentionalExit(roomIdNumber)
+    ) {
       attemptAutoRejoin();
       return;
     }
@@ -103,7 +124,17 @@ function RoomPage() {
       });
       return;
     }
-  }, [roomId, roomIdNumber, token, userId, autoRejoinStatus, navigate]);
+  }, [
+    roomId,
+    roomIdNumber,
+    token,
+    userId,
+    autoRejoinStatus,
+    navigate,
+    attemptAutoRejoin,
+    isIntentionalExit,
+    clearIntentionalExit,
+  ]);
 
   // 스톱워치 초기화
   useEffect(() => {
@@ -186,6 +217,7 @@ function RoomPage() {
         onConnected={async () => {
           setConnectionStatus('connected');
           setRetryCount(0); // 성공 시 재시도 카운트 리셋
+          clearIntentionalExit(roomIdNumber); // 의도적 나가기 플래그 리셋
         }}
         onDisconnected={(reason?: DisconnectReason) => {
           if (reason && reason !== DisconnectReason.CLIENT_INITIATED) {
@@ -210,7 +242,7 @@ function RoomPage() {
         className="flex-1"
       >
         <RoomAudioRenderer />
-        <StartAudio label="오디오 시작하기" />
+        <StartAudio label="" />
         <RoomLayout />
       </LiveKitRoom>
     </div>

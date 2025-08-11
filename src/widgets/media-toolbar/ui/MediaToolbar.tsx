@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useLeaveRoomMutation } from '@/entities/room/api/queries';
 import { useAuth } from '@/entities/user';
 import { useFaceDetectionStore } from '@/features/face-detection';
+import { useRoomStateStore } from '@/features/room';
 import { Button } from '@/shared/ui';
 import RoomMediaControls from './RoomMediaControls';
 import { getMediaButtonStyle } from './styles';
@@ -20,6 +21,7 @@ function MediaToolbar() {
   const participants = useParticipants();
   const { isFaceDetectionEnabled, setFaceDetectionEnabled } =
     useFaceDetectionStore();
+  const { setIntentionalExit } = useRoomStateStore();
 
   const participantCount = participants.length;
   const roomIdNumber = parseInt(roomId, 10);
@@ -30,6 +32,8 @@ function MediaToolbar() {
       return;
     }
 
+    setIntentionalExit(roomIdNumber, true);
+
     leaveRoomMutation.mutate(
       { roomId: roomIdNumber, userId },
       {
@@ -39,6 +43,7 @@ function MediaToolbar() {
         onError: (error) => {
           console.error('방 나가기 실패:', error);
           alert('방 나가기에 실패했습니다.');
+          setIntentionalExit(roomIdNumber, false);
         },
       },
     );
