@@ -1,25 +1,28 @@
+import { useState } from 'react';
 import { useParticipants } from '@livekit/components-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { Bot, BotOff, Users, MessageCircle } from 'lucide-react';
-import { useState } from 'react';
 
 import { useLeaveRoomMutation } from '@/entities/room/api/queries';
 import { useAuth } from '@/entities/user';
 import { useFaceDetectionStore } from '@/features/face-detection';
 import { useRoomStateStore } from '@/features/room';
 import { Button } from '@/shared/ui';
-import ChatPanel from '@/features/chat/ui/ChatPanel';
 import RoomMediaControls from './RoomMediaControls';
 import { getMediaButtonStyle } from './styles';
 
-function MediaToolbar() {
+type MediaToolbarProps = {
+  isChatOpen: boolean;
+  onToggleChat: () => void;
+};
+
+function MediaToolbar({ isChatOpen, onToggleChat }: MediaToolbarProps) {
   const navigate = useNavigate();
   const { roomId } = useParams({ from: '/room/$roomId' });
   const { userId } = useAuth();
   const leaveRoomMutation = useLeaveRoomMutation();
 
   const [showParticipants, setShowParticipants] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const participants = useParticipants();
   const { isFaceDetectionEnabled, setFaceDetectionEnabled } =
     useFaceDetectionStore();
@@ -53,7 +56,10 @@ function MediaToolbar() {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#292D32] backdrop-blur-sm border-t border-gray-700">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50 bg-[#292D32] backdrop-blur-sm border-t border-gray-700 h-16"
+        style={{ '--toolbar-h': '64px' } as React.CSSProperties}
+      >
         <div className="flex items-center justify-between w-full px-4 py-3 mx-2 sm:px-6">
           {/* 왼쪽: 나가기 버튼 */}
           <div className="flex items-center">
@@ -74,8 +80,6 @@ function MediaToolbar() {
           {/* 중앙: 미디어 컨트롤 */}
           <div className="flex items-center space-x-4">
             <RoomMediaControls />
-
-            {/* AI 얼굴 감지 */}
             <div className="flex items-center space-x-2">
               <Button
                 onClick={() => setFaceDetectionEnabled(!isFaceDetectionEnabled)}
@@ -98,18 +102,12 @@ function MediaToolbar() {
           <div className="flex items-center space-x-3">
             {/* 채팅 버튼 */}
             <Button
-              onClick={() => setIsChatOpen(!isChatOpen)}
-              className={`flex items-center space-x-2 px-0.75rem py-0.5rem rounded-full ${
-                isChatOpen
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-gray-800 hover:bg-gray-700'
-              } transition-colors`}
+              onClick={onToggleChat}
+              className={getMediaButtonStyle(isChatOpen)}
               aria-label={`채팅 ${isChatOpen ? '닫기' : '열기'}`}
             >
-              <MessageCircle className="w-1.25rem h-1.25rem text-white" />
-              <span className="text-white text-sm font-medium hidden sm:block">
-                채팅
-              </span>
+              <MessageCircle className="w-1.25rem h-1.25rem" />
+              <span className="text-sm font-medium hidden sm:block">채팅</span>
             </Button>
 
             {/* 참가자 목록 */}
@@ -125,7 +123,6 @@ function MediaToolbar() {
                 </span>
               </Button>
 
-              {/* 참가자 드롭다운 */}
               {showParticipants && (
                 <div className="absolute bottom-full right-0 mb-0.5rem w-16rem bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
                   <div className="p-0.75rem border-b border-gray-700">
@@ -160,13 +157,8 @@ function MediaToolbar() {
           </div>
         </div>
       </div>
-      {/* 채팅 패널 - MediaToolbar와 독립적으로 렌더링 */}
-      {isChatOpen && (
-        <div className="fixed right-0 top-0 h-full z-[9999] shadow-2xl">
-          <ChatPanel isOpen={isChatOpen} />
-        </div>
-      )}
     </>
   );
 }
+
 export default MediaToolbar;

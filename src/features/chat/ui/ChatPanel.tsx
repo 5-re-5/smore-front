@@ -298,7 +298,9 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   }
 
   return (
-    <div className="flex flex-col h-full w-80 bg-[#1e2230] text-white rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 bg-[#2A2F46] text-white overflow-hidden pb-3 -mt-3">
+      {/* absolute 위치로 인한 상단 여백 보정 */}
+
       {/* Header with Stats */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         <div className="flex items-center gap-2">
@@ -332,10 +334,10 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
       <div className="flex justify-center gap-4 py-2 border-b border-gray-700">
         <button
           onClick={() => handleTabChange('GROUP')}
-          className={`px-4 py-1 rounded-full text-sm ${
+          className={`px-4 py-1 rounded-full text-sm transition-all duration-200 ${
             tab === 'GROUP'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-700 text-gray-300'
+              ? 'bg-gray-700 text-white shadow-inner shadow-[inset_0_2px_8px_rgba(0,0,0,0.6),0_0_0_2px_rgba(255,255,255,0.3)]'
+              : 'text-gray-300 hover:text-gray-100'
           }`}
           disabled={isLoading}
         >
@@ -343,10 +345,10 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
         </button>
         <button
           onClick={() => handleTabChange('PRIVATE')}
-          className={`px-4 py-1 rounded-full text-sm ${
+          className={`px-4 py-1 rounded-full text-sm transition-all duration-200 ${
             tab === 'PRIVATE'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-700 text-gray-300'
+              ? 'bg-gray-700 text-white shadow-inner  shadow-[inset_0_2px_8px_rgba(0,0,0,0.6),0_0_0_2px_rgba(255,255,255,0.3)]'
+              : 'text-gray-300 hover:text-gray-100'
           }`}
           disabled={isLoading}
         >
@@ -431,7 +433,11 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
       {/* 메시지 목록 */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-3"
+        className="flex-1 min-h-0 overflow-y-auto p-3"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#4b5563 #2A2F46',
+        }}
         onScroll={handleScroll}
       >
         {isLoadingMore && (
@@ -458,7 +464,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
         <div className="px-3 py-2 border-t border-gray-700 bg-[#1e2230]">
           <button
             onClick={handleViewNewMessages}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-lg"
+            className="w-full bg-[#161929] hover:bg-gray-500 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer"
           >
             <span>새 메시지 {newMessageCount}개 보기</span>
             <span className="text-lg">↓</span>
