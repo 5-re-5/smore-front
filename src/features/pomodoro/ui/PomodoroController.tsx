@@ -1,21 +1,27 @@
 import { useInterval } from '@/shared/hooks/useInterval';
 import { Button } from '@/shared/ui/button';
-import {
-  BREAK_TIME,
-  STUDY_TIME,
-  usePomodoroStore,
-} from '../model/usePomodoroStore';
+import { usePomodoroStore } from '../model/usePomodoroStore';
 import { formatTime } from '../model/utils';
 import { CircularProgress } from './CircularProgress';
 
 export const PomodoroController = () => {
-  const { phase, remainingTime, isRunning, start, pause, tick, resetTimer } =
-    usePomodoroStore();
+  const {
+    phase,
+    remainingTime,
+    isRunning,
+    studyTimeMinutes,
+    breakTimeMinutes,
+    start,
+    pause,
+    tick,
+    resetTimer,
+  } = usePomodoroStore();
 
   useInterval(tick, isRunning ? 1000 : null);
 
   const getProgress = (): number => {
-    const totalTime = phase === 'study' ? STUDY_TIME : BREAK_TIME;
+    const totalTime =
+      phase === 'study' ? studyTimeMinutes * 60 : breakTimeMinutes * 60;
     return (remainingTime / totalTime) * 100;
   };
 

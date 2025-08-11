@@ -1,10 +1,14 @@
 import {
   useRejoinRoomMutation,
   useRoomToken,
+  useRoomInfoQuery,
 } from '@/entities/room/api/queries';
+import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 import { useAuth } from '@/entities/user';
+import { useRoomParticipantQuery } from '@/entities/user/api/queries/userQueries';
 import { useStopwatchStore } from '@/features/stopwatch';
 import { useRoomStateStore } from '@/features/room';
+import { usePomodoroStore } from '@/features/pomodoro';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
 import { Button } from '@/shared/ui/button';
 import { PermissionBanner } from '@/shared/ui/permission-banner';
@@ -37,6 +41,8 @@ function RoomPage() {
     'idle' | 'attempting' | 'success' | 'failed'
   >('idle');
   const resetStopwatch = useStopwatchStore((state) => state.resetStopwatch);
+  const updateServerData = useStopwatchStore((state) => state.updateServerData);
+  const { setOwner, setRoomSettings } = usePomodoroStore();
   const { isIntentionalExit, clearIntentionalExit } = useRoomStateStore();
   const [retryCount, setRetryCount] = useState<number>(0);
 
@@ -97,6 +103,16 @@ function RoomPage() {
   // 저장된 토큰 조회
   const token = useRoomToken(roomIdNumber);
 
+  // 방 정보 조회
+  const { data: roomInfoData } = useRoomInfoQuery(roomIdNumber);
+  const roomInfo = roomInfoData ? adaptRoomFromApi(roomInfoData) : null;
+
+  // 방 참가자 정보 조회
+  const { data: participantData } = useRoomParticipantQuery(
+    roomIdNumber,
+    userId || 0,
+  );
+
   // 자동 재입장 시도
   const attemptAutoRejoin = useCallback(async () => {
     if (!userId || autoRejoinStatus === 'attempting') {
@@ -136,6 +152,33 @@ function RoomPage() {
   useEffect(() => {
     checkPermissionsAndUpdateSettings();
   }, [checkPermissionsAndUpdateSettings]);
+
+  // 방 정보 및 참가자 데이터 동기화
+  useEffect(() => {
+    if (roomInfo) {
+      // 뽀모도로 방 설정 동기화 (null이면 기본값 사용)
+      setRoomSettings(roomInfo.focusTime, roomInfo.breakTime);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomInfo?.focusTime, roomInfo?.breakTime]);
+
+  useEffect(() => {
+    if (participantData) {
+      // 뽀모도로 권한 설정
+      setOwner(participantData.isOwner);
+
+      // 스톱워치 서버 데이터 동기화
+      updateServerData(
+        participantData.todayStudyTime,
+        participantData.targetStudyTime,
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    participantData?.isOwner,
+    participantData?.todayStudyTime,
+    participantData?.targetStudyTime,
+  ]);
 
   useEffect(() => {
     // 잘못된 roomId인 경우 홈으로 리다이렉트

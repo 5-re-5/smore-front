@@ -7,13 +7,16 @@ interface PomodoroState {
   remainingTime: number;
   isRunning: boolean;
   totalCycles: number;
-  isHost: boolean;
+  isOwner: boolean;
+  studyTimeMinutes: number;
+  breakTimeMinutes: number;
   start: () => void;
   pause: () => void;
   tick: () => void;
   switchPhase: () => void;
   resetTimer: () => void;
-  setHost: (isHost: boolean) => void;
+  setOwner: (isOwner: boolean) => void;
+  setRoomSettings: (focusTime?: number, breakTime?: number) => void;
   updateFromSync: (
     phase: PomodoroPhase,
     remainingTime: number,
@@ -22,15 +25,19 @@ interface PomodoroState {
   ) => void;
 }
 
-export const STUDY_TIME = 25 * 60; // 25 minutes in seconds
-export const BREAK_TIME = 5 * 60; // 5 minutes in seconds
+export const DEFAULT_STUDY_TIME = 25; // minutes
+export const DEFAULT_BREAK_TIME = 5; // minutes
 
 const getNextPhase = (currentPhase: PomodoroPhase): PomodoroPhase => {
   return currentPhase === 'study' ? 'break' : 'study';
 };
 
-const getPhaseTime = (phase: PomodoroPhase): number => {
-  return phase === 'study' ? STUDY_TIME : BREAK_TIME;
+const getPhaseTime = (
+  phase: PomodoroPhase,
+  studyTimeMinutes: number,
+  breakTimeMinutes: number,
+): number => {
+  return phase === 'study' ? studyTimeMinutes * 60 : breakTimeMinutes * 60;
 };
 
 const shouldIncrementCycles = (currentPhase: PomodoroPhase): boolean => {
@@ -39,7 +46,11 @@ const shouldIncrementCycles = (currentPhase: PomodoroPhase): boolean => {
 
 const handlePhaseTransition = (state: PomodoroState) => {
   const newPhase = getNextPhase(state.phase);
-  const newRemainingTime = getPhaseTime(newPhase);
+  const newRemainingTime = getPhaseTime(
+    newPhase,
+    state.studyTimeMinutes,
+    state.breakTimeMinutes,
+  );
   const newTotalCycles = shouldIncrementCycles(state.phase)
     ? state.totalCycles + 1
     : state.totalCycles;
@@ -52,20 +63,27 @@ const handlePhaseTransition = (state: PomodoroState) => {
   };
 };
 
-const createPhaseState = (phase: PomodoroPhase, isRunning = false) => {
+const createPhaseState = (
+  phase: PomodoroPhase,
+  studyTimeMinutes: number,
+  breakTimeMinutes: number,
+  isRunning = false,
+) => {
   return {
     phase,
-    remainingTime: getPhaseTime(phase),
+    remainingTime: getPhaseTime(phase, studyTimeMinutes, breakTimeMinutes),
     isRunning,
   };
 };
 
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   phase: 'study',
-  remainingTime: STUDY_TIME,
+  remainingTime: DEFAULT_STUDY_TIME * 60,
   isRunning: false,
   totalCycles: 0,
-  isHost: localStorage.getItem('isHost') === 'true',
+  isOwner: false,
+  studyTimeMinutes: DEFAULT_STUDY_TIME,
+  breakTimeMinutes: DEFAULT_BREAK_TIME,
 
   start: () => {
     set({ isRunning: true });
@@ -93,21 +111,47 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     const state = get();
     const newPhase = getNextPhase(state.phase);
     set({
-      ...createPhaseState(newPhase),
+      ...createPhaseState(
+        newPhase,
+        state.studyTimeMinutes,
+        state.breakTimeMinutes,
+      ),
       isRunning: false,
     });
   },
 
   resetTimer: () => {
+    const state = get();
     set({
-      ...createPhaseState('study'),
+      ...createPhaseState(
+        'study',
+        state.studyTimeMinutes,
+        state.breakTimeMinutes,
+      ),
       totalCycles: 0,
     });
   },
 
-  setHost: (isHost: boolean) => {
-    localStorage.setItem('isHost', isHost.toString());
-    set({ isHost });
+  setOwner: (isOwner: boolean) => {
+    set({ isOwner });
+  },
+
+  setRoomSettings: (focusTime?: number, breakTime?: number) => {
+    const studyTimeMinutes = focusTime ?? DEFAULT_STUDY_TIME;
+    const breakTimeMinutes = breakTime ?? DEFAULT_BREAK_TIME;
+
+    set((state) => {
+      const newRemainingTime = getPhaseTime(
+        state.phase,
+        studyTimeMinutes,
+        breakTimeMinutes,
+      );
+      return {
+        studyTimeMinutes,
+        breakTimeMinutes,
+        remainingTime: state.isRunning ? state.remainingTime : newRemainingTime,
+      };
+    });
   },
 
   updateFromSync: (
