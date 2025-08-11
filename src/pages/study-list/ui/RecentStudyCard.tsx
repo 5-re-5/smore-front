@@ -1,4 +1,3 @@
-import { useRejoinRoomMutation } from '@/entities/room/api/queries';
 import type { RecentStudyRoom } from '@/entities/study';
 import { Button } from '@/shared/ui/button';
 import { ArrowIcon, GroupIcon } from '@/shared/ui/icons';
