@@ -9,7 +9,7 @@ export const usePomodoroSync = () => {
     remainingTime,
     isRunning,
     totalCycles,
-    isHost,
+    isOwner,
     updateFromSync,
   } = usePomodoroStore();
 
@@ -60,11 +60,11 @@ export const usePomodoroSync = () => {
   // Participants: receive with message handler
   const { message } = useDataChannel(
     'pomodoro',
-    isHost ? undefined : handlePomodoroMessage,
+    isOwner ? undefined : handlePomodoroMessage,
   );
 
   const broadcaster = usePomodoroStateBroadcaster({
-    isHost,
+    isOwner,
     phase,
     remainingTime,
     isRunning,

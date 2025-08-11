@@ -7,6 +7,8 @@ export const StopwatchController = () => {
   const {
     isRunning,
     todayTotalTime,
+    serverTodayStudyTime,
+    serverTargetStudyTime,
     start,
     pause,
     updateTimes,
@@ -80,11 +82,15 @@ export const StopwatchController = () => {
         </button>
         <div className="flex-1 text-center">
           <div className="text-sm">오늘 총 공부 시간</div>
-          <div className="text-lg font-mono">{formatTime(todayTotalTime)}</div>
+          <div className="text-lg font-mono">
+            {formatTime(serverTodayStudyTime + todayTotalTime)}
+          </div>
         </div>
         <div className="flex-1 text-center">
           <div className="text-sm">목표 시간</div>
-          <div className="text-lg font-mono">{formatTime(0)}</div>
+          <div className="text-lg font-mono">
+            {formatTime(serverTargetStudyTime)}
+          </div>
         </div>
       </div>
     </div>

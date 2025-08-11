@@ -106,3 +106,28 @@ export const updateUserSettings = async (
 
   return response.data;
 };
+
+export interface RoomParticipantResponse {
+  userId: number;
+  nickname: string;
+  isOwner: boolean;
+  audioEnabled: boolean;
+  videoEnabled: boolean;
+  todayStudyTime: number;
+  targetStudyTime: number;
+  isInRoom: boolean;
+  roomName: string;
+  totalParticipants: number;
+}
+
+export const getRoomParticipantInfo = async (
+  roomId: number,
+  userId: number,
+) => {
+  const response = await request<RoomParticipantResponse>({
+    method: REQUEST_METHOD.GET,
+    url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/${roomId}/participants/${userId}`,
+  });
+
+  return response.data;
+};

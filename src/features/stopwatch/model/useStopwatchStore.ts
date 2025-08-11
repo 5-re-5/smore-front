@@ -7,10 +7,10 @@ import { useAuthStore } from '@/entities/user/model/useAuthStore';
 
 interface StopwatchState {
   isRunning: boolean;
-  curStudyTime: number;
   todayTotalTime: number;
-  defaultCurStudyTime: number;
   defaultTotalStudyTime: number;
+  serverTodayStudyTime: number;
+  serverTargetStudyTime: number;
   apiError: string | null;
   isApiLoading: boolean;
   start: () => Promise<void>;
@@ -18,16 +18,17 @@ interface StopwatchState {
   resetStopwatch: () => void;
   updateTimes: () => void;
   syncWithServer: () => Promise<void>;
+  updateServerData: (todayStudyTime: number, targetStudyTime: number) => void;
 }
 
 const SECONDS = 1;
 
 export const useStopwatchStore = create<StopwatchState>((set, get) => ({
   isRunning: false,
-  curStudyTime: 0,
   todayTotalTime: 0,
-  defaultCurStudyTime: 0,
   defaultTotalStudyTime: 0,
+  serverTodayStudyTime: 0,
+  serverTargetStudyTime: 0,
   apiError: null,
   isApiLoading: false,
 
@@ -81,14 +82,13 @@ export const useStopwatchStore = create<StopwatchState>((set, get) => ({
   },
 
   resetStopwatch: () => {
-    set({ curStudyTime: 0 });
+    set({ todayTotalTime: 0 });
   },
 
   updateTimes: () =>
     set((state) => {
       if (state.isRunning) {
         return {
-          curStudyTime: state.curStudyTime + SECONDS,
           todayTotalTime: state.todayTotalTime + SECONDS,
         };
       }
@@ -113,5 +113,12 @@ export const useStopwatchStore = create<StopwatchState>((set, get) => ({
         apiError: error instanceof Error ? error.message : '서버 동기화 실패',
       });
     }
+  },
+
+  updateServerData: (todayStudyTime: number, targetStudyTime: number) => {
+    set({
+      serverTodayStudyTime: todayStudyTime * 60, // 분을 초로 변환
+      serverTargetStudyTime: targetStudyTime * 60, // 분을 초로 변환
+    });
   },
 }));
