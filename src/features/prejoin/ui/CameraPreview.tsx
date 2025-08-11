@@ -1,45 +1,91 @@
-import { VideoOff } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useVideoState } from '../model/useMediaControlStore';
 import { MediaControls } from './MediaControls';
 
-export const CameraPreview = () => {
+interface CameraPreviewProps {
+  onStreamChange?: (stream: MediaStream | null) => void;
+}
+
+export const CameraPreview = ({ onStreamChange }: CameraPreviewProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  // audioElement 참조 안정화 - 한 번만 설정하여 불필요한 리렌더 방지
-  const [audioElement, setAudioElement] = useState<HTMLVideoElement | null>(
-    null,
-  );
+  const streamRef = useRef<MediaStream | null>(null);
+  const isMountedRef = useRef(true);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [deviceChangeMessage, setDeviceChangeMessage] = useState<string | null>(
     null,
   );
 
-  // 전역 상태에서 비디오 스트림 가져오기
-  const videoState = useVideoState();
-
-  // 마운트 시 한 번만 audioElement 설정하여 참조 안정화
   useEffect(() => {
-    if (videoRef.current && !audioElement) {
-      setAudioElement(videoRef.current);
-    }
-  }, [audioElement]);
+    isMountedRef.current = true;
 
-  // 전역 상태의 비디오 스트림을 비디오 엘리먼트에 연결
+    const initCamera = async () => {
+      try {
+        // 카메라만 먼저 요청
+        const videoStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+
+        // 마이크 권한 추가 시도 (실패해도 카메라는 계속 작동)
+        try {
+          const audioStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+
+          // 오디오 트랙을 기존 스트림에 추가
+          const audioTrack = audioStream.getAudioTracks()[0];
+          if (audioTrack) {
+            videoStream.addTrack(audioTrack);
+          }
+        } catch (audioError) {
+          console.warn(
+            'Audio permission denied, continuing with video only:',
+            audioError,
+          );
+        }
+
+        if (!isMountedRef.current) {
+          videoStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        streamRef.current = videoStream;
+        setStream(videoStream);
+        setHasPermission(true);
+        onStreamChange?.(videoStream);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = videoStream;
+        }
+      } catch (error) {
+        console.error('Failed to get camera permission:', error);
+        if (!isMountedRef.current) return;
+        setHasPermission(false);
+        onStreamChange?.(null);
+      }
+    };
+
+    initCamera();
+
+    return () => {
+      isMountedRef.current = false;
+      onStreamChange?.(null);
+    };
+  }, [onStreamChange]);
+
+  // stream이 변경될 때 비디오 엘리먼트에 할당
   useEffect(() => {
-    if (videoState.stream && videoRef.current) {
-      videoRef.current.srcObject = videoState.stream;
-    } else if (!videoState.stream && videoRef.current) {
-      videoRef.current.srcObject = null;
+    if (stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
     }
-  }, [videoState.stream]);
-
-  // 전역 상태를 통해 스트림 관리가 이루어짐
+  }, [stream]);
 
   const handleDeviceChange = async (
     deviceType: 'videoinput' | 'audioinput' | 'audiooutput',
     deviceId: string,
   ) => {
-    if (deviceType === 'audiooutput') {
-      try {
+    try {
+      if (deviceType === 'audiooutput') {
         if (videoRef.current && 'setSinkId' in videoRef.current) {
           await (
             videoRef.current as HTMLVideoElement & {
@@ -49,25 +95,101 @@ export const CameraPreview = () => {
           setDeviceChangeMessage('스피커가 변경되었습니다');
           setTimeout(() => setDeviceChangeMessage(null), 2000);
         }
-      } catch (error) {
-        console.error('Failed to change speaker:', error);
+        return;
       }
-      return;
-    }
 
-    // 비디오/오디오 디바이스 변경 메시지 표시
-    const deviceName = deviceType === 'videoinput' ? '카메라' : '마이크';
-    setDeviceChangeMessage(`${deviceName}가 변경되었습니다`);
-    setTimeout(() => setDeviceChangeMessage(null), 2000);
+      if (!stream) return;
+
+      if (deviceType === 'audioinput') {
+        const newAudioStream = await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: { exact: deviceId } },
+        });
+
+        const newAudioTrack = newAudioStream.getAudioTracks()[0];
+
+        const oldAudioTrack = stream.getAudioTracks()[0];
+        if (oldAudioTrack) {
+          stream.removeTrack(oldAudioTrack);
+          oldAudioTrack.stop();
+        }
+
+        stream.addTrack(newAudioTrack);
+
+        newAudioStream.getTracks().forEach((track) => {
+          if (track !== newAudioTrack) track.stop();
+        });
+
+        setDeviceChangeMessage('마이크가 변경되었습니다');
+        setTimeout(() => setDeviceChangeMessage(null), 2000);
+        return;
+      }
+
+      if (deviceType === 'videoinput') {
+        const currentAudioTrack = stream.getAudioTracks()[0];
+
+        const constraints: MediaStreamConstraints = {
+          video: { deviceId: { exact: deviceId } },
+          audio: currentAudioTrack
+            ? {
+                deviceId: {
+                  exact: currentAudioTrack.getSettings().deviceId || '',
+                },
+              }
+            : false,
+        };
+
+        const newStream =
+          await navigator.mediaDevices.getUserMedia(constraints);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = newStream;
+        }
+
+        // 기존 스트림 정지
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = newStream;
+        setStream(newStream);
+        onStreamChange?.(newStream);
+
+        setDeviceChangeMessage('카메라가 변경되었습니다');
+        setTimeout(() => setDeviceChangeMessage(null), 2000);
+      }
+    } catch (error) {
+      console.error('Failed to change device:', error);
+    }
   };
 
-  const renderVideoOffState = () => (
+  const renderLoadingState = () => (
     <div className="text-center text-white">
       <div className="w-16 h-16 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
-        <VideoOff color="white" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
       </div>
-      <p className="text-sm text-gray-300">카메라가 꺼져있습니다.</p>
-      <p className="text-sm text-gray-300">브라우저 권한에서 허용해주세요.</p>
+      <p className="text-sm text-gray-300">카메라 권한 요청 중...</p>
+    </div>
+  );
+
+  const renderErrorState = () => (
+    <div className="text-center text-white">
+      <div className="w-16 h-16 bg-red-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+      <p className="text-sm text-gray-300">카메라 접근이 차단되었습니다</p>
+      <div className="mt-3 text-xs text-gray-400 space-y-2">
+        <p>브라우저 주소창의 🔒 아이콘을 클릭하여</p>
+        <p>카메라 권한을 허용한 후 새로고침해주세요</p>
+        <button
+          className="mt-2 text-blue-400 hover:text-blue-300 text-sm underline"
+          onClick={() => window.location.reload()}
+        >
+          페이지 새로고침
+        </button>
+      </div>
     </div>
   );
 
@@ -82,10 +204,9 @@ export const CameraPreview = () => {
   );
 
   const renderContent = () => {
-    if (videoState.stream && videoState.isEnabled) {
-      return renderVideoStream();
-    }
-    return renderVideoOffState();
+    if (hasPermission === null) return renderLoadingState();
+    if (hasPermission === false) return renderErrorState();
+    return renderVideoStream();
   };
 
   return (
@@ -95,10 +216,7 @@ export const CameraPreview = () => {
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-6 rounded-b-lg">
-        <MediaControls
-          onDeviceChange={handleDeviceChange}
-          audioElement={audioElement}
-        />
+        <MediaControls stream={stream} onDeviceChange={handleDeviceChange} />
       </div>
 
       {/* 기기 변경 알림 */}

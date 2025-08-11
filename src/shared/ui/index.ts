@@ -1,16 +1,6 @@
-export {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from './alert-dialog';
 export { Button, buttonVariants } from './button';
 export { Calendar, CalendarDayButton } from './calendar';
-export { CustomProgress } from './icons/custom-progress';
+export { CustomProgress } from './custom-progress';
 export {
   Dialog,
   DialogContent,
@@ -34,6 +24,6 @@ export {
   SelectTrigger,
   SelectValue,
 } from './select';
-export { SettingsIcon } from './icons/settings-icon';
+export { SettingsIcon } from './settings-icon';
 export { Slider } from './slider';
 export * from './icons';

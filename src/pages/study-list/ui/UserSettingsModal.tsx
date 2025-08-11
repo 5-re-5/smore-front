@@ -1,6 +1,11 @@
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import type { UserProfile } from '@/entities/user';
-import { Calendar } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
+import { Calendar } from '@/shared/ui/calendar';
 import {
   Dialog,
   DialogContent,
@@ -10,10 +15,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/shared/ui/dialog';
-import { SettingsIcon } from '@/shared/ui/icons/settings-icon';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import {
   Select,
   SelectContent,
@@ -21,9 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui/select';
-import { addYears, format, startOfDay } from 'date-fns';
+import { SettingsIcon } from '@/shared/ui/settings-icon';
+import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { useMemo } from 'react';
 import { useUserSettings } from '../model/useUserSettings';
 
 interface UserSettingsModalProps {
@@ -32,9 +35,6 @@ interface UserSettingsModalProps {
 
 export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
   const userSettings = useUserSettings({ userProfile });
-  const today = useMemo(() => startOfDay(new Date()), []);
-  const minDate = useMemo(() => new Date(2010, 0, 1), []);
-  const maxDate = useMemo(() => addYears(today, 5), [today]); // 오늘로부터 5년
 
   return (
     <Dialog open={userSettings.isOpen} onOpenChange={userSettings.setIsOpen}>
@@ -64,7 +64,7 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
                     <SelectValue placeholder="시간" />
                   </SelectTrigger>
                   <SelectContent className="max-h-60 overflow-y-auto">
-                    {Array.from({ length: 23 }, (_, i) => i + 1).map((hour) => (
+                    {Array.from({ length: 24 }, (_, i) => i + 1).map((hour) => (
                       <SelectItem key={hour} value={hour.toString()}>
                         {hour}시간
                       </SelectItem>
@@ -106,21 +106,7 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
               onChange={(e) => userSettings.setDetermination(e.target.value)}
               placeholder="오늘의 각오를 입력해주세요"
               className="w-full"
-              maxLength={20}
             />
-            <div className="flex justify-end mt-1">
-              <span
-                className={`text-xs ${
-                  userSettings.determination.length >= 20
-                    ? 'text-red-500'
-                    : userSettings.determination.length >= 18
-                      ? 'text-orange-500'
-                      : 'text-gray-500'
-                }`}
-              >
-                {userSettings.determination.length}/20
-              </span>
-            </div>
           </div>
 
           {/* D-DAY 설정 */}
@@ -130,22 +116,9 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
               value={userSettings.targetDateTitle}
               onChange={(e) => userSettings.setTargetDateTitle(e.target.value)}
               placeholder="예: 수능, 토익, 프로젝트 마감일 등"
-              className="w-full"
+              className="w-full mb-3"
               maxLength={10}
             />
-            <div className="flex justify-end mt-1">
-              <span
-                className={`text-xs ${
-                  userSettings.targetDateTitle.length >= 10
-                    ? 'text-red-500'
-                    : userSettings.targetDateTitle.length >= 8
-                      ? 'text-orange-500'
-                      : 'text-gray-500'
-                }`}
-              >
-                {userSettings.targetDateTitle.length}/10
-              </span>
-            </div>
 
             <Label className="text-sm font-bold mb-2 block">D-DAY 날짜</Label>
             <Popover>
@@ -162,22 +135,13 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent
-                className="w-auto p-1"
-                align="start"
-                side="top"
-                avoidCollisions={false}
-              >
+              <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={userSettings.selectedDate}
                   onSelect={userSettings.setSelectedDate}
-                  captionLayout={'dropdown'}
-                  startMonth={minDate}
-                  endMonth={maxDate}
                   disabled={(date) =>
-                    date < new Date() ||
-                    date.getFullYear() > new Date().getFullYear() + 5
+                    date < new Date() || date < new Date('1900-01-01')
                   }
                 />
               </PopoverContent>

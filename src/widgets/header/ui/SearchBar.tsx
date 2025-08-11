@@ -16,7 +16,6 @@ export const SearchBar = () => {
         </svg>
         <input
           type="text"
-          maxLength={20}
           placeholder="나에게 맞는 스터디를 찾아보세요"
           className="flex-1 bg-transparent border-none outline-none placeholder-header-text text-[1.25rem] font-medium leading-normal font-['Noto_Sans_KR'] text-header-text text-center"
         />
