@@ -14,8 +14,7 @@ export function LocalVideoTile() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const { localParticipant } = useLocalParticipant();
-  const { faceDetected, isFaceDetectionEnabled, setFaceDetectionEnabled } =
-    useFaceDetectionStore();
+  const { faceDetected } = useFaceDetectionStore();
 
   useAttachLocalCameraTrack(videoRef);
 
@@ -49,10 +48,6 @@ export function LocalVideoTile() {
       participant: localParticipant,
       source: Track.Source.Microphone,
     },
-  };
-
-  const handleToggleFaceDetection = () => {
-    setFaceDetectionEnabled(!isFaceDetectionEnabled);
   };
 
   useFaceDetection(videoRef);
@@ -104,16 +99,6 @@ export function LocalVideoTile() {
             className=" bg-white rounded-2xl p-1"
           />
         )}
-      </div>
-      {/* 하단 컨트롤 버튼들 */}
-      <div className="absolute bottom-2 right-2 flex flex-col gap-2">
-        {/* 얼굴 감지 on/off 버튼 */}
-        <button
-          onClick={handleToggleFaceDetection}
-          className="bg-blue-500 text-white p-2 rounded text-xs"
-        >
-          {isFaceDetectionEnabled ? '얼굴 감지 비활성화' : '얼굴 감지 활성화'}
-        </button>
       </div>
     </div>
   );
