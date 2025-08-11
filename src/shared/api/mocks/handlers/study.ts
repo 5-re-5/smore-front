@@ -90,15 +90,10 @@ export const studyRoomHandlers = [
     },
   ),
 
-  // // 스터디룸 참가 API (임시로 MSW 재활성화 - 유효한 토큰 생성)
+  // 스터디룸 참가 API
   // http.post(
-  //   'https://i13a505.p.ssafy.io:8844/api/v1/study-rooms/:roomId/join',
-  //   ({ request, params }) => {
-  //     console.log('🎯 MSW: Join request intercepted!', {
-  //       url: request.url,
-  //       method: request.method,
-  //       roomId: params.roomId
-  //     });
+  //   `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/:roomId/join`,
+  //   ({ params }) => {
   //     const roomId = parseInt(params.roomId as string);
 
   //     console.log(
@@ -123,11 +118,11 @@ export const studyRoomHandlers = [
   //       );
   //     }
 
-  //     // 성공 응답 (실제 JWT 형식의 토큰)
+  //     // 성공 응답 (JoinRoomResponse 형식)
   //     const responseData = {
   //       data: {
-  //         accessToken: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ0ZXN0LWFwaS1rZXkiLCJzdWIiOiJ1c2VyLSR7dXNlcklkfSIsIm5hbWUiOiJVc2VyJHtNYXRoLmZsb29yKE1hdGgucmFuZG9tKCkgKiAxMDAwKX0iLCJyb29tIjoicm9vbS0ke3Jvb21JZH0iLCJleHAiOiR7TWF0aC5mbG9vcihEYXRlLm5vdygpIC8gMTAwMCkgKyAzNjAwfX0.mock-signature`,
-  //         roomName: `room-${roomId}`,
+  //         accessToken: `mock-token-${roomId}-${Date.now()}`,
+  //         roomName: room.title,
   //         identity: `User${Math.floor(Math.random() * 1000)}`,
   //         expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1시간 후
   //         canPublish: true,

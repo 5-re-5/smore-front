@@ -1,28 +1,38 @@
-import { Music } from 'lucide-react';
-import { useWhiteNoiseStore } from '../model/useWhiteNoiseStore';
-import WhiteNoiseController from './WhiteNoiseController';
-import WhiteNoisePlayerUI from './WhiteNoisePlayerUI';
-import WhiteNoiseAudioManager from './WhiteNoiseAudioManager';
+import { Button } from '@/shared/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
+import { Music } from 'lucide-react';
+import { useEffect } from 'react';
+import { useWhiteNoiseStore } from '../model/useWhiteNoiseStore';
+import WhiteNoiseAudioManager from './WhiteNoiseAudioManager';
+import WhiteNoiseController from './WhiteNoiseController';
+import WhiteNoisePlayerUI from './WhiteNoisePlayerUI';
 
 function WhiteNoiseComponents() {
-  const { currentNoise, isPlaying } = useWhiteNoiseStore();
+  const { currentNoise, isPlaying, setIsPlaying } = useWhiteNoiseStore();
 
+  useEffect(() => {
+    return () => {
+      setIsPlaying(false);
+    };
+  }, []);
   return (
     <div className="relative">
       {/* 백그라운드 오디오 매니저 - 항상 동작 */}
       <WhiteNoiseAudioManager />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
-            className={`relative p-2 rounded-lg transition-colors ${
+          <Button
+            className={`relative p-2 rounded-lg transition-colors w-2.5rem h-2.5rem bg-[#292D32]
+            shadow-[-3.84px_-3.84px_4.8px_0_#30343A,3.84px_3.84px_4.8px_0_#24262C]
+            flex items-center justify-center
+            ${
               currentNoise && isPlaying
                 ? 'text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                : 'text-white hover:text-gray-700 hover:bg-gray-100'
             }`}
           >
             <Music className="w-5 h-5" />
@@ -36,12 +46,12 @@ function WhiteNoiseComponents() {
                 재생중
               </div>
             )}
-          </button>
+          </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
           className="w-80 p-4 space-y-4"
-          align="end"
+          align="center"
           side="top"
           sideOffset={8}
         >

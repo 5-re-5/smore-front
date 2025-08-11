@@ -1,9 +1,7 @@
+import ChatPanel from '@/features/chat/ui/ChatPanel';
 import { PomodoroSection } from '@/features/pomodoro';
 import { StopwatchController } from '@/features/stopwatch';
-import { WhiteNoiseComponents } from '@/features/white-noise';
-import ChatPanel from '@/features/chat/ui/ChatPanel';
-import { TrackToggle } from '@livekit/components-react';
-import { Track } from 'livekit-client';
+import { MediaToolbar } from '@/widgets/media-toolbar';
 import { useState } from 'react';
 import VideoGrid from './VideoGrid';
 
@@ -11,9 +9,26 @@ function RoomLayout() {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
-    <>
-      <VideoGrid />
-      {/* 채팅 아이콘 버튼 */}
+    <div className="h-full flex flex-col">
+      {/* 상단: 뽀모도로 + 스톱워치 */}
+      <div className="flex justify-between items-start p-4 bg-gray-100 border-b">
+        <div className="w-1/4 pr-2">
+          <PomodoroSection />
+        </div>
+        <div className="w-3/4 pl-2">
+          <StopwatchController />
+        </div>
+      </div>
+
+      {/* 중앙: 비디오 그리드 */}
+      <div className="flex-1 overflow-hidden">
+        <VideoGrid />
+      </div>
+
+      {/* 하단: MediaToolbar */}
+      <MediaToolbar />
+
+      {/* 하단 고정 요소들 */}
       <div className="absolute bottom-4 right-4 z-50">
         <button
           onClick={() => setIsChatOpen((prev) => !prev)}
@@ -22,26 +37,14 @@ function RoomLayout() {
           !!!!!💬!!!!!!
         </button>
       </div>
+
       {/* 채팅 패널 */}
       {isChatOpen && (
         <div className="absolute right-0 top-0 h-full z-40">
           <ChatPanel isOpen={isChatOpen} />
         </div>
       )}
-      {/* 기존 미디어바 */}
-      {/* <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40">
-        <TrackToggle source={Track.Source.Microphone} />
-        <TrackToggle source={Track.Source.Camera} />
-      </div> */}
-      {/* Todo: 미디어 바 위젯 만들기 */}
-      <TrackToggle source={Track.Source.Microphone} />
-      <TrackToggle source={Track.Source.Camera} />
-      <PomodoroSection />
-      스톱워치
-      <StopwatchController />
-      화이트 노이즈
-      <WhiteNoiseComponents />
-    </>
+    </div>
   );
 }
 

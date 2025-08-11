@@ -42,7 +42,7 @@ export const mockStudyRooms = [
     tag: ['React', 'TypeScript', '프론트엔드'],
     category: '자율',
     maxParticipants: 5,
-    currentParticipants: 3,
+    currentParticipants: 2,
     createdAt: '2025-01-10T08:00:00Z',
     isPomodoro: true,
     isPrivate: false,

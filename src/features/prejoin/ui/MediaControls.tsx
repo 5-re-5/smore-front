@@ -7,69 +7,94 @@ import {
   Volume2,
   VolumeOff,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import {
+  useAudioState,
+  useSpeakerState,
+  useVideoState,
+} from '../model/useMediaControlStore';
+import { useMediaToggle } from '../model/useMediaToggle';
 import { DeviceSelector } from './DeviceSelector';
+import { PermissionAlertDialog } from '@/shared/ui/permission-alert-dialog';
 
 interface MediaControlsProps {
-  stream: MediaStream | null;
   onDeviceChange?: (
     deviceType: 'videoinput' | 'audioinput' | 'audiooutput',
     deviceId: string,
   ) => void;
+  audioElement?: HTMLVideoElement | null; // 스피커 제어용 (안정화된 참조)
 }
 
 export const MediaControls = ({
-  stream,
   onDeviceChange,
+  audioElement,
 }: MediaControlsProps) => {
-  const [isMicOn, setIsMicOn] = useState(true);
-  const [isVideoOn, setIsVideoOn] = useState(true);
-  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  // 전역 상태에서 각 미디어 상태 가져오기
+  const videoState = useVideoState();
+  const audioState = useAudioState();
+  const speakerState = useSpeakerState();
 
   // 드롭다운 상태
   const [showMicSelector, setShowMicSelector] = useState(false);
   const [showVideoSelector, setShowVideoSelector] = useState(false);
   const [showSpeakerSelector, setShowSpeakerSelector] = useState(false);
 
-  // 선택된 기기 ID
-  const [selectedMicId, setSelectedMicId] = useState<string>();
-  const [selectedVideoId, setSelectedVideoId] = useState<string>();
-  const [selectedSpeakerId, setSelectedSpeakerId] = useState<string>();
+  // 권한 알림 상태
+  const [showPermissionAlert, setShowPermissionAlert] = useState(false);
+  const [permissionType, setPermissionType] = useState<'audio' | 'video'>(
+    'audio',
+  );
 
-  // 현재 사용 중인 기기 ID 감지
-  useEffect(() => {
-    if (stream) {
-      const videoTrack = stream.getVideoTracks()[0];
-      const audioTrack = stream.getAudioTracks()[0];
+  // 권한 거부 콜백 함수들
+  const handleAudioPermissionDenied = () => {
+    setPermissionType('audio');
+    setShowPermissionAlert(true);
+  };
 
-      if (videoTrack) {
-        setSelectedVideoId(videoTrack.getSettings().deviceId);
+  const handleVideoPermissionDenied = () => {
+    setPermissionType('video');
+    setShowPermissionAlert(true);
+  };
+
+  // 미디어 토글 훅 사용 (각각 독립적)
+  const videoToggle = useMediaToggle('videoinput', {
+    deviceId: videoState.deviceId ?? '',
+    onDeviceChange: (deviceType, deviceId) => {
+      if (deviceType === 'videoinput') {
+        onDeviceChange?.('videoinput', deviceId);
       }
-      if (audioTrack) {
-        setSelectedMicId(audioTrack.getSettings().deviceId);
-      }
-    }
-  }, [stream]);
+    },
+    onError: (error) => {
+      console.error('Video toggle error:', error);
+    },
+    onPermissionDenied: handleVideoPermissionDenied,
+  });
 
-  // 기본 스피커 감지
-  useEffect(() => {
-    const getDefaultSpeaker = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const speakers = devices.filter(
-          (device) => device.kind === 'audiooutput',
-        );
-        if (speakers.length > 0) {
-          setSelectedSpeakerId(speakers[0].deviceId || 'default');
-        }
-      } catch (error) {
-        console.error('Failed to get default speaker:', error);
-        setSelectedSpeakerId('default');
+  const audioToggle = useMediaToggle('audioinput', {
+    deviceId: audioState.deviceId ?? '',
+    onDeviceChange: (deviceType, deviceId) => {
+      if (deviceType === 'audioinput') {
+        onDeviceChange?.('audioinput', deviceId);
       }
-    };
+    },
+    onError: (error) => {
+      console.error('Audio toggle error:', error);
+    },
+    onPermissionDenied: handleAudioPermissionDenied,
+  });
 
-    getDefaultSpeaker();
-  }, []);
+  const speakerToggle = useMediaToggle('audiooutput', {
+    deviceId: speakerState.deviceId ?? '',
+    audioElement: audioElement || undefined,
+    onDeviceChange: (deviceType, deviceId) => {
+      if (deviceType === 'audiooutput') {
+        onDeviceChange?.('audiooutput', deviceId);
+      }
+    },
+    onError: (error) => {
+      console.error('Speaker toggle error:', error);
+    },
+  });
 
   // 버튼 refs
   const micButtonRef = useRef<HTMLButtonElement>(null);
@@ -77,42 +102,27 @@ export const MediaControls = ({
   const speakerButtonRef = useRef<HTMLButtonElement>(null);
 
   const toggleMic = () => {
-    if (stream) {
-      const audioTracks = stream.getAudioTracks();
-      audioTracks.forEach((track) => {
-        track.enabled = !isMicOn;
-      });
-    }
-    setIsMicOn(!isMicOn);
+    audioToggle.toggle();
   };
 
   const toggleVideo = () => {
-    if (stream) {
-      const videoTracks = stream.getVideoTracks();
-      videoTracks.forEach((track) => {
-        track.enabled = !isVideoOn;
-      });
-    }
-    setIsVideoOn(!isVideoOn);
+    videoToggle.toggle();
   };
 
   const toggleSpeaker = () => {
-    setIsSpeakerOn(!isSpeakerOn);
+    speakerToggle.toggle();
   };
 
   const handleMicSelect = (deviceId: string) => {
-    setSelectedMicId(deviceId);
-    onDeviceChange?.('audioinput', deviceId);
+    audioToggle.changeDevice(deviceId);
   };
 
   const handleVideoSelect = (deviceId: string) => {
-    setSelectedVideoId(deviceId);
-    onDeviceChange?.('videoinput', deviceId);
+    videoToggle.changeDevice(deviceId);
   };
 
   const handleSpeakerSelect = (deviceId: string) => {
-    setSelectedSpeakerId(deviceId);
-    onDeviceChange?.('audiooutput', deviceId);
+    speakerToggle.changeDevice(deviceId);
   };
 
   return (
@@ -121,13 +131,18 @@ export const MediaControls = ({
       <div className="flex items-center space-x-2 relative">
         <button
           onClick={toggleMic}
+          disabled={audioToggle.isPending}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-            isMicOn
+            audioToggle.isEnabled
               ? 'bg-gray-700 hover:bg-gray-600'
               : 'bg-red-600 hover:bg-red-700'
-          }`}
+          } ${audioToggle.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {isMicOn ? <Mic color="white" /> : <MicOff color="white" />}
+          {audioToggle.isEnabled ? (
+            <Mic color="white" />
+          ) : (
+            <MicOff color="white" />
+          )}
         </button>
         <button
           ref={micButtonRef}
@@ -141,7 +156,7 @@ export const MediaControls = ({
           onClose={() => setShowMicSelector(false)}
           deviceType="audioinput"
           title="마이크 선택"
-          currentDeviceId={selectedMicId}
+          currentDeviceId={audioState.deviceId ?? ''}
           onDeviceSelect={handleMicSelect}
           buttonRef={micButtonRef}
         />
@@ -151,13 +166,18 @@ export const MediaControls = ({
       <div className="flex items-center space-x-2 relative">
         <button
           onClick={toggleVideo}
+          disabled={videoToggle.isPending}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-            isVideoOn
+            videoToggle.isEnabled
               ? 'bg-gray-700 hover:bg-gray-600'
               : 'bg-red-600 hover:bg-red-700'
-          }`}
+          } ${videoToggle.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {isVideoOn ? <Video color="white" /> : <VideoOff color="white" />}
+          {videoToggle.isEnabled ? (
+            <Video color="white" />
+          ) : (
+            <VideoOff color="white" />
+          )}
         </button>
         <button
           ref={videoButtonRef}
@@ -171,7 +191,7 @@ export const MediaControls = ({
           onClose={() => setShowVideoSelector(false)}
           deviceType="videoinput"
           title="카메라 선택"
-          currentDeviceId={selectedVideoId}
+          currentDeviceId={videoState.deviceId ?? ''}
           onDeviceSelect={handleVideoSelect}
           buttonRef={videoButtonRef}
         />
@@ -181,13 +201,14 @@ export const MediaControls = ({
       <div className="flex items-center space-x-2 relative">
         <button
           onClick={toggleSpeaker}
+          disabled={speakerToggle.isPending}
           className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-            isSpeakerOn
+            speakerToggle.isEnabled
               ? 'bg-gray-700 hover:bg-gray-600'
               : 'bg-red-600 hover:bg-red-700'
-          }`}
+          } ${speakerToggle.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {isSpeakerOn ? (
+          {speakerToggle.isEnabled ? (
             <Volume2 color="white" />
           ) : (
             <VolumeOff color="white" />
@@ -205,11 +226,18 @@ export const MediaControls = ({
           onClose={() => setShowSpeakerSelector(false)}
           deviceType="audiooutput"
           title="스피커 선택"
-          currentDeviceId={selectedSpeakerId}
+          currentDeviceId={speakerState.deviceId ?? ''}
           onDeviceSelect={handleSpeakerSelect}
           buttonRef={speakerButtonRef}
         />
       </div>
+
+      {/* 권한 요청 알림 다이얼로그 */}
+      <PermissionAlertDialog
+        open={showPermissionAlert}
+        onOpenChange={setShowPermissionAlert}
+        mediaType={permissionType}
+      />
     </div>
   );
 };
