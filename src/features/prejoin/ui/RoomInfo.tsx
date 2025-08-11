@@ -13,7 +13,8 @@ export const RoomInfo = ({ roomId }: RoomInfoProps) => {
 
   if (isLoading) return <RoomInfoSkeleton />;
 
-  if (error) return <div>방 정보를 불러올 수 없습니다.</div>;
+  if (error)
+    return <div className="text-white">방 정보를 불러올 수 없습니다.</div>;
   if (!room) return null;
 
   return (

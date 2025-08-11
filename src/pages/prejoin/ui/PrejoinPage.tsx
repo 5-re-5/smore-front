@@ -13,6 +13,15 @@ import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
 import type { ApiError } from '@/shared/api/request';
 import { Button } from '@/shared/ui/button';
 import { ArrowIcon } from '@/shared/ui/icons';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/ui/alert-dialog';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
@@ -32,14 +41,50 @@ const SmoreLogoHeader = () => {
   );
 };
 
+const RoomNotFoundAlert = ({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) => {
+  const navigate = useNavigate();
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>방을 찾을 수 없습니다</AlertDialogTitle>
+          <AlertDialogDescription>
+            존재하지 않는 방입니다. 스터디 목록으로 이동하여 다른 방을
+            선택해주세요.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction
+            onClick={() => {
+              onOpenChange(false);
+              navigate({ to: '/study-list' });
+            }}
+          >
+            목록으로 이동
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 function PrejoinPage() {
   const { roomId } = useParams({ from: '/room/$roomId/prejoin' });
   const navigate = useNavigate();
-  const roomIdNumber = parseInt(roomId, 10);
+  const isValidRoomId = /^\d+$/.test(roomId);
+  const roomIdNumber = isValidRoomId ? parseInt(roomId, 10) : NaN;
   const audioState = useAudioState();
   const stopAllMedia = useMediaControlStore((s) => s.stopAllMedia);
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showRoomNotFoundAlert, setShowRoomNotFoundAlert] = useState(false);
 
   // 사용자 정보
   const { getUserId } = useAuth();
@@ -121,6 +166,12 @@ function PrejoinPage() {
       navigateToRoom();
     } catch (error) {
       const apiError = error as ApiError;
+
+      if (apiError.code === 400) {
+        setShowRoomNotFoundAlert(true);
+        return;
+      }
+
       setError(getErrorMessage(apiError));
     }
   };
@@ -128,26 +179,14 @@ function PrejoinPage() {
   if (isNaN(roomIdNumber)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-red-600">잘못된 방 번호</h1>
-          <p className="text-gray-600 mt-2">유효한 방 번호를 입력해주세요.</p>
+          <p className="text-gray-600">유효한 방 번호를 입력해주세요.</p>
+          <Button onClick={handleGoBack}> 목록으로 이동</Button>
         </div>
       </div>
     );
   }
-
-  // if (roomError) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <h1 className="text-2xl font-bold text-red-600">
-  //           방을 찾을 수 없습니다
-  //         </h1>
-  //         <p className="text-gray-600 mt-2">방 번호를 확인해주세요.</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="min-h-screen bg-black">
@@ -276,6 +315,12 @@ function PrejoinPage() {
           </div>
         </div>
       </div>
+
+      {/* 방을 찾을 수 없음 알림 */}
+      <RoomNotFoundAlert
+        open={showRoomNotFoundAlert}
+        onOpenChange={setShowRoomNotFoundAlert}
+      />
     </div>
   );
 }
