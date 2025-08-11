@@ -30,7 +30,7 @@ function parseSnackTypes(grade: string): SnackType[] {
 const getSnackIcons = (grade: string) => {
   const types = parseSnackTypes(grade);
   return types.map((type, idx) => {
-    const src = type === 'O' ? '/images/OREO_O.png' : '/images/OREO_RE.png';
+    const src = type === 'O' ? '/images/OREO_O.webp' : '/images/OREO_RE.webp';
     console.log(src);
     // z-index: 뒤쪽일수록 위로
     const zIndex = types.length + idx;
