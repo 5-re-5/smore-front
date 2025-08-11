@@ -7,11 +7,12 @@ import StatPanel from '@/features/my-page/graphs/ui/StatPanel';
 import MonthlyLineChart from '@/features/my-page/graphs/ui/MonthlyLineChart';
 import WeeklyBarChartToggle from '@/features/my-page/graphs/ui/WeeklyBarChartToggle';
 
-type Props = {
-  userId: string;
-};
+const MyPage: FC = () => {
+  // localStorage에서 userId를 안전하게 가져오기
+  // SSR 환경에서는 undefined 체크 필요!
+  const userId =
+    typeof window !== 'undefined' ? (localStorage.getItem('userId') ?? '') : '';
 
-const MyPage: FC<Props> = ({ userId }) => {
   return (
     <main
       className="
@@ -22,8 +23,8 @@ const MyPage: FC<Props> = ({ userId }) => {
         box-border overflow-x-visible
       "
     >
-      {/* 고정 헤더 영역 */}
-      <div className="w-full mb-10">{/* TODO: 헤더 컴포넌트 or 자리 */}</div>
+      {/* 고정 헤더 */}
+      <div className="w-full mb-10">{/* 헤더 자리 */}</div>
 
       {/* 프로필 카드 */}
       <section className="w-full max-w-[1200px] mx-auto">
@@ -53,7 +54,7 @@ const MyPage: FC<Props> = ({ userId }) => {
           text-gray-500 text-sm
         "
       >
-        {/* TODO: 푸터 컴포넌트 or 텍스트 */}
+        {/* 푸터 자리 */}
       </footer>
     </main>
   );
