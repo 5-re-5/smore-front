@@ -91,51 +91,51 @@ export const studyRoomHandlers = [
   ),
 
   // 스터디룸 참가 API
-  http.post(
-    `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/:roomId/join`,
-    ({ params }) => {
-      const roomId = parseInt(params.roomId as string);
+  // http.post(
+  //   `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/:roomId/join`,
+  //   ({ params }) => {
+  //     const roomId = parseInt(params.roomId as string);
 
-      console.log(
-        '🎯 MSW: Intercepted study-room join request for roomId:',
-        roomId,
-      );
+  //     console.log(
+  //       '🎯 MSW: Intercepted study-room join request for roomId:',
+  //       roomId,
+  //     );
 
-      const room = mockStudyRooms.find((room) => room.roomId === roomId);
+  //     const room = mockStudyRooms.find((room) => room.roomId === roomId);
 
-      if (!room) {
-        return HttpResponse.json(
-          { error: '스터디룸을 찾을 수 없습니다.' },
-          { status: 404 },
-        );
-      }
+  //     if (!room) {
+  //       return HttpResponse.json(
+  //         { error: '스터디룸을 찾을 수 없습니다.' },
+  //         { status: 404 },
+  //       );
+  //     }
 
-      // 정원 초과 체크
-      if (room.currentParticipants >= room.maxParticipants) {
-        return HttpResponse.json(
-          { error: '참가 정원이 가득 찼습니다.' },
-          { status: 400 },
-        );
-      }
+  //     // 정원 초과 체크
+  //     if (room.currentParticipants >= room.maxParticipants) {
+  //       return HttpResponse.json(
+  //         { error: '참가 정원이 가득 찼습니다.' },
+  //         { status: 400 },
+  //       );
+  //     }
 
-      // 성공 응답 (JoinRoomResponse 형식)
-      const responseData = {
-        data: {
-          accessToken: `mock-token-${roomId}-${Date.now()}`,
-          roomName: room.title,
-          identity: `User${Math.floor(Math.random() * 1000)}`,
-          expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1시간 후
-          canPublish: true,
-          canSubscribe: true,
-          createdAt: new Date().toISOString(),
-        },
-      };
+  //     // 성공 응답 (JoinRoomResponse 형식)
+  //     const responseData = {
+  //       data: {
+  //         accessToken: `mock-token-${roomId}-${Date.now()}`,
+  //         roomName: room.title,
+  //         identity: `User${Math.floor(Math.random() * 1000)}`,
+  //         expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1시간 후
+  //         canPublish: true,
+  //         canSubscribe: true,
+  //         createdAt: new Date().toISOString(),
+  //       },
+  //     };
 
-      console.log('✅ MSW: Returning join success:', responseData.data);
+  //     console.log('✅ MSW: Returning join success:', responseData.data);
 
-      return HttpResponse.json(responseData);
-    },
-  ),
+  //     return HttpResponse.json(responseData);
+  //   },
+  // ),
 
   // PrejoinPage용 Room API (MSW 데이터 활용)
   http.get(
