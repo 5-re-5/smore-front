@@ -22,8 +22,19 @@ interface UseUserSettingsProps {
 export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
   const [targetHour, setTargetHour] = useState<string>('1');
   const [targetMinute, setTargetMinute] = useState<string>('0');
-  const [determination, setDetermination] = useState<string>('');
-  const [targetDateTitle, setTargetDateTitle] = useState<string>('');
+  const [determination, setDeterminationState] = useState<string>('');
+
+  const setDetermination = useCallback((value: string) => {
+    const limitedValue = value.length > 20 ? value.slice(0, 20) : value;
+    setDeterminationState(limitedValue);
+  }, []);
+  const [targetDateTitle, setTargetDateTitleState] = useState<string>('');
+
+  // D-DAY 제목 설정 함수 (10자 제한)
+  const setTargetDateTitle = useCallback((value: string) => {
+    const limitedValue = value.length > 10 ? value.slice(0, 10) : value;
+    setTargetDateTitleState(limitedValue);
+  }, []);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,11 +46,11 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
       return;
     }
 
-    const goalTimeHours = userProfile.goalStudyTime || 1;
+    const goalTimeHours = userProfile.goalStudyTime / 60 || 1;
 
-    // 시간 계산 (1-24 범위로 제한)
+    // 시간 계산 (1-23 범위로 제한)
     const hours = Math.floor(goalTimeHours);
-    const safeHours = Math.min(Math.max(hours, 1), 24);
+    const safeHours = Math.min(Math.max(hours, 1), 23);
 
     // 분 계산 (15분 단위로 반올림하여 0, 15, 30, 45 중 하나로 설정)
     const exactMinutes = Math.round((goalTimeHours % 1) * 60);
@@ -48,8 +59,8 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
 
     setTargetHour(safeHours.toString());
     setTargetMinute(safeMinutes.toString());
-    setDetermination(userProfile.determination || '');
-    setTargetDateTitle(userProfile.targetDateTitle || '');
+    setDeterminationState(userProfile.determination || '');
+    setTargetDateTitleState(userProfile.targetDateTitle || '');
     if (userProfile.targetDate) {
       setSelectedDate(parseServerDate(userProfile.targetDate));
     }
@@ -60,36 +71,9 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
     resetFormToDefaults();
   }, [resetFormToDefaults]);
 
-  // 유효성 검사 함수
-  const validateFormData = (): boolean => {
-    const totalStudyTime = parseInt(targetHour) + parseInt(targetMinute) / 60;
-
-    if (totalStudyTime === 0) {
-      alert('목표 시간을 설정해주세요.');
-      return false;
-    }
-
-    if (!determination.trim()) {
-      alert('각오를 입력해주세요.');
-      return false;
-    }
-
-    if (!targetDateTitle.trim()) {
-      alert('D-DAY 제목을 입력해주세요.');
-      return false;
-    }
-
-    if (!selectedDate) {
-      alert('D-DAY 날짜를 선택해주세요.');
-      return false;
-    }
-
-    return true;
-  };
-
   // API 데이터 변환 함수
   const convertToApiData = () => {
-    const totalStudyTime = parseInt(targetHour) + parseInt(targetMinute) / 60;
+    const totalStudyTime = parseInt(targetHour) * 60 + parseInt(targetMinute);
     return {
       goalStudyTime: totalStudyTime,
       determination: determination.trim(),
@@ -116,8 +100,6 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
   };
 
   const handleSave = async () => {
-    if (!validateFormData()) return;
-
     const apiData = convertToApiData();
     await saveUserSettings(apiData);
   };

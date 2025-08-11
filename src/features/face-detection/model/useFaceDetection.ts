@@ -11,7 +11,9 @@ export const useFaceDetection = (
 
   const faceDetectionInterval = useRef<NodeJS.Timeout | null>(null);
   const faceDetectedTime = useRef<number>(0);
+  const faceDetectorRef = useRef<FaceDetector | null>(null);
   const [isMounted, setIsMounted] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const initializeFaceDetector = async () => {
     try {
@@ -28,6 +30,9 @@ export const useFaceDetection = (
         minDetectionConfidence: 0.6,
       });
 
+      faceDetectorRef.current = faceDetector;
+      setIsInitialized(true);
+
       return faceDetector;
     } catch (error) {
       console.error('Face detector initialization failed:', error);
@@ -35,72 +40,90 @@ export const useFaceDetection = (
     }
   };
 
-  const detectFace = useCallback(
-    async (faceDetector: FaceDetector) => {
-      if (!videoRef.current || !isMounted) return;
+  const detectFace = useCallback(async () => {
+    if (!videoRef.current || !isMounted || !faceDetectorRef.current) return;
 
-      const videoElement = videoRef.current;
-      try {
-        const timestamp = performance.now();
-        const detections = await faceDetector.detectForVideo(
-          videoElement,
-          timestamp,
-        );
-
-        const currentTime = performance.now();
-
-        if (detections.detections.length > 0) {
-          setFaceDetected(true);
-          faceDetectedTime.current = currentTime;
-          if (!isRunning) start();
-          return;
-        }
-
-        setFaceDetected(false);
-        if (currentTime - faceDetectedTime.current > 5000) {
-          pause();
-          if (faceDetectionInterval.current) {
-            clearInterval(faceDetectionInterval.current);
-          }
-        }
-      } catch (error) {
-        console.error('Error during face detection:', error);
-      }
-    },
-    [videoRef, isMounted, setFaceDetected, isRunning, start, pause],
-  );
-
-  const startFaceDetection = useCallback(async () => {
-    if (!isMounted) return;
-
+    const videoElement = videoRef.current;
     try {
-      const faceDetector = await initializeFaceDetector();
-      faceDetectionInterval.current = setInterval(
-        () => detectFace(faceDetector),
-        1000,
+      const timestamp = performance.now();
+      const detections = await faceDetectorRef.current.detectForVideo(
+        videoElement,
+        timestamp,
       );
+
+      const currentTime = performance.now();
+
+      if (detections.detections.length > 0) {
+        setFaceDetected(true);
+        faceDetectedTime.current = currentTime;
+        if (!isRunning) start();
+        return;
+      }
+
+      setFaceDetected(false);
+      if (currentTime - faceDetectedTime.current > 5000) {
+        pause();
+        if (faceDetectionInterval.current) {
+          clearInterval(faceDetectionInterval.current);
+        }
+      }
     } catch (error) {
-      console.error('Error initializing face detector:', error);
+      console.error('Error during face detection:', error);
     }
-  }, [isMounted, detectFace]);
+  }, [videoRef, isMounted, setFaceDetected, isRunning, start, pause]);
 
-  useEffect(() => {
-    setIsMounted(true);
-
-    if (isFaceDetectionEnabled && isRunning) {
-      startFaceDetection();
+  const startDetectionInterval = useCallback(() => {
+    if (
+      !isMounted ||
+      !faceDetectorRef.current ||
+      faceDetectionInterval.current
+    ) {
       return;
     }
 
+    faceDetectionInterval.current = setInterval(detectFace, 1000);
+  }, [isMounted, detectFace]);
+
+  const stopDetectionInterval = useCallback(() => {
     if (faceDetectionInterval.current) {
       clearInterval(faceDetectionInterval.current);
+      faceDetectionInterval.current = null;
+    }
+  }, []);
+
+  // FaceDetector 초기화
+  useEffect(() => {
+    setIsMounted(true);
+
+    if (!isInitialized && !faceDetectorRef.current) {
+      initializeFaceDetector().catch((error) => {
+        console.error('FaceDetector 초기화 실패:', error);
+      });
     }
 
     return () => {
       setIsMounted(false);
-      if (faceDetectionInterval.current) {
-        clearInterval(faceDetectionInterval.current);
-      }
+      stopDetectionInterval();
     };
-  }, [isRunning, isFaceDetectionEnabled, videoRef, startFaceDetection]);
+  }, []);
+
+  // isRunning과 isFaceDetectionEnabled 상태에 따라 interval만 제어
+  useEffect(() => {
+    if (!isInitialized || !isFaceDetectionEnabled) {
+      stopDetectionInterval();
+      return;
+    }
+
+    if (isRunning) {
+      startDetectionInterval();
+    } else {
+      stopDetectionInterval();
+    }
+  }, [
+    isRunning,
+    isFaceDetectionEnabled,
+    isInitialized,
+    startDetectionInterval,
+    stopDetectionInterval,
+  ]);
 };

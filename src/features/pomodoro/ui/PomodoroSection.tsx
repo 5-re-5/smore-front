@@ -10,23 +10,22 @@ function PomodoroSection() {
   usePomodoroSync(); // Initialize sync
 
   return (
-    <div>
+    <div className="bg-white rounded-lg border">
       {/* Host Controls */}
-      <div>
+      <div className="flex gap-1 mb-2">
         <button
           onClick={() => usePomodoroStore.getState().setHost(true)}
-          className="px-3 py-1 bg-blue-500 text-white rounded text-sm mr-2"
+          className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
         >
-          방장 모드
+          방장
         </button>
         <button
           onClick={() => usePomodoroStore.getState().setHost(false)}
-          className="px-3 py-1 bg-gray-500 text-white rounded text-sm"
+          className="px-2 py-1 bg-gray-500 text-white rounded text-xs"
         >
-          참가자 모드
+          참가자
         </button>
       </div>
-      뽀모도로 타이머
       {isHost ? <PomodoroController /> : <PomodoroViewer />}
     </div>
   );

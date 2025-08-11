@@ -1,67 +1,60 @@
 import {
+  useRejoinRoomMutation,
   useRoomToken,
-  useLeaveRoomMutation,
 } from '@/entities/room/api/queries';
+import { useAuth } from '@/entities/user';
+import { useStopwatchStore } from '@/features/stopwatch';
+import { useRoomStateStore } from '@/features/room';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
+import { Button } from '@/shared/ui/button';
+import { PermissionBanner } from '@/shared/ui/permission-banner';
+import { loadMediaSettings } from '@/shared/utils/mediaSettings';
+import {
+  checkAllMediaPermissions,
+  canUseMedia,
+  type MediaPermissionStatus,
+} from '@/shared/utils/permissionUtils';
 import { RoomLayout } from '@/widgets';
 import {
   LiveKitRoom,
   RoomAudioRenderer,
   StartAudio,
 } from '@livekit/components-react';
-import { DisconnectReason } from 'livekit-client';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { Button } from '@/shared/ui/button';
-import { useAuth } from '@/entities/user';
-
-// 로딩 상태 컴포넌트
-const LoadingState = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-      <h2 className="text-xl font-semibold mt-4 text-gray-900">
-        스터디룸에 연결 중...
-      </h2>
-      <p className="text-gray-600 mt-2">잠시만 기다려주세요</p>
-    </div>
-  </div>
-);
+import { DisconnectReason } from 'livekit-client';
+import { useCallback, useEffect, useState } from 'react';
 
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
   const navigate = useNavigate();
-  const leaveRoomMutation = useLeaveRoomMutation();
+  const rejoinMutation = useRejoinRoomMutation();
   const { userId } = useAuth();
   const [connectionStatus, setConnectionStatus] = useState<
     'connecting' | 'connected' | 'disconnected' | 'error'
   >('connecting');
   const [errorMessage, setErrorMessage] = useState<string>('');
-
+  const [autoRejoinStatus, setAutoRejoinStatus] = useState<
+    'idle' | 'attempting' | 'success' | 'failed'
+  >('idle');
+  const resetStopwatch = useStopwatchStore((state) => state.resetStopwatch);
+  const { isIntentionalExit, clearIntentionalExit } = useRoomStateStore();
   const [retryCount, setRetryCount] = useState<number>(0);
+
+  // 저장된 미디어 설정 로드
+  const [mediaSettings] = useState(() => loadMediaSettings());
+
+  // 권한 상태 관리
+  const [permissionStatus, setPermissionStatus] =
+    useState<MediaPermissionStatus | null>(null);
+  const [actualMediaSettings, setActualMediaSettings] = useState(mediaSettings);
+
+  // 스피커 상태 관리
+  const [isSpeakerMuted, setIsSpeakerMuted] = useState(() => {
+    return !loadMediaSettings().speaker;
+  });
 
   // roomId 유효성 검사
   const roomIdNumber = parseInt(roomId, 10);
-
-  const handleLeaveRoom = () => {
-    if (!userId) {
-      alert('사용자 정보가 없습니다.');
-      return;
-    }
-
-    leaveRoomMutation.mutate(
-      { roomId: roomIdNumber, userId },
-      {
-        onSuccess: () => {
-          navigate({ to: '/study-list' });
-        },
-        onError: (error) => {
-          console.error('방 나가기 실패:', error);
-          alert('방 나가기에 실패했습니다.');
-        },
-      },
-    );
-  };
 
   const handleRetryConnection = () => {
     const newRetryCount = retryCount + 1;
@@ -75,8 +68,74 @@ function RoomPage() {
     }
   };
 
+  // 권한 확인 및 실제 미디어 설정 업데이트
+  const checkPermissionsAndUpdateSettings = useCallback(async () => {
+    try {
+      const permissions = await checkAllMediaPermissions();
+      setPermissionStatus(permissions);
+
+      // 권한 상태에 따라 실제 사용할 미디어 설정 결정
+      const actualVideo = canUseMedia(permissions.video, mediaSettings.video);
+      const actualAudio = canUseMedia(permissions.audio, mediaSettings.audio);
+
+      setActualMediaSettings({
+        ...mediaSettings,
+        video: actualVideo,
+        audio: actualAudio,
+      });
+    } catch (error) {
+      console.warn('권한 확인 실패:', error);
+      // 권한 확인 실패 시 안전하게 false로 설정
+      setActualMediaSettings({
+        ...mediaSettings,
+        video: false,
+        audio: false,
+      });
+    }
+  }, [mediaSettings]);
+
   // 저장된 토큰 조회
   const token = useRoomToken(roomIdNumber);
+
+  // 자동 재입장 시도
+  const attemptAutoRejoin = useCallback(async () => {
+    if (!userId || autoRejoinStatus === 'attempting') {
+      return;
+    }
+
+    setAutoRejoinStatus('attempting');
+
+    rejoinMutation.mutate(
+      { roomId: roomIdNumber, userId },
+      {
+        onSuccess: () => {
+          setAutoRejoinStatus('success');
+        },
+        onError: (error) => {
+          console.error('자동 재입장 실패:', error);
+          setAutoRejoinStatus('failed');
+          setErrorMessage('방에 재입장할 수 없습니다.');
+
+          navigate({
+            to: '/room/$roomId/prejoin',
+            params: { roomId },
+          });
+        },
+      },
+    );
+  }, [
+    roomIdNumber,
+    userId,
+    rejoinMutation,
+    navigate,
+    roomId,
+    autoRejoinStatus,
+  ]);
+
+  // 권한 확인 초기화
+  useEffect(() => {
+    checkPermissionsAndUpdateSettings();
+  }, [checkPermissionsAndUpdateSettings]);
 
   useEffect(() => {
     // 잘못된 roomId인 경우 홈으로 리다이렉트
@@ -85,8 +144,26 @@ function RoomPage() {
       return;
     }
 
-    // 토큰이 없는 경우 prejoin 페이지로 리다이렉트
-    if (!token) {
+    // 의도적 나가기인 경우 즉시 study-list로 이동
+    if (isIntentionalExit(roomIdNumber)) {
+      clearIntentionalExit(roomIdNumber);
+      navigate({ to: '/study-list' });
+      return;
+    }
+
+    // 토큰이 없는 경우 자동 재입장 시도
+    if (
+      !token &&
+      autoRejoinStatus === 'idle' &&
+      userId &&
+      !isIntentionalExit(roomIdNumber)
+    ) {
+      attemptAutoRejoin();
+      return;
+    }
+
+    // 토큰이 없고 사용자 정보도 없는 경우 prejoin으로 이동
+    if (!token && !userId) {
       setErrorMessage('다시 입장해주세요.');
       navigate({
         to: '/room/$roomId/prejoin',
@@ -94,11 +171,51 @@ function RoomPage() {
       });
       return;
     }
-  }, [roomId, roomIdNumber, token, navigate]);
+  }, [
+    roomId,
+    roomIdNumber,
+    token,
+    userId,
+    autoRejoinStatus,
+    navigate,
+    attemptAutoRejoin,
+    isIntentionalExit,
+    clearIntentionalExit,
+  ]);
 
-  // 토큰이 없으면 로딩 상태 (리다이렉트 전까지)
-  if (!token) {
-    return <LoadingState />;
+  // 스피커 토글 이벤트 감지하여 상태 동기화
+  useEffect(() => {
+    const handleSpeakerToggle = () => {
+      const newSettings = loadMediaSettings();
+      setIsSpeakerMuted(!newSettings.speaker);
+    };
+
+    window.addEventListener('speakerToggle', handleSpeakerToggle);
+    return () => {
+      window.removeEventListener('speakerToggle', handleSpeakerToggle);
+    };
+  }, []);
+
+  // 스톱워치 초기화
+  useEffect(() => {
+    return () => resetStopwatch();
+  }, [resetStopwatch]);
+
+  // 토큰이 없거나 재입장 중이면 로딩 상태
+  if (!token || autoRejoinStatus === 'attempting') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <h2 className="text-xl font-semibold mt-4 text-gray-900">
+            {autoRejoinStatus === 'attempting'
+              ? '방에 재입장 중...'
+              : '스터디룸에 연결 중...'}
+          </h2>
+          <p className="text-gray-600 mt-2">잠시만 기다려주세요</p>
+        </div>
+      </div>
+    );
   }
 
   // 연결 오류 상태 표시
@@ -131,15 +248,16 @@ function RoomPage() {
   }
 
   return (
-    <div className="relative">
-      <Button
-        onClick={handleLeaveRoom}
-        variant="destructive"
-        className="absolute top-4 right-4 z-50 text-white"
-        disabled={leaveRoomMutation.isPending}
-      >
-        {leaveRoomMutation.isPending ? '나가는 중...' : '방 나가기'}
-      </Button>
+    <div className="h-screen flex flex-col">
+      {permissionStatus && (
+        <PermissionBanner
+          permissionStatus={permissionStatus}
+          userPreferences={{
+            video: mediaSettings.video,
+            audio: mediaSettings.audio,
+          }}
+        />
+      )}
 
       {connectionStatus === 'connecting' && (
         <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-40">
@@ -157,8 +275,8 @@ function RoomPage() {
         token={token}
         serverUrl={LIVEKIT_WS_URL}
         connect
-        video
-        audio
+        video={actualMediaSettings.video}
+        audio={actualMediaSettings.audio}
         options={{
           adaptiveStream: true,
           dynacast: true,
@@ -166,9 +284,10 @@ function RoomPage() {
             simulcast: true,
           },
         }}
-        onConnected={() => {
+        onConnected={async () => {
           setConnectionStatus('connected');
           setRetryCount(0); // 성공 시 재시도 카운트 리셋
+          clearIntentionalExit(roomIdNumber); // 의도적 나가기 플래그 리셋
         }}
         onDisconnected={(reason?: DisconnectReason) => {
           if (reason && reason !== DisconnectReason.CLIENT_INITIATED) {
@@ -190,9 +309,10 @@ function RoomPage() {
             setErrorMessage(error.message || '알 수 없는 오류가 발생했습니다.');
           }
         }}
+        className="flex-1"
       >
-        <RoomAudioRenderer />
-        <StartAudio label="오디오 시작하기" />
+        {!isSpeakerMuted && <RoomAudioRenderer />}
+        <StartAudio label="" />
         <RoomLayout />
       </LiveKitRoom>
     </div>
