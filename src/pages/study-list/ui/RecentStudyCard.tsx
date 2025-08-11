@@ -9,30 +9,14 @@ interface RecentStudyCardProps {
   userId: number;
 }
 
-export const RecentStudyCard = ({ room, userId }: RecentStudyCardProps) => {
+export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
   const navigate = useNavigate();
-  const rejoinMutation = useRejoinRoomMutation();
 
-  const handleReJoin = () => {
-    if (!userId) {
-      console.error('사용자 ID를 찾을 수 없습니다.');
-      return;
-    }
-
-    rejoinMutation.mutate(
-      { roomId: room.roomId, userId },
-      {
-        onSuccess: () => {
-          navigate({
-            to: '/room/$roomId',
-            params: { roomId: room.roomId.toString() },
-          });
-        },
-        onError: (error) => {
-          console.error('방 재입장 실패:', error);
-        },
-      },
-    );
+  const handleReJoin = (roomId: number) => {
+    navigate({
+      to: '/room/$roomId',
+      params: { roomId: roomId.toString() },
+    });
   };
 
   return (
@@ -90,7 +74,7 @@ export const RecentStudyCard = ({ room, userId }: RecentStudyCardProps) => {
                 boxShadow:
                   '-4.08px -4.08px 8.17px 0 #FFF, 4.08px 4.08px 8.17px 0 rgba(0, 0, 0, 0.08)',
               }}
-              onClick={handleReJoin}
+              onClick={() => handleReJoin(room.roomId)}
             >
               재입장하기
               <div
