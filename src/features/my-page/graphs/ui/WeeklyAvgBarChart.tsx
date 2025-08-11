@@ -1,73 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import type { FunctionComponent } from 'react';
+import { useWeeklyAvgBarChart } from '../model/useWeeklyAvgBarChart';
 
-type Props = {
-  userId: string;
-};
+type Props = { userId: string };
 
-type ApiResponse = {
-  data: {
-    weekly_graph: number[]; // 1~5주차 공부 시간(시간 단위)
-  };
-};
+const maxHours = 12;
+const maxBarHeight = 20 * 16; // px (20rem)
+const leftRems = [18.188, 27.313, 36.438, 45.563, 54.188];
 
-// 예시 목데이터 (1~5주차 주 평균 공부시간)
-const mockWeeklyGraph = [6.5, 8, 9.5, 7, 8.5];
+const WeeklyAvgBarChart: FunctionComponent<Props> = ({ userId }) => {
+  const { weeklyGraph, loading, error } = useWeeklyAvgBarChart(userId);
 
-const WeeklyAvgBarChart: React.FC<Props> = ({ userId }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [weeklyGraph, setWeeklyGraph] = useState<number[] | null>(null);
+  // 그래프 막대 (데이터 없거나 로딩/에러 시에는 플레이스홀더로 표시)
+  const bars = (weeklyGraph ?? Array(leftRems.length).fill(0)).map(
+    (hour, idx) => {
+      const height = loading
+        ? 24
+        : Math.max(8, (hour / maxHours) * maxBarHeight);
+      const left = leftRems[idx];
+      const barTitle = loading
+        ? '로딩 중'
+        : error
+          ? '데이터 없음'
+          : `${idx + 1}주차: ${hour}시간`;
 
-  useEffect(() => {
-    setLoading(true);
-    // 실제 API 연동 예시 (주석 처리 상태)
-    /*
-    fetch(`/api/v1/study-times/statistics/${userId}`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`API 에러: ${res.status}`);
-        const json: ApiResponse = await res.json();
-        setWeeklyGraph(json.data.weekly_graph);
-      })
-      .catch((e) => {
-        setError(e.message || "네트워크 오류");
-        setWeeklyGraph(mockWeeklyGraph);
-      })
-      .finally(() => setLoading(false));
-    */
-    // 목데이터로 임시 세팅
-    setWeeklyGraph(mockWeeklyGraph);
-    setLoading(false);
-  }, [userId]);
+      const barBg =
+        loading || error
+          ? 'bg-gray-200 opacity-40'
+          : 'bg-deepskyblue shadow-[0_4px_12px_rgba(52,179,241,0.15)]';
 
-  if (loading) return <div>로딩 중...</div>;
-  if (error) return <div>에러: {error}</div>;
-  if (!weeklyGraph) return <div>데이터 없음</div>;
-
-  // 최대 12시간, 막대 최대 높이(px) 계산, 막대 좌측 위치(rem 단위)
-  const maxHours = 12;
-  const maxBarHeight = 20 * 16; // px (20rem 기준)
-  const leftRems = [18.188, 27.313, 36.438, 45.563, 54.188].slice(
-    0,
-    weeklyGraph.length,
+      return (
+        <div
+          key={idx}
+          className={`absolute w-[3.5rem] rounded-t-[9px] ${barBg}`}
+          style={{
+            left: `${left}rem`,
+            bottom: 0,
+            height: `${height}px`,
+            transition: 'height 0.3s',
+          }}
+          title={barTitle}
+        />
+      );
+    },
   );
-
-  const bars = weeklyGraph.map((hour, idx) => {
-    const height = Math.max(8, (hour / maxHours) * maxBarHeight); // 최소 8px 보장
-    const left = leftRems[idx];
-    return (
-      <div
-        key={idx}
-        className="absolute w-[3.5rem] rounded-t-[9px] bg-deepskyblue shadow-[0_4px_12px_rgba(52,179,241,0.15)]"
-        style={{
-          left: `${left}rem`,
-          bottom: 0,
-          height: `${height}px`,
-          transition: 'height 0.3s',
-        }}
-        title={`${idx + 1}주차: ${hour}시간`}
-      />
-    );
-  });
 
   return (
     <div className="w-full relative rounded-[14px] h-[37.5rem] overflow-hidden text-center text-[1rem] text-black font-inter">
@@ -90,7 +65,7 @@ const WeeklyAvgBarChart: React.FC<Props> = ({ userId }) => {
         <div className="absolute top-[11.031rem] left-[2.281rem] border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem]" />
         <div className="absolute top-[7.656rem] left-[2.281rem] border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem]" />
 
-        {/* 주차 레이블(위치를 34.5rem 정도로 내려줌) */}
+        {/* 주차 레이블 */}
         <div className="absolute top-[34.5rem] left-[16.125rem] text-[1.25rem] inline-block w-[7.563rem] h-[1.438rem]">
           1주차
         </div>
@@ -107,12 +82,18 @@ const WeeklyAvgBarChart: React.FC<Props> = ({ userId }) => {
           5주차
         </div>
 
-        {/* 막대그래프 */}
+        {/* 그래프 막대 */}
         <div className="absolute left-0 bottom-0 w-full h-[28.688rem]">
           {bars}
         </div>
+
+        {/* 로딩/에러 메시지 (그래프 틀 아래쪽 혹은 원하는 위치에 추가 가능) */}
+        {(loading || error) && (
+          <div className="absolute bottom-[-2.5rem] left-0 w-full text-center text-red-600 text-sm">
+            {loading ? '로딩 중...' : `에러 발생: ${error}`}
+          </div>
+        )}
       </div>
-      {/* 기타 배경 이미지, 텍스트 등 기존 디자인 그대로 유지 */}
     </div>
   );
 };
