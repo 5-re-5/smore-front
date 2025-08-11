@@ -13,9 +13,11 @@ interface UserInfoBoxProps {
 
 export const UserInfoBox = ({ userProfile }: UserInfoBoxProps) => {
   const todayMinutes = userProfile?.todayStudyMinute ?? 0;
-  const goalMinutes = userProfile?.goalStudyTime ?? 0;
+  const goalMinutes = (userProfile?.goalStudyTime ?? 0) * 60;
   const progressPercentage =
-    goalMinutes > 0 ? Math.round((todayMinutes / goalMinutes) * 100) : 0;
+    goalMinutes > 0
+      ? Math.round((todayMinutes / goalMinutes) * 100 * 100) / 100
+      : 0;
 
   const { userId } = useAuth();
 
@@ -25,9 +27,12 @@ export const UserInfoBox = ({ userProfile }: UserInfoBoxProps) => {
 
   return (
     <div
-      className="w-full h-full max-w-[1280px] mx-auto p-20 pt-16 pb-13 rounded-[25px] space-y-10 bg-study-card-bg"
+      className="max-w-[1280px] mx-auto p-20 pt-16 pb-13 rounded-[25px] space-y-10 bg-study-card-bg"
       style={{
-        boxShadow: '18.14px 18.14px 45.36px #D2D2D2',
+        width: '100%',
+        height: '100%',
+        boxShadow:
+          '18.143999099731445px 18.143999099731445px 45.3599967956543px #D2D2D2',
         borderRadius: 25,
       }}
     >
@@ -68,7 +73,7 @@ export const UserInfoBox = ({ userProfile }: UserInfoBoxProps) => {
           {recentStudyData?.rooms && recentStudyData.rooms.length > 0 ? (
             recentStudyData.rooms.slice(0, 3).map((room) => (
               <div key={room.roomId} className="flex-shrink-0">
-                <RecentStudyCard room={room} userId={userId ?? 0} />
+                <RecentStudyCard room={room} />
               </div>
             ))
           ) : (
