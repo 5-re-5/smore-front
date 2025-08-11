@@ -30,7 +30,70 @@ export function ThumbnailUploadSection({
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const validateFile = (file: File): string | null => {
+  // 실제 렌더 가능한 이미지인지 검증
+  const canDecodeImageFromFile = async (file: File): Promise<boolean> => {
+    const url = URL.createObjectURL(file);
+
+    try {
+      // 타임아웃 설정 (5초)
+      const timeoutPromise = new Promise<boolean>((resolve) => {
+        const timer = setTimeout(() => resolve(false), 5000);
+        return timer;
+      });
+
+      // 1) createImageBitmap 경로 (가능하면 빠르고 신뢰도 높음)
+      if ('createImageBitmap' in window) {
+        try {
+          const decodePromise = createImageBitmap(file).then((bmp) => {
+            // 너비/높이가 0이면 비정상으로 간주
+            const ok = bmp.width > 0 && bmp.height > 0;
+            bmp.close?.(); // ImageBitmap 자원 정리
+            return ok;
+          });
+
+          return await Promise.race([decodePromise, timeoutPromise]);
+        } catch {
+          // createImageBitmap 실패 시 fallback으로 이동
+        }
+      }
+
+      // 2) fallback: HTMLImageElement.decode()
+      const img = document.createElement('img') as HTMLImageElement;
+      img.decoding = 'async';
+
+      const decodePromise = new Promise<boolean>((resolve) => {
+        img.onload = () => {
+          // 이미지가 정상적으로 로드되고 유효한 크기인지 확인
+          const ok = img.naturalWidth > 0 && img.naturalHeight > 0;
+          resolve(ok);
+        };
+        img.onerror = () => resolve(false); // 리소스 불가/깨짐
+      });
+
+      img.src = url;
+
+      // decode()가 있으면 디코딩 완료까지 기다림
+      if ('decode' in img && typeof img.decode === 'function') {
+        try {
+          await img.decode();
+          return await Promise.race([decodePromise, timeoutPromise]);
+        } catch {
+          return false;
+        }
+      }
+
+      return await Promise.race([decodePromise, timeoutPromise]);
+    } finally {
+      // blob URL 해제 (메모리 관리)
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  // 확장된 밸리데이션(용량/타입 + 실제 디코딩까지)
+  const validateImageFileStrict = async (
+    file: File,
+  ): Promise<string | null> => {
+    // 1) MIME/크기 1차 검사
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       return 'jpg, jpeg, png, webp 파일만 업로드 가능합니다';
     }
@@ -39,7 +102,23 @@ export function ThumbnailUploadSection({
       return '파일 크기가 2MB를 초과합니다';
     }
 
-    return null;
+    // 빈 파일 체크
+    if (file.size === 0) {
+      return '파일이 비어있습니다';
+    }
+
+    try {
+      // 2) 실제 디코딩 가능 여부 검사
+      const decodable = await canDecodeImageFromFile(file);
+      if (!decodable) {
+        return '이미지를 불러올 수 없습니다. 파일이 손상되었거나 지원되지 않는 형식입니다';
+      }
+
+      return null;
+    } catch (error) {
+      console.error('이미지 검증 중 오류:', error);
+      return '이미지 검증 중 오류가 발생했습니다';
+    }
   };
 
   const processImageFile = async (file: File) => {
@@ -47,7 +126,7 @@ export function ThumbnailUploadSection({
     setUploadError(null);
 
     try {
-      const validationError = validateFile(file);
+      const validationError = await validateImageFileStrict(file);
       if (validationError) {
         setUploadError(validationError);
         setIsProcessing(false);

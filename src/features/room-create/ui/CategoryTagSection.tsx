@@ -50,8 +50,8 @@ export function CategoryTagSection({
   };
 
   const handleRemoveTag = (indexToRemove: number) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newTags = tags.filter(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (_: any, index: number) => index !== indexToRemove,
     );
     setValue('tags', newTags);
