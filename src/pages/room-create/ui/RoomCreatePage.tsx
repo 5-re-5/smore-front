@@ -1,15 +1,13 @@
+import { RoomCreateForm } from '@/features/room-create';
+
 function RoomCreatePage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 py-12 px-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          스터디룸 만들기
+        <h1 className="text-4xl font-bold text-gray-900 mb-8 text-start">
+          스터디 만들기
         </h1>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <p className="text-gray-600">
-            스터디룸 생성 기능이 곧 추가될 예정입니다.
-          </p>
-        </div>
+        <RoomCreateForm />
       </div>
     </div>
   );
