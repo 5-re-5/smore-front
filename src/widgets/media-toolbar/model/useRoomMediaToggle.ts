@@ -1,10 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useLocalParticipant, useRoomContext } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import {
   loadMediaSettings,
   saveMediaSettings,
 } from '@/shared/utils/mediaSettings';
+import { useAuth } from '@/entities/user';
+import { useMediaSync } from '@/shared/hooks/useMediaSync';
+import { useParams } from '@tanstack/react-router';
 
 type MediaType = 'microphone' | 'camera' | 'speaker';
 
@@ -26,12 +29,30 @@ export const useRoomMediaToggle = ({
 }: UseRoomMediaToggleProps): RoomMediaToggleState => {
   const { localParticipant } = useLocalParticipant();
   const room = useRoomContext();
+  const { userId } = useAuth();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(() => {
     const savedSettings = loadMediaSettings();
     return !savedSettings.speaker;
   });
+
+  // roomId 가져오기 (URL 파라미터에서)
+  const { roomId } = useParams({ from: '/room/$roomId' });
+  const roomIdNumber = parseInt(roomId, 10);
+
+  // 미디어 동기화 훅 (마이크/카메라용)
+  const { updateMediaSettings } = useMediaSync({
+    roomId: roomIdNumber,
+    userId: userId || 0,
+    onError: (err) => {
+      console.error('미디어 설정 서버 동기화 실패:', err);
+    },
+  });
+
+  // updateMediaSettings ref로 최신 함수 참조
+  const updateMediaSettingsRef = useRef(updateMediaSettings);
+  updateMediaSettingsRef.current = updateMediaSettings;
 
   // LiveKit에서 현재 상태 가져오기
   const isEnabled = (() => {
@@ -84,9 +105,16 @@ export const useRoomMediaToggle = ({
 
           // localStorage에 마이크 설정 저장
           const currentSettings = loadMediaSettings();
-          saveMediaSettings({
+          const newSettings = {
             ...currentSettings,
             audio: !isEnabled, // 토글된 상태로 저장
+          };
+          saveMediaSettings(newSettings);
+
+          // 서버에 미디어 설정 동기화 (디바운스)
+          updateMediaSettingsRef.current({
+            audioEnabled: !isEnabled,
+            videoEnabled: newSettings.video,
           });
           break;
         }
@@ -106,9 +134,16 @@ export const useRoomMediaToggle = ({
 
           // localStorage에 카메라 설정 저장
           const currentSettings = loadMediaSettings();
-          saveMediaSettings({
+          const newSettings = {
             ...currentSettings,
             video: !isEnabled, // 토글된 상태로 저장
+          };
+          saveMediaSettings(newSettings);
+
+          // 서버에 미디어 설정 동기화 (디바운스)
+          updateMediaSettingsRef.current({
+            audioEnabled: newSettings.audio,
+            videoEnabled: !isEnabled,
           });
           break;
         }
@@ -156,6 +191,7 @@ export const useRoomMediaToggle = ({
     isPending,
     isSpeakerMuted,
     onError,
+    // updateMediaSettings 제거 - ref로 참조하므로 의존성 불필요
   ]);
 
   return {
