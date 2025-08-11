@@ -117,8 +117,8 @@ export const useStopwatchStore = create<StopwatchState>((set, get) => ({
 
   updateServerData: (todayStudyTime: number, targetStudyTime: number) => {
     set({
-      serverTodayStudyTime: todayStudyTime * 60, // 분을 초로 변환
-      serverTargetStudyTime: targetStudyTime * 60, // 분을 초로 변환
+      serverTodayStudyTime: todayStudyTime,
+      serverTargetStudyTime: targetStudyTime * 60,
     });
   },
 }));
