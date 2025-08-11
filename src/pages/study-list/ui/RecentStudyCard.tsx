@@ -13,7 +13,7 @@ export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
 
   const handleReJoin = (roomId: number) => {
     navigate({
-      to: '/room/$roomId',
+      to: '/room/$roomId/prejoin',
       params: { roomId: roomId.toString() },
     });
   };
