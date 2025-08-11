@@ -7,6 +7,7 @@ interface MediaToggleOptions {
   deviceId?: string;
   onError?: (error: Error) => void;
   onDeviceChange?: (deviceType: MediaDeviceKind, deviceId: string) => void;
+  onPermissionDenied?: () => void; // 권한 거부 시 콜백
   audioElement?: HTMLAudioElement | HTMLVideoElement; // 스피커용
 }
 
@@ -30,7 +31,13 @@ export const useMediaToggle = (
   deviceKind: MediaDeviceKind,
   options: MediaToggleOptions = {},
 ) => {
-  const { deviceId, onError, onDeviceChange, audioElement } = options;
+  const {
+    deviceId,
+    onError,
+    onDeviceChange,
+    onPermissionDenied,
+    audioElement,
+  } = options;
   const currentStreamRef = useRef<MediaStream | null>(null);
   const permissionDeniedRef = useRef(false);
   const initializedRef = useRef(false);
@@ -152,6 +159,16 @@ export const useMediaToggle = (
         const err = error as Error;
         setMediaPending(mediaType, false);
         setMediaError(mediaType, err);
+
+        // 권한 거부 에러인 경우 콜백 호출
+        if (
+          err.name === 'NotAllowedError' ||
+          err.name === 'PermissionDeniedError'
+        ) {
+          permissionDeniedRef.current = true;
+          onPermissionDenied?.();
+        }
+
         onError?.(err);
       }
     },
@@ -168,6 +185,7 @@ export const useMediaToggle = (
       setSpeakerVolume,
       onDeviceChange,
       onError,
+      onPermissionDenied,
     ],
   );
 
@@ -236,6 +254,7 @@ export const useMediaToggle = (
             err.name === 'PermissionDeniedError'
           ) {
             permissionDeniedRef.current = true;
+            onPermissionDenied?.();
           }
 
           // 미디어 접근 실패 시 localStorage 설정을 실제 상태에 맞게 업데이트

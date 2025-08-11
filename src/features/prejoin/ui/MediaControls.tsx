@@ -15,6 +15,16 @@ import {
 } from '../model/useMediaControlStore';
 import { useMediaToggle } from '../model/useMediaToggle';
 import { DeviceSelector } from './DeviceSelector';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/ui/alert-dialog';
 
 interface MediaControlsProps {
   onDeviceChange?: (
@@ -38,6 +48,23 @@ export const MediaControls = ({
   const [showVideoSelector, setShowVideoSelector] = useState(false);
   const [showSpeakerSelector, setShowSpeakerSelector] = useState(false);
 
+  // 권한 알림 상태
+  const [showPermissionAlert, setShowPermissionAlert] = useState(false);
+  const [permissionType, setPermissionType] = useState<'audio' | 'video'>(
+    'audio',
+  );
+
+  // 권한 거부 콜백 함수들
+  const handleAudioPermissionDenied = () => {
+    setPermissionType('audio');
+    setShowPermissionAlert(true);
+  };
+
+  const handleVideoPermissionDenied = () => {
+    setPermissionType('video');
+    setShowPermissionAlert(true);
+  };
+
   // 미디어 토글 훅 사용 (각각 독립적)
   const videoToggle = useMediaToggle('videoinput', {
     deviceId: videoState.deviceId ?? '',
@@ -49,6 +76,7 @@ export const MediaControls = ({
     onError: (error) => {
       console.error('Video toggle error:', error);
     },
+    onPermissionDenied: handleVideoPermissionDenied,
   });
 
   const audioToggle = useMediaToggle('audioinput', {
@@ -61,6 +89,7 @@ export const MediaControls = ({
     onError: (error) => {
       console.error('Audio toggle error:', error);
     },
+    onPermissionDenied: handleAudioPermissionDenied,
   });
 
   const speakerToggle = useMediaToggle('audiooutput', {
@@ -211,6 +240,43 @@ export const MediaControls = ({
           buttonRef={speakerButtonRef}
         />
       </div>
+
+      {/* 권한 요청 알림 다이얼로그 */}
+      <AlertDialog
+        open={showPermissionAlert}
+        onOpenChange={setShowPermissionAlert}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {permissionType === 'audio' ? '마이크' : '카메라'} 권한이
+              필요합니다
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {permissionType === 'audio' ? '마이크' : '카메라'} 사용을 위해
+              브라우저에서 권한을 허용해주세요.
+              <br />
+              <br />
+              <strong>권한 설정 방법:</strong>
+              <br />
+              1. 주소창 왼쪽의 자물쇠 아이콘을 클릭하세요
+              <br />
+              2. {permissionType === 'audio' ? '마이크' : '카메라'} 권한을
+              "허용"으로 변경하세요
+              <br />
+              3. 페이지를 새로고침하고 다시 시도하세요
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowPermissionAlert(false)}>
+              닫기
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => window.location.reload()}>
+              새로고침
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
