@@ -7,7 +7,13 @@ import { useStopwatchStore } from '@/features/stopwatch';
 import { useRoomStateStore } from '@/features/room';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
 import { Button } from '@/shared/ui/button';
+import { PermissionBanner } from '@/shared/ui/permission-banner';
 import { loadMediaSettings } from '@/shared/utils/mediaSettings';
+import {
+  checkAllMediaPermissions,
+  canUseMedia,
+  type MediaPermissionStatus,
+} from '@/shared/utils/permissionUtils';
 import { RoomLayout } from '@/widgets';
 import {
   LiveKitRoom,
@@ -37,6 +43,11 @@ function RoomPage() {
   // 저장된 미디어 설정 로드
   const [mediaSettings] = useState(() => loadMediaSettings());
 
+  // 권한 상태 관리
+  const [permissionStatus, setPermissionStatus] =
+    useState<MediaPermissionStatus | null>(null);
+  const [actualMediaSettings, setActualMediaSettings] = useState(mediaSettings);
+
   // roomId 유효성 검사
   const roomIdNumber = parseInt(roomId, 10);
 
@@ -51,6 +62,32 @@ function RoomPage() {
       window.location.reload();
     }
   };
+
+  // 권한 확인 및 실제 미디어 설정 업데이트
+  const checkPermissionsAndUpdateSettings = useCallback(async () => {
+    try {
+      const permissions = await checkAllMediaPermissions();
+      setPermissionStatus(permissions);
+
+      // 권한 상태에 따라 실제 사용할 미디어 설정 결정
+      const actualVideo = canUseMedia(permissions.video, mediaSettings.video);
+      const actualAudio = canUseMedia(permissions.audio, mediaSettings.audio);
+
+      setActualMediaSettings({
+        ...mediaSettings,
+        video: actualVideo,
+        audio: actualAudio,
+      });
+    } catch (error) {
+      console.warn('권한 확인 실패:', error);
+      // 권한 확인 실패 시 안전하게 false로 설정
+      setActualMediaSettings({
+        ...mediaSettings,
+        video: false,
+        audio: false,
+      });
+    }
+  }, [mediaSettings]);
 
   // 저장된 토큰 조회
   const token = useRoomToken(roomIdNumber);
@@ -89,6 +126,11 @@ function RoomPage() {
     roomId,
     autoRejoinStatus,
   ]);
+
+  // 권한 확인 초기화
+  useEffect(() => {
+    checkPermissionsAndUpdateSettings();
+  }, [checkPermissionsAndUpdateSettings]);
 
   useEffect(() => {
     // 잘못된 roomId인 경우 홈으로 리다이렉트
@@ -189,6 +231,16 @@ function RoomPage() {
 
   return (
     <div className="h-screen flex flex-col">
+      {permissionStatus && (
+        <PermissionBanner
+          permissionStatus={permissionStatus}
+          userPreferences={{
+            video: mediaSettings.video,
+            audio: mediaSettings.audio,
+          }}
+        />
+      )}
+
       {connectionStatus === 'connecting' && (
         <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-40">
           <div className="text-center">
@@ -205,8 +257,8 @@ function RoomPage() {
         token={token}
         serverUrl={LIVEKIT_WS_URL}
         connect
-        video={mediaSettings.video}
-        audio={mediaSettings.audio}
+        video={actualMediaSettings.video}
+        audio={actualMediaSettings.audio}
         options={{
           adaptiveStream: true,
           dynacast: true,

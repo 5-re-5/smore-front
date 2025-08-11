@@ -15,16 +15,7 @@ import {
 } from '../model/useMediaControlStore';
 import { useMediaToggle } from '../model/useMediaToggle';
 import { DeviceSelector } from './DeviceSelector';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/shared/ui/alert-dialog';
+import { PermissionAlertDialog } from '@/shared/ui/permission-alert-dialog';
 
 interface MediaControlsProps {
   onDeviceChange?: (
@@ -242,41 +233,11 @@ export const MediaControls = ({
       </div>
 
       {/* 권한 요청 알림 다이얼로그 */}
-      <AlertDialog
+      <PermissionAlertDialog
         open={showPermissionAlert}
         onOpenChange={setShowPermissionAlert}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {permissionType === 'audio' ? '마이크' : '카메라'} 권한이
-              필요합니다
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {permissionType === 'audio' ? '마이크' : '카메라'} 사용을 위해
-              브라우저에서 권한을 허용해주세요.
-              <br />
-              <br />
-              <strong>권한 설정 방법:</strong>
-              <br />
-              1. 주소창 왼쪽의 자물쇠 아이콘을 클릭하세요
-              <br />
-              2. {permissionType === 'audio' ? '마이크' : '카메라'} 권한을
-              "허용"으로 변경하세요
-              <br />
-              3. 페이지를 새로고침하고 다시 시도하세요
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowPermissionAlert(false)}>
-              닫기
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={() => window.location.reload()}>
-              새로고침
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        mediaType={permissionType}
+      />
     </div>
   );
 };
