@@ -1,1 +1,1 @@
-export type { RecentStudyRoom, RecentStudyResponse } from './types';
+export type { RecentStudyRoom, RecentStudyResponse, StudyRoom } from './types';
