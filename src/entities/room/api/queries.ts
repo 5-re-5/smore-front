@@ -55,8 +55,8 @@ export const useJoinRoomMutation = () => {
       // 토큰을 store에 저장
       setToken(variables.roomId, data.accessToken);
     },
-    onError: () => {
-      console.error('❌ joinRoom API 실패:');
+    onError: (error) => {
+      console.error('❌ joinRoom API 실패:', error);
     },
   });
 };

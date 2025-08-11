@@ -13,3 +13,19 @@ export interface RecentStudyRoom {
 export interface RecentStudyResponse {
   rooms: RecentStudyRoom[];
 }
+
+export interface StudyRoom {
+  roomId: number;
+  title: string;
+  thumbnail: string;
+  tags: readonly string[];
+  category: string;
+  maxParticipants: number;
+  currentParticipants: number;
+  createdAt?: string;
+  creatorNickname: string;
+  isPrivate: boolean;
+  isPomodoro: boolean;
+  description?: string;
+  // isError: boolean;
+}
