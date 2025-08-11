@@ -9,7 +9,7 @@ const generateMockMessages = (count: number): ChatMessage[] => {
     { userId: 5, nickname: 'Eve', profileUrl: '/api/placeholder/32/32' },
   ];
 
-  const messageTypes = ['GROUP', 'SYSTEM'] as const;
+  const messageTypes = ['GROUP', 'SYSTEM', 'PRIVATE'] as const;
   const sampleMessages = [
     '안녕하세요! 잘 부탁드립니다.',
     '오늘 회의 시간이 언제인가요?',
@@ -37,7 +37,7 @@ const generateMockMessages = (count: number): ChatMessage[] => {
         ? `${user.nickname}님이 회의에 참여했습니다.`
         : sampleMessages[Math.floor(Math.random() * sampleMessages.length)];
 
-    return {
+    const message: ChatMessage = {
       type: messageType,
       sender: {
         userId: messageType === 'SYSTEM' ? null : user.userId,
@@ -47,6 +47,16 @@ const generateMockMessages = (count: number): ChatMessage[] => {
       content,
       timestamp: new Date(Date.now() - (count - index) * 120000).toISOString(), // 2분 간격
     };
+
+    // PRIVATE 메시지의 경우 receiver 정보 추가
+    if (messageType === 'PRIVATE') {
+      const otherUsers = users.filter((u) => u.userId !== user.userId);
+      const receiver =
+        otherUsers[Math.floor(Math.random() * otherUsers.length)];
+      message.receiver = receiver.userId.toString();
+    }
+
+    return message;
   });
 };
 
@@ -103,8 +113,9 @@ export interface BackendChatResponse {
 export interface ChatHistoryResponse {
   messages: ChatMessage[];
   hasMore: boolean;
-  currentPage: number;
+  currentPage?: number;
   totalCount: number;
+  nextCursor?: string | null; // 커서 기반일 때만 사용
 }
 
 // Adapter 함수 (간단해짐)
@@ -193,11 +204,21 @@ class ChatAPI {
         initializeMockData();
       }
 
+      // 타입 필터링 (ALL이 아닌 경우에만 필터링)
+      let filteredMessages = mockMessagesStore;
+      if (type !== 'ALL') {
+        filteredMessages = mockMessagesStore.filter((msg) => {
+          if (type === 'TEXT')
+            return msg.type === 'GROUP' || msg.type === 'SYSTEM';
+          return msg.type === type;
+        });
+      }
+
       // 페이지 기반 계산
       const startIndex = (page - 1) * limit;
-      const endIndex = Math.min(startIndex + limit, mockMessagesStore.length);
-      const messages = mockMessagesStore.slice(startIndex, endIndex);
-      const hasMore = endIndex < mockMessagesStore.length;
+      const endIndex = Math.min(startIndex + limit, filteredMessages.length);
+      const messages = filteredMessages.slice(startIndex, endIndex);
+      const hasMore = endIndex < filteredMessages.length;
 
       console.log('📚 Mock 히스토리 응답 (페이지 기반):', {
         page,
@@ -205,14 +226,14 @@ class ChatAPI {
         endIndex,
         returnedCount: messages.length,
         hasMore,
-        totalInStore: mockMessagesStore.length,
+        totalInStore: filteredMessages.length,
       });
 
       return {
         messages,
         hasMore,
         currentPage: page,
-        totalCount: mockMessagesStore.length,
+        totalCount: filteredMessages.length,
       };
       // 백엔드 없을 때 임시 응답
       // return {

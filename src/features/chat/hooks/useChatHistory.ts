@@ -35,8 +35,9 @@ export const useChatHistory = ({
   const currentPageRef = useRef<number>(1);
   const isInitialLoadedRef = useRef(false);
 
-  // 메시지 스토어
-  const { setMessages, addMessages, clearMessages } = useChatMessageStore();
+  // 메시지 스토어 - 전체 메시지 관리
+  const { setAllMessages, addMessages, clearMessages, setHistoryLoaded } =
+    useChatMessageStore();
 
   // 에러 처리 헬퍼
   const handleError = useCallback((err: unknown, context: string) => {
@@ -54,13 +55,16 @@ export const useChatHistory = ({
     setError(null);
 
     try {
-      console.log(`📚 초기 채팅 히스토리 로드 시작: ${roomId}`);
+      console.log(
+        `📚 전체 채팅 히스토리 로드 시작: ${roomId} (모든 타입 포함)`,
+      );
 
+      // 모든 타입의 메시지를 가져오기 위해 'ALL' 사용
       const response: ChatHistoryResponse = await chatApi.getChatHistory(
         roomId,
         1, // 첫 페이지
-        limit,
-        'TEXT', // 메시지 타입
+        limit * 2, // 더 많은 메시지를 가져와서 클라이언트에서 필터링
+        'ALL', // 모든 메시지 타입 포함
       );
 
       console.log(`📚 히스토리 로드 완료:`, {
@@ -75,22 +79,22 @@ export const useChatHistory = ({
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
       );
 
-      // 스토어에 설정
-      setMessages(sortedMessages);
+      // 스토어에 설정 - 전체 메시지 저장
+      setAllMessages(sortedMessages);
       setHasMore(response.hasMore);
       setTotalCount(response.totalCount);
-      currentPageRef.current = response.currentPage;
+      currentPageRef.current = response.currentPage || 1;
       isInitialLoadedRef.current = true;
     } catch (err) {
       handleError(err, '초기 히스토리 로드 실패');
       // 실패시 빈 배열로 초기화
-      setMessages([]);
+      setAllMessages([]);
       setHasMore(false);
       setTotalCount(0);
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, limit, setMessages, handleError, isLoading]);
+  }, [roomId, limit, setAllMessages, handleError, isLoading]);
 
   // 더 많은 히스토리 로드 (페이지 기반)
   const loadMoreHistory = useCallback(async () => {
@@ -106,8 +110,8 @@ export const useChatHistory = ({
       const response: ChatHistoryResponse = await chatApi.getChatHistory(
         roomId,
         nextPage,
-        limit,
-        'TEXT',
+        limit * 2, // 더 많은 메시지를 가져와서 클라이언트에서 필터링
+        'ALL', // 모든 타입 포함
       );
 
       console.log(`📚 추가 히스토리 로드 완료: ${response.messages.length}개`);
@@ -120,7 +124,7 @@ export const useChatHistory = ({
 
       addMessages(sortedNewMessages, 'prepend'); // 앞쪽에 추가
       setHasMore(response.hasMore);
-      currentPageRef.current = response.currentPage;
+      currentPageRef.current = response.currentPage || currentPageRef.current;
     } catch (err) {
       handleError(err, '추가 히스토리 로드 실패');
     } finally {
@@ -128,48 +132,13 @@ export const useChatHistory = ({
     }
   }, [roomId, limit, hasMore, isLoadingMore, addMessages, handleError]);
 
-  // 개인 메시지 히스토리 로드
-  const loadPrivateHistory = useCallback(
-    async (userId: string) => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        console.log(`💬 개인 메시지 히스토리 로드: ${userId}`);
-
-        const response: ChatHistoryResponse = await chatApi.getPrivateHistory(
-          roomId,
-          userId,
-          undefined,
-          limit,
-        );
-
-        console.log(
-          `💬 개인 히스토리 로드 완료: ${response.messages.length}개`,
-        );
-
-        // 개인 메시지만 필터링하여 설정
-        const privateMessages = response.messages.filter(
-          (msg) => msg.type === 'PRIVATE',
-        );
-        const sortedMessages = privateMessages.sort(
-          (a, b) =>
-            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-        );
-
-        setMessages(sortedMessages);
-        setHasMore(response.hasMore);
-        currentPageRef.current = response.currentPage;
-      } catch (err) {
-        handleError(err, '개인 히스토리 로드 실패');
-        setMessages([]);
-        setHasMore(false);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [roomId, limit, setMessages, handleError],
-  );
+  // 개인 메시지 히스토리 로드 - 더 이상 사용하지 않음 (클라이언트 사이드 필터링 사용)
+  const loadPrivateHistory = useCallback(async (userId: string) => {
+    // 이제 별도 API 호출 없이 클라이언트 사이드에서 필터링
+    console.log(`💬 개인 메시지 필터링: ${userId} (클라이언트 사이드)`);
+    // 아무것도 하지 않음 - ChatPanel에서 필터링 수행
+    return Promise.resolve();
+  }, []);
 
   // 에러 클리어
   const clearError = useCallback(() => {
@@ -186,10 +155,11 @@ export const useChatHistory = ({
     setHasMore(true);
     setTotalCount(0);
     clearMessages();
+    setHistoryLoaded(false);
 
     // 다시 로드
     await loadInitialHistory();
-  }, [loadInitialHistory, clearMessages]);
+  }, [loadInitialHistory, clearMessages, setHistoryLoaded]);
 
   return {
     // 상태
@@ -213,16 +183,13 @@ export const useRoomChatHistory = (roomId: string) => {
   return useChatHistory({ roomId });
 };
 
+// 더 이상 사용하지 않음 - 클라이언트 사이드 필터링으로 대체
 export const usePrivateChatHistory = (roomId: string, userId: string) => {
   const chatHistory = useChatHistory({ roomId });
 
-  // 자동으로 개인 히스토리 로드
-  const loadHistory = useCallback(() => {
-    return chatHistory.loadPrivateHistory(userId);
-  }, [chatHistory, userId]);
-
   return {
     ...chatHistory,
-    loadPrivateHistory: loadHistory,
+    // loadPrivateHistory는 더 이상 API 호출을 하지 않음
+    loadPrivateHistory: () => Promise.resolve(),
   };
 };

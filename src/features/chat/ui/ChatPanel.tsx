@@ -2,7 +2,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import ChatUserList from '@/features/chat/ui/ChatUserList';
 import ChatMessageList from './ChatMessageList';
 import ChatInput from './ChatInput';
-import { useChatMessageStore } from '../model/useChatMessageStore';
+import {
+  useChatMessageStore,
+  useAllMessages,
+  useHistoryLoaded,
+} from '../model/useChatMessageStore';
 import { useChatHistory } from '../hooks/useChatHistory';
 import { useRoomContext, useParticipants } from '@livekit/components-react';
 import { useAuth } from '@/entities/user/model/useAuth';
@@ -29,7 +33,9 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   const [showNewMessageButton, setShowNewMessageButton] = useState(false);
 
   // 스토어 및 훅들
-  const { messages } = useChatMessageStore();
+  const { getFilteredMessages } = useChatMessageStore();
+  const allMessages = useAllMessages();
+  const isHistoryLoaded = useHistoryLoaded();
   const { userId: currentUserId } = useAuth();
   const room = useRoomContext();
   const participants = useParticipants();
@@ -75,46 +81,43 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
     refresh,
   } = useChatHistory({ roomId, limit: 50 });
 
-  // Room ID가 준비되면 히스토리 로드
+  // Room ID가 준비되면 히스토리 로드 (한 번만)
   useEffect(() => {
-    if (!roomIdLoading && roomId) {
+    if (!roomIdLoading && roomId && !isHistoryLoaded) {
       loadInitialHistory();
     }
-  }, [roomId, roomIdLoading, loadInitialHistory]);
+  }, [roomId, roomIdLoading, loadInitialHistory, isHistoryLoaded]);
 
   // 채팅창이 열릴 때 자동 스크롤 (scrollToBottom 함수 정의 후에 위치)
 
-  // 탭 변경시 처리
-  const handleTabChange = async (newTab: 'GROUP' | 'PRIVATE') => {
+  // 탭 변경시 처리 - API 호출 없이 클라이언트 사이드 필터링
+  const handleTabChange = (newTab: 'GROUP' | 'PRIVATE') => {
+    console.log(`탭 변경: ${tab} → ${newTab} (클라이언트 사이드 필터링)`);
     setTab(newTab);
     setShowNewMessageButton(false); // 버튼 숨기기
     setNewMessageCount(0); // 카운트 리셋
 
     if (newTab === 'GROUP') {
       setSelectedPrivateUserId('');
-      await loadInitialHistory();
     } else {
-      setSelectedPrivateUserId('');
+      setSelectedPrivateUserId(''); // 개인 탭에서는 사용자 선택 초기화
     }
 
-    // 탭 변경 후 자동 스크롤
-    setTimeout(() => scrollToBottom(true), 100);
+    // 탭 변경 후 자동 스크롤 (즉시 실행)
+    setTimeout(() => scrollToBottom(true), 50);
   };
 
-  // 개인 대화 상대 변경시 처리
-  const handlePrivateUserChange = async (userId: string) => {
-    // console.log(`👤 개인 대화 상대 변경: ${selectedPrivateUserId} → ${userId}`);
+  // 개인 대화 상대 변경시 처리 - API 호출 없이 클라이언트 사이드 필터링
+  const handlePrivateUserChange = (userId: string) => {
+    console.log(
+      `👤 개인 대화 상대 변경: ${selectedPrivateUserId} → ${userId} (클라이언트 사이드 필터링)`,
+    );
     setSelectedPrivateUserId(userId);
     setShowNewMessageButton(false); // 버튼 숨기기
     setNewMessageCount(0); // 카운트 리셋
-    if (userId) {
-      await loadPrivateHistory(userId);
-    } else {
-      await loadInitialHistory();
-    }
 
-    // 대화 상대 변경 후 자동 스크롤
-    setTimeout(() => scrollToBottom(true), 100);
+    // 대화 상대 변경 후 자동 스크롤 (즉시 실행)
+    setTimeout(() => scrollToBottom(true), 50);
   };
 
   // 새 메시지 보기 버튼 클릭 핸들러
@@ -125,28 +128,26 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
     setNewMessageCount(0);
   };
 
-  // 현재 탭에 맞게 메시지 필터링
-  const filteredMessages = messages.filter((msg) => {
+  // 현재 탭에 맞게 메시지 필터링 - 클라이언트 사이드 필터링 활용
+  const filteredMessages = (() => {
     if (tab === 'GROUP') {
-      return msg.type === 'GROUP' || msg.type === 'SYSTEM';
+      // 그룹 메시지 필터링
+      return getFilteredMessages({ type: ['GROUP', 'SYSTEM'] });
     } else if (tab === 'PRIVATE') {
-      if (msg.type !== 'PRIVATE') return false;
-
       if (!selectedPrivateUserId) {
-        return true;
+        // 모든 개인 메시지 표시
+        return getFilteredMessages({ type: 'PRIVATE' });
+      } else {
+        // 특정 사용자와의 개인 대화
+        return getFilteredMessages({
+          type: 'PRIVATE',
+          userId: selectedPrivateUserId,
+          currentUserId: currentUserId?.toString() || '',
+        });
       }
-
-      const isFromSelected =
-        msg.sender.userId?.toString() === selectedPrivateUserId;
-      const isToSelected = msg.receiver === selectedPrivateUserId;
-      const isFromMe =
-        msg.sender.userId?.toString() === currentUserId?.toString();
-      const isToMe = msg.receiver === currentUserId?.toString();
-
-      return (isFromSelected && isToMe) || (isFromMe && isToSelected);
     }
-    return false;
-  });
+    return [];
+  })();
 
   // 선택 가능한 참가자 목록
   const selectableParticipants = participants
@@ -304,9 +305,9 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
           <span className="text-white font-semibold text-sm">
             참가자({participants.length})
           </span>
-          {totalCount > 0 && (
+          {allMessages.length > 0 && (
             <span className="text-xs text-gray-400">
-              • 메시지 {totalCount}개
+              • 전체 {allMessages.length}개 | 현재 {filteredMessages.length}개
             </span>
           )}
         </div>
