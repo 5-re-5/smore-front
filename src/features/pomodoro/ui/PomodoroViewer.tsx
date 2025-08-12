@@ -23,15 +23,14 @@ export const PomodoroViewer = () => {
 
   const getStatusMessage = (): string => {
     if (!isRunning) {
-      return '일시정지됨';
+      return '정지';
     }
-    return phase === 'study' ? '집중 중...' : '휴식 중...';
+    return phase === 'study' ? '집중 중' : '휴식 중';
   };
 
   return (
-    <div className="flex flex-col items-center space-y-2 p-1 bg-white rounded-lg shadow-lg">
+    <div className="flex flex-col items-center space-y-2 p-1 bg-grey-50 rounded-lg ">
       <div className="text-center">
-        <h2 className="text-sm font-semibold">뽀모도로 타이머</h2>
         <div className={`text-sm font-medium ${getPhaseColor()}`}>
           {phase === 'study' ? '집중 시간' : '휴식 시간'}
         </div>
@@ -44,19 +43,18 @@ export const PomodoroViewer = () => {
           strokeWidth={20}
           className={getPhaseColor()}
         />
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          className={` absolute inset-0 flex items-center justify-center text-sm font-medium ${isRunning ? getPhaseColor() : 'text-gray-500'}`}
+        >
+          {getStatusMessage()}
+        </div>
+        <div className="absolute bottom-0.5 left-8 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-sm font-bold text-gray-800">
+            <div className="text-sm font-bold text-white">
               {formatTime(remainingTime)}
             </div>
           </div>
         </div>
-      </div>
-
-      <div
-        className={`text-sm font-medium ${isRunning ? getPhaseColor() : 'text-gray-500'}`}
-      >
-        {getStatusMessage()}
       </div>
     </div>
   );

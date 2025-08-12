@@ -4,17 +4,14 @@ export function useRemoteParticipantTracks() {
 
   return participants
     .filter((p) => !p.isLocal)
-    .flatMap((participant) =>
-      participant
+    .map((participant) => {
+      const videoPublication = participant
         .getTrackPublications()
-        .filter((pub) => pub.track !== undefined && pub.kind === 'video')
-        .map((pub) => {
-          if (!pub.track) return null;
-          return {
-            participant,
-            track: pub.track,
-          };
-        })
-        .filter((item): item is NonNullable<typeof item> => item !== null),
-    );
+        .find((pub) => pub.kind === 'video');
+
+      return {
+        participant,
+        track: videoPublication?.track || null,
+      };
+    });
 }

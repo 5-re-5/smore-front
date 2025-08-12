@@ -14,7 +14,6 @@ export const PomodoroController = () => {
     start,
     pause,
     tick,
-    resetTimer,
   } = usePomodoroStore();
 
   useInterval(tick, isRunning ? 1000 : null);
@@ -30,9 +29,8 @@ export const PomodoroController = () => {
   };
 
   return (
-    <div className="flex flex-col items-center space-y-2 p-1 bg-white rounded-lg shadow-lg">
+    <div className="flex flex-col items-center space-y-2 p-1 bg-grey-50 rounded-lg ">
       <div className="text-center">
-        <h2 className="text-sm font-semibold">뽀모도로 타이머</h2>
         <div className={`text-sm font-medium ${getPhaseColor()}`}>
           {phase === 'study' ? '집중 시간' : '휴식 시간'}
         </div>
@@ -46,27 +44,26 @@ export const PomodoroController = () => {
           className={getPhaseColor()}
         />
         <div className="absolute inset-0 flex items-center justify-center">
+          <Button
+            onClick={isRunning ? pause : start}
+            className="bg-transparent hover:bg-transparent rounded-full text-black border-none shadow-none"
+            size="sm"
+          >
+            {isRunning ? '일시정지' : '시작'}
+          </Button>
+        </div>
+        <div className="absolute bottom-0.5 left-8 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-sm font-bold text-gray-800">
+            <div className="text-sm font-bold text-white">
               {formatTime(remainingTime)}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex space-x-3">
-        <Button
-          onClick={isRunning ? pause : start}
-          variant={isRunning ? 'secondary' : 'default'}
-          size="sm"
-        >
-          {isRunning ? '일시정지' : '시작'}
-        </Button>
-
-        <Button onClick={resetTimer} variant="outline" size="sm">
+      {/* <Button onClick={resetTimer} variant="outline" size="sm">
           초기화
-        </Button>
-      </div>
+        </Button> */}
     </div>
   );
 };

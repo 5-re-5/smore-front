@@ -38,3 +38,4 @@ export {
 export { SettingsIcon } from './icons/settings-icon';
 export { Slider } from './slider';
 export * from './icons';
+export { Toaster } from './sonner';

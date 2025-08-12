@@ -58,7 +58,7 @@ export function LocalVideoTile() {
 
   return (
     <div
-      className={`w-80 h-60 relative rounded-xl border transition-all duration-300 ${
+      className={`relative rounded-xl border transition-all duration-300 w-full h-full ${
         isSpeaking
           ? 'border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]'
           : 'border-zinc-300'

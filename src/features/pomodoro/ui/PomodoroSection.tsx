@@ -10,7 +10,7 @@ function PomodoroSection() {
   usePomodoroSync(); // Initialize sync
 
   return (
-    <div className="bg-white rounded-lg border">
+    <div className="">
       {isOwner ? <PomodoroController /> : <PomodoroViewer />}
     </div>
   );
