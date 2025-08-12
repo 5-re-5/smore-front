@@ -7,6 +7,7 @@ interface StudyFiltersProps {
   onHideFullRoomsChange: (hide: boolean) => void;
   onCategoryClick: () => void;
   onReset: () => void;
+  title?: React.ReactNode;
 }
 
 export const StudyFilters = ({
@@ -16,10 +17,11 @@ export const StudyFilters = ({
   onHideFullRoomsChange,
   onCategoryClick,
   onReset,
+  title,
 }: StudyFiltersProps) => {
   return (
-    <div className="max-w-[1280px] mx-auto mt-[110px]">
-      <h1 className="text-2xl font-bold mb-[55px]">스터디 목록</h1>
+    <div className="max-w-[1280px] mx-auto">
+      {title && <h1 className="text-2xl font-bold mb-[55px]">{title}</h1>}
 
       <div className="flex justify-between items-center">
         {/* 정렬 버튼 */}
