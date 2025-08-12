@@ -15,14 +15,17 @@ import RoomMediaControls from './RoomMediaControls';
 import { getMediaButtonStyle } from './styles';
 import { useQueryClient } from '@tanstack/react-query';
 
-
 type MediaToolbarProps = {
   isChatOpen: boolean;
   onToggleChat: () => void;
   isOwner: boolean;
 };
 
-function MediaToolbar({isOwner, isChatOpen, onToggleChat }: MediaToolbarProps) {
+function MediaToolbar({
+  isOwner,
+  isChatOpen,
+  onToggleChat,
+}: MediaToolbarProps) {
   const navigate = useNavigate();
   const { roomId } = useParams({ from: '/room/$roomId' });
   const { userId } = useAuth();
@@ -91,14 +94,12 @@ function MediaToolbar({isOwner, isChatOpen, onToggleChat }: MediaToolbarProps) {
             <Button
               onClick={handleLeaveRoom}
               disabled={
-              leaveRoomMutation.isPending || deleteRoomMutation.isPending
-            }
+                leaveRoomMutation.isPending || deleteRoomMutation.isPending
+              }
               className={`w-2.5rem h-2.5rem rounded-lg bg-[#FF4949] hover:bg-red-600 transition-colors flex items-center justify-center text-white font-bold ${
-                leaveRoomMutation.isPending
-                  || deleteRoomMutation.isPending
-                ? 'opacity-50 cursor-not-allowed'
-                 
-                : ''
+                leaveRoomMutation.isPending || deleteRoomMutation.isPending
+                  ? 'opacity-50 cursor-not-allowed'
+                  : ''
               }`}
               aria-label="방 나가기"
             >

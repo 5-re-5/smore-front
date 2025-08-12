@@ -67,21 +67,21 @@ export const StopwatchController = () => {
   };
 
   return (
-    <div className="bg-black text-gray-400 p-3 rounded-lg">
+    <div className="bg-black text-gray-400 p-3 rounded-lg max-w-lg">
       {apiError && (
         <div className="mb-2 p-2 bg-red-900 text-red-200 rounded text-xs">
           {apiError}
         </div>
       )}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1">
         <button
           onClick={handleStartPause}
           className="bg-gray-600 px-3 py-1 rounded-md text-white text-sm"
         >
-          {isRunning ? '일시정지' : '시작'}
+          {isRunning ? '정지' : '시작'}
         </button>
         <div className="flex-1 text-center">
-          <div className="text-sm">오늘 총 공부 시간</div>
+          <div className="text-sm">오늘 공부 시간</div>
           <div className="text-lg font-mono">
             {formatTime(serverTodayStudyTime + todayTotalTime)}
           </div>
