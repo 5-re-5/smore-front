@@ -67,7 +67,7 @@ export const StopwatchController = () => {
   };
 
   return (
-    <div className="bg-black text-gray-400 p-3 rounded-lg max-w-lg">
+    <div className="bg-black text-gray-400 p-3 rounded-lg w-100">
       {apiError && (
         <div className="mb-2 p-2 bg-red-900 text-red-200 rounded text-xs">
           {apiError}

@@ -1,7 +1,5 @@
-import { useState } from 'react';
-import { useParticipants } from '@livekit/components-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { Bot, BotOff, Users, MessageCircle } from 'lucide-react';
+import { Bot, BotOff, MessageCircle } from 'lucide-react';
 
 import {
   useLeaveRoomMutation,

@@ -20,45 +20,36 @@ function RoomLayout({ isOwner, roomTitle = '스터디룸' }: RoomLayoutProps) {
         <h1 className="text-lg font-semibold text-gray-900">{roomTitle}</h1>
       </div>
 
-      {/* 중간 영역: 도구들 + 카메라 */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 상단 도구 영역 */}
-        <div className="flex gap-4 p-4 bg-gray-50 border-b">
-          {/* 뽀모도로 */}
-          <div className="flex-shrink-0">
-            <PomodoroSection />
-          </div>
-
-          {/* 스톱워치 */}
-          <div className="flex-1">
-            <StopwatchController />
-          </div>
-        </div>
-
-        {/* 중앙: Video + (옵션) Chat */}
-        <div className="flex-1 overflow-hidden">
-          <div className="h-full min-h-0 flex">
-            <div className="flex-1 min-h-0 overflow-auto">
-              <VideoGrid />
+      {/* 중간 영역: 도구들 + 카메라 + 채팅 */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* 중앙: Video + Tools */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Tools: Pomodoro + Stopwatch */}
+          <div className="flex justify-center items-center py-4">
+            <div className="flex items-center gap-8">
+              <PomodoroSection />
+              <StopwatchController />
             </div>
+          </div>
 
-            {isChatOpen && (
-              // <div className="h-full w-80 shrink-0 border-l border-gray-700 bg-[#1e2230] transition-all duration-200">
-              //   <ChatPanel isOpen />
-              // </div>
-              <div className="relative h-full w-[360px] shrink-0 border-l border-gray-700 bg-[#1e2230] transition-all duration-200">
-                + {/* absolute 박스: 상단 고정, 하단은 툴바 높이만큼 띄움 */}+{' '}
-                <div
-                  className="absolute inset-x-0 -top-1"
-                  style={{ bottom: 'var(--toolbar-h, 64px)' }}
-                >
-                  + <ChatPanel isOpen />+{' '}
-                </div>
-                +{' '}
-              </div>
-            )}
+          {/* Video Grid */}
+          <div className="flex-1 min-h-0 overflow-auto">
+            <VideoGrid />
           </div>
         </div>
+
+        {/* Chat Panel - 오른쪽에 위치 */}
+        {isChatOpen && (
+          <div className="relative h-full w-[360px] shrink-0 border-l border-gray-700 bg-[#1e2230] transition-all duration-200">
+            {/* absolute 박스: 상단 고정, 하단은 툴바 높이만큼 띄움 */}
+            <div
+              className="absolute inset-x-0 top-3"
+              style={{ bottom: 'var(--toolbar-h, 64px)' }}
+            >
+              <ChatPanel isOpen />
+            </div>
+          </div>
+        )}
       </div>
       {/* 하단: Toolbar (토글만 담당) */}
       <MediaToolbar
