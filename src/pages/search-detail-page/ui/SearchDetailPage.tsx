@@ -1,12 +1,22 @@
+import { searchDetailRoute } from '../route';
+import StudyListContent from '@/pages/study-list/ui/StudyListContent';
+
 function SearchDetailPage() {
+  // URL 쿼리에서 q 읽어오기
+  const { q } = searchDetailRoute.useSearch();
+
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8 text-start">
-          검색 상세 페이지
-        </h1>
+    <>
+      {/* 검색 결과 - 총 00개 스터디 */}
+      <div>
+        <main
+          className="mt-[55px] px-8 pb-8 pt-0 font-['Noto_Sans_KR']"
+          role="main"
+        >
+          <StudyListContent> "{q}" 검색 결과 </StudyListContent>
+        </main>
       </div>
-    </div>
+    </>
   );
 }
 
