@@ -33,7 +33,7 @@ interface UserSettingsModalProps {
 export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
   const userSettings = useUserSettings({ userProfile });
   const today = useMemo(() => startOfDay(new Date()), []);
-  const minDate = useMemo(() => new Date(2010, 0, 1), []);
+  const minDate = useMemo(() => new Date(2020, 0, 1), []);
   const maxDate = useMemo(() => addYears(today, 5), [today]); // 오늘로부터 5년
 
   return (
