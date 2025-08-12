@@ -1,13 +1,14 @@
 import { useAuth, useUserInfo } from '@/entities/user';
-import { updateUserProfile } from '@/entities/user/api/userApi';
 import { userProfileQueryKeys } from '@/entities/user/api/queries/userQueries';
+import { updateUserProfile } from '@/entities/user/api/userApi';
 import {
   createCroppedBlobWithDimensions,
   loadImageFromBlob,
 } from '@/features/focus-capture/model/imageResize';
-import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRef, useState, useEffect } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 // 이미지 업로드 관련 상수
@@ -313,7 +314,7 @@ function EditPage() {
 
             {/* 오른쪽 그룹: 삭제 버튼 */}
             <button
-              className="h-[3.125rem] px-6 text-[0.875rem] rounded-[2.625rem]"
+              className="h-[3.125rem] px-6 text-[0.875rem] rounded-[2.625rem] flex items-center gap-2"
               style={{
                 background: '#ECF0F3',
                 boxShadow:
@@ -322,6 +323,7 @@ function EditPage() {
               }}
               onClick={handleImageDelete}
             >
+              <Trash2 className="text-black w-[18px]" />
               삭제
             </button>
           </div>
