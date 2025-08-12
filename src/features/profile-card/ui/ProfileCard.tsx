@@ -79,13 +79,129 @@ const ProfileImage: FunctionComponent<{ src?: string; alt: string }> = ({
   );
 };
 
+// ──────────────────────────────────────────────────────────────
+// 슬롯(룰렛) 모달 컴포넌트
+// - spinning: true면 빠르게 아이템을 순환
+// - result가 주어지면 약간 delay 후 해당 심볼에서 정지
+// - onClose: 완료 후 닫기
+// ──────────────────────────────────────────────────────────────
+const RouletteModal: React.FC<{
+  open: boolean;
+  result?: SnackType | null;
+  onClose: () => void;
+}> = ({ open, result, onClose }) => {
+  const items: SnackType[] = ['O', 'RE'];
+  const [index, setIndex] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const [settled, setSettled] = useState<SnackType | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    // 시작 시 스핀
+    setSettled(null);
+    setSpinning(true);
+    const interval = setInterval(() => {
+      setIndex((i) => (i + 1) % items.length);
+    }, 80);
+
+    // result가 도착하면 천천히 감속 후 result에 정렬
+    if (result) {
+      // 약간의 연출 딜레이
+      const stopTimer = setTimeout(() => {
+        // 감속 효과
+        let step = 0;
+        const slow = setInterval(() => {
+          setIndex((i) => (i + 1) % items.length);
+          step++;
+          if (step > 10) {
+            clearInterval(slow);
+            setSpinning(false);
+            setSettled(result);
+          }
+        }, 120);
+        clearInterval(interval);
+      }, 600);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(stopTimer);
+      };
+    }
+
+    return () => clearInterval(interval);
+  }, [open, result]);
+
+  if (!open) return null;
+
+  const current: SnackType = settled ?? items[index];
+  const imgSrc =
+    current === 'O' ? '/images/OREO_O.webp' : '/images/OREO_RE.webp';
+
+  return (
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center">
+      {/* 배경 */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+      {/* 카드 */}
+      <div className="relative w-[360px] max-w-[90vw] rounded-2xl bg-[#EBF3FF] px-6 py-6 border border-[#E2E7FA] shadow-[10px_10px_24px_rgba(0,0,0,0.15),-10px_-10px_24px_#FFF]">
+        <h4 className="text-center text-[18px] font-semibold text-[#2B5E85] mb-3">
+          오레오 룰렛
+        </h4>
+
+        {/* 슬롯 창 */}
+        <div className="mx-auto mb-4 h-[140px] w-[200px] overflow-hidden rounded-xl border border-[#D7E3F3] bg-white shadow-[inset_0_4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center">
+          <img
+            key={current} // 변경 시 부드러운 scale 연출
+            src={imgSrc}
+            alt={current}
+            className={`h-[120px] w-auto transition-transform duration-150 ${
+              spinning ? 'scale-100' : 'scale-105'
+            }`}
+            draggable={false}
+          />
+        </div>
+
+        {/* 상태 텍스트 */}
+        <div className="text-center text-sm text-[#597997] min-h-[22px] mb-2">
+          {spinning && !result && '돌리는 중...'}
+          {spinning && result && '감속 중...'}
+          {!spinning && settled && (settled === 'RE' ? 'RE 당첨!' : 'O 당첨!')}
+        </div>
+
+        {/* 버튼 */}
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 h-[40px] rounded-[12px] bg-[#EBF3FF] border border-[#E2E7FA] text-[#2B5E85] font-semibold text-[14px] shadow-[6px_6px_14px_#DBE4F0,-6px_-6px_14px_#FFFFFF] hover:translate-y-[-1px] transition-all"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
   const handleEditProfile = () => {
     window.location.href = '/profile-edit';
   };
 
   const { data: userInfo } = useUserInfo();
+
+  // 서버 값들 상태
   const [point, setPoint] = useState(0);
+  const [grade, setGrade] = useState<string>(userInfo?.level ?? '');
+
+  // 룰렛 모달 상태
+  const [rouletteOpen, setRouletteOpen] = useState(false);
+  const [rouletteResult, setRouletteResult] = useState<SnackType | null>(null);
+  const [drawing, setDrawing] = useState(false);
+
+  // userInfo.grade 변경 시 grade 초기화
+  useEffect(() => {
+    if (userInfo?.level) setGrade(userInfo.level);
+  }, [userInfo?.level]);
 
   // 포인트 가져오기
   useEffect(() => {
@@ -106,11 +222,46 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
     }
   }, [userId]);
 
+  // 뽑기 실행
+  const handleDraw = async () => {
+    if (point < 100 || drawing) return; // 100P 미만, 중복 클릭 방지
+    try {
+      setDrawing(true);
+      setRouletteResult(null);
+      setRouletteOpen(true); // 애니메이션 먼저 시작
+
+      const res = await request<{
+        result: SnackType;
+        updatedLevel: string;
+        updatedPoints: number;
+      }>({
+        method: 'post',
+        url: `/api/v1/points/${userId}`,
+      });
+
+      // 애니메이션에 결과 전달 → 감속 후 정지
+      setRouletteResult(res.data.result);
+
+      // 살짝 지연 후 상태 반영(연출 자연스럽게)
+      setTimeout(() => {
+        setPoint(res.data.updatedPoints);
+        setGrade(res.data.updatedLevel);
+      }, 900);
+    } catch (err) {
+      console.error('뽑기 실패:', err);
+      // 실패 시 모달 닫기
+      setRouletteOpen(false);
+    } finally {
+      // 버튼 비활성화 해제는 모달 닫을 때 함께
+      setTimeout(() => setDrawing(false), 1200);
+    }
+  };
+
   const dummyUser = {
     name: userInfo?.nickname,
     streak: 25,
     goal: userInfo?.targetDateTitle,
-    grade: userInfo?.level,
+    grade: grade,
     profileImg: userInfo?.profileUrl || ' ',
   };
 
@@ -138,6 +289,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
         relative
       "
     >
+      <RouletteModal
+        open={rouletteOpen}
+        result={rouletteResult}
+        onClose={() => {
+          setRouletteOpen(false);
+        }}
+      />
       {/* 상단 정보 영역 */}
       <div className="w-full flex justify-between items-center h-[192px]">
         {/* 프로필 + 수정 버튼 */}
@@ -352,19 +510,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
               type="button"
               title="뽑기"
               aria-label="뽑기"
-              className="
-                cursor-pointer
-                absolute left-3 bottom-3
-                h-[42px] px-[18px]
-                bg-[#EBF3FF] rounded-[14px]
-                border border-[#E2E7FA]
-                text-[#2B5E85] font-semibold text-[14px] tracking-[0.02em]
-                shadow-[6px_6px_14px_#DBE4F0,-6px_-6px_14px_#FFFFFF]
-                transition-all duration-150
-                hover:translate-y-[-1px]
-                active:shadow-[inset_3px_3px_8px_#D9E4EE,inset_-3px_-3px_8px_#FFFFFF]
-                active:translate-y-0
-              "
+              onClick={handleDraw}
+              disabled={drawing}
+              className={`
+                cursor-pointer absolute left-3 bottom-3 h-[42px] px-[18px]
+                rounded-[14px] border border-[#E2E7FA] text-[#2B5E85] font-semibold text-[14px] tracking-[0.02em]
+                shadow-[6px_6px_14px_#DBE4F0,-6px_-6px_14px_#FFFFFF] transition-all duration-150
+                hover:translate-y-[-1px] active:shadow-[inset_3px_3px_8px_#D9E4EE,inset_-3px_-3px_8px_#FFFFFF] active:translate-y-0
+                ${drawing ? 'opacity-60 pointer-events-none' : 'bg-[#EBF3FF]'}
+              `}
             >
               🎁 뽑기
             </button>
