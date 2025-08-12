@@ -187,6 +187,42 @@ export const createResizedBlobWithDimensions = async (
   // Canvas를 Blob으로 변환
   return sharedCanvasToBlob(format, quality);
 };
+/**
+ * 이미지를 중앙에서 자르는 방식으로 지정된 크기의 Blob을 생성합니다.
+ * 작은 이미지는 비율 유지하면서 확대한 후 중앙에서 자릅니다.
+ */
+export const createCroppedBlobWithDimensions = async (
+  image: HTMLImageElement,
+  targetWidth: number,
+  targetHeight: number,
+  quality: number,
+  format: string,
+): Promise<Blob> => {
+  const originalWidth = image.width;
+  const originalHeight = image.height;
+
+  // 목표 크기에 맞추기 위한 스케일 팩터 계산 (작은 쪽을 기준으로)
+  const scaleX = targetWidth / originalWidth;
+  const scaleY = targetHeight / originalHeight;
+  const scale = Math.max(scaleX, scaleY); // 큰 값을 선택하여 전체 영역을 덮도록
+
+  // 스케일링된 크기
+  const scaledWidth = originalWidth * scale;
+  const scaledHeight = originalHeight * scale;
+
+  // 중앙 정렬을 위한 오프셋 계산
+  const offsetX = (scaledWidth - targetWidth) / 2;
+  const offsetY = (scaledHeight - targetHeight) / 2;
+
+  // Canvas 설정 (목표 크기로)
+  setupSharedCanvas(targetWidth, targetHeight);
+
+  // 이미지를 확대하여 그리되, 중앙에서 잘리도록 위치 조정
+  drawToSharedCanvas(image, -offsetX, -offsetY, scaledWidth, scaledHeight);
+
+  // Canvas를 Blob으로 변환
+  return sharedCanvasToBlob(format, quality);
+};
 
 /**
  * 웹워커 확장성을 위한 인터페이스
