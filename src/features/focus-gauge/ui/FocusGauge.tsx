@@ -1,6 +1,6 @@
-import { useFocusStore } from '../model/useFocusStore';
 import { useFaceDetectionStore } from '@/features/face-detection';
 import { useRoomMediaToggle } from '@/widgets/media-toolbar/model/useRoomMediaToggle';
+import { useFocusStore } from '../model/useFocusStore';
 
 const FOCUS_COLORS = {
   LOW: '#EF4444', // 빨간색: 0-30%
@@ -77,7 +77,7 @@ export const FocusGauge = () => {
       </div>
 
       {/* 라벨 */}
-      <span className="text-xs font-medium" style={{ color: focusColor }}>
+      <span className="text-md font-bold" style={{ color: focusColor }}>
         {focusLabel}
       </span>
     </div>
