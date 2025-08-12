@@ -1,35 +1,29 @@
 import { searchDetailRoute } from '@/pages/search-detail-page/route';
+import { useSearchKeyword } from '@/shared/stores/useSearchKeyword';
 import { useNavigate } from '@tanstack/react-router';
 import { useRef, useState } from 'react';
 
 export const SearchBar = () => {
-  const [keyword, setKeyword] = useState('');
+  // const [keyword, setKeyword] = useState('');
   const composingRef = useRef(false);
   const navigate = useNavigate();
+  const { keyword, set, clear } = useSearchKeyword();
 
-  // 실제 이동 로직
-  const goSearch = (q: string) => {
-    const query = q.trim();
-    if (!query) return; // 빈 검색어면 이동 막기
-    navigate({
-      to: searchDetailRoute.to,
-      search: { q: query },
-    });
-  };
-
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    const query = keyword.trim();
-    if (!query) {
+    if (composingRef.current) return;
+    const q = keyword.trim();
+    if (!q) {
+      // 현재 페이지 유지 + q만 제거(전체 목록 보기)
+      clear();
       navigate({
-        // 같은 검색 상세 페이지에서 q만 삭제
         to: searchDetailRoute.to,
         search: (prev) => ({ ...prev, q: undefined }),
         replace: true,
       });
       return;
     }
-    navigate({ to: searchDetailRoute.to, search: { q: query } });
+    navigate({ to: searchDetailRoute.to, search: { q } });
   };
 
   return (
@@ -56,7 +50,7 @@ export const SearchBar = () => {
           placeholder="나에게 맞는 스터디를 찾아보세요"
           className="flex-1 bg-transparent border-none outline-none placeholder-header-text text-[1.25rem] font-medium leading-normal font-['Noto_Sans_KR'] text-header-text text-center"
           value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          onChange={(e) => set(e.target.value)}
           onCompositionStart={() => (composingRef.current = true)}
           onCompositionEnd={() => (composingRef.current = false)}
           aria-label="검색어"

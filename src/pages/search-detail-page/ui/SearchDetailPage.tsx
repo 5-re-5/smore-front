@@ -1,29 +1,40 @@
+import { useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { searchDetailRoute } from '../route';
 import StudyListContent from '@/pages/study-list/ui/StudyListContent';
+import { useSearchKeyword } from '@/shared/stores/useSearchKeyword';
 
-function SearchDetailPage() {
-  // URL 쿼리에서 q 읽어오기
+export default function SearchDetailPage() {
   const { q } = searchDetailRoute.useSearch();
   const navigate = useNavigate();
-  const clearSearch = () =>
+  const { set, clear } = useSearchKeyword();
+
+  // URL q ↔ 헤더 입력 동기화
+  useEffect(() => {
+    if (q) set(q);
+    else clear();
+  }, [q, set, clear]);
+
+  const clearSearch = () => {
+    clear(); // 검색바 비우기
     navigate({
       to: searchDetailRoute.to,
-      search: (prev) => ({ ...prev, q: undefined }), // q 제거
+      search: (prev) => ({ ...prev, q: undefined }),
+      replace: true,
     });
+  };
 
   return (
-    <main
-      className="mt-[55px] px-8 pb-8 pt-0 font-['Noto_Sans_KR']"
-      role="main"
-    >
-      {/* key={q} 로 q 변경 시 컴포넌트 리셋 → useInfiniteQuery도 새로 실행 */}
-      <StudyListContent search={q} key={q} onClearSearch={clearSearch}>
-        {' '}
-        "{q}" 검색 결과{' '}
-      </StudyListContent>
+    <main className="px-8 pb-8 pt-0 font-['Noto_Sans_KR']" role="main">
+      <div className="mt-[55px]">
+        <StudyListContent
+          key={q ?? 'all'}
+          search={q}
+          onClearSearch={clearSearch}
+        >
+          {q ? `“${q}” 검색 결과` : '전체 스터디'}
+        </StudyListContent>
+      </div>
     </main>
   );
 }
-
-export default SearchDetailPage;
