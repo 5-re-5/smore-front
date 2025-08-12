@@ -1,6 +1,6 @@
 export type FocusTimeData = {
-  start: string; // 예: "09:00"
-  end: string; // 예: "11:00"
+  start: string;
+  end: string;
   avg_focus_score: number;
 };
 
