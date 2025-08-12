@@ -50,7 +50,10 @@ export const setupAuthInterceptor = (axiosInstance: AxiosInstance) => {
           processQueue(refreshError, null);
 
           const axiosError = refreshError as { response?: { status: number } };
-          if (axiosError.response?.status === 403) {
+          if (
+            axiosError.response?.status === 401 ||
+            axiosError.response?.status === 403
+          ) {
             window.location.href = '/login';
           }
 
