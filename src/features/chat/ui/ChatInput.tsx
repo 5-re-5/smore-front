@@ -99,10 +99,10 @@ export default function ChatInput({
           value={message}
           onChange={handleMessageChange}
           disabled={tab === 'PRIVATE' && !preselectedReceiver}
-          className={`flex-1 bg-gray-700 text-white border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`flex-1 bg-gray-700 text-white border rounded px-3 py-2 text-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
             isMessageTooLong
               ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-600 focus:ring-blue-500'
+              : 'border-gray-600'
           }`}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
         />
@@ -114,7 +114,7 @@ export default function ChatInput({
             isMessageTooLong ||
             (tab === 'PRIVATE' && !preselectedReceiver)
           }
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-sm"
+          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-sm"
         >
           전송
         </button>

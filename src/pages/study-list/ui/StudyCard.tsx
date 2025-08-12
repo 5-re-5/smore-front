@@ -25,7 +25,7 @@ export function StudyCard({ room }: StudyCardProps) {
           <img
             src={room.thumbnail || '/study-thumbnail.png'}
             alt={`${room.title} 썸네일`}
-            className="w-full h-[160px] object-cover rounded-[20px]"
+            className="w-full h-[160px] object-cover rounded-[30px]"
           />
 
           {/* 뽀모도로 표시 */}

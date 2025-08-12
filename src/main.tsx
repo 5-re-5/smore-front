@@ -18,6 +18,12 @@ async function enableMocking() {
     return;
   }
 
+  // MSW 활성화 환경변수 체크
+  if (import.meta.env.VITE_MSW_ENABLED === 'false') {
+    console.log('🚫 MSW: Disabled by environment variable');
+    return;
+  }
+
   const { worker } = await import('@/shared/api/mocks');
 
   console.log('🔧 MSW: Starting worker...');

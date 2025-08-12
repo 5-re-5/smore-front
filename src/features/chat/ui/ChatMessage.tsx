@@ -43,7 +43,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
 
           {/* 개인 메시지 라벨 */}
           {type === 'PRIVATE' && (
-            <span className="text-xs bg-purple-600 px-2 py-0.5 rounded-full text-white flex-shrink-0">
+            <span className="text-xs bg-[#161929] px-2 py-0.5 rounded-full text-white flex-shrink-0">
               개인
             </span>
           )}

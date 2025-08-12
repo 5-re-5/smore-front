@@ -26,7 +26,7 @@ function mapParticipantToChatUser(participant: Participant): ChatUser | null {
 
 function ChatUserItem({ user }: { user: ChatUser }) {
   return (
-    <div className="flex items-center justify-between px-3 py-2 rounded bg-zinc-800">
+    <div className="flex items-center justify-between px-3 py-2 rounded bg-[#161929]">
       <div className="flex items-center space-x-2">
         <img
           src={user.profileUrl}
