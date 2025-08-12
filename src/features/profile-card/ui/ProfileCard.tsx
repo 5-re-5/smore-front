@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FunctionComponent } from 'react';
 import MarshmallowHeatmap from './MarshmallowHeatmap';
 import { useUserInfo } from '@/entities/user/model/useUserInfo';
+import { request } from '@/shared/api/request';
 
 const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
 
@@ -84,6 +85,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
   };
 
   const { data: userInfo } = useUserInfo();
+  const [point, setPoint] = useState(0);
+
+  // 포인트 가져오기
+  useEffect(() => {
+    const fetchPoints = async () => {
+      try {
+        const res = await request<{ totalPoints: number }>({
+          method: 'get',
+          url: `/api/v1/points/${userId}`,
+        });
+        setPoint(res.data.totalPoints);
+      } catch (err) {
+        console.error('포인트 조회 실패:', err);
+      }
+    };
+
+    if (userId) {
+      fetchPoints();
+    }
+  }, [userId]);
 
   const dummyUser = {
     name: userInfo?.nickname,
@@ -91,11 +112,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
     goal: userInfo?.targetDateTitle,
     grade: userInfo?.level,
     profileImg: userInfo?.profileUrl || ' ',
-    point: 900,
   };
 
   // ── 포인트 100 초과 시 색상 전환 ───────────────────────────────
-  const point = dummyUser.point;
   const isOver100 = point >= 100;
 
   const fillCls = isOver100
@@ -289,7 +308,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
             {/* 경험치 텍스트 */}
             <div className="flex justify-between items-center mb-[8px]">
               <span className="text-[13px] font-semibold text-[#666] tracking-[0.01em]">
-                {dummyUser.point} / 100P
+                {point} / 100P
               </span>
             </div>
 
