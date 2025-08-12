@@ -6,19 +6,28 @@ interface UseChatHistoryOptions {
   roomId: string;
   limit?: number;
 }
-
-interface UseChatHistoryReturn {
+export interface UseChatHistoryReturn {
   isLoading: boolean;
   isLoadingMore: boolean;
-  hasMore: boolean;
   error: string | null;
-  totalCount: number;
 
-  loadInitialHistory: () => Promise<void>;
-  loadMoreHistory: () => Promise<void>;
-  loadPrivateHistory: (userId: string) => Promise<void>;
+  // 🔹 분리된 hasMore
+  hasMoreGroup: boolean;
+  hasMorePrivate: Record<string, boolean>;
+
+  // (선택) 통계
+  totalCountGroup: number;
+  totalCountPrivate: Record<string, number>;
+
+  // 🔹 그룹/개인별 로드
+  loadInitialGroup: () => Promise<void>;
+  loadMoreGroup: () => Promise<void>;
+
+  loadInitialPrivate: (userId: string) => Promise<void>;
+  loadMorePrivate: (userId: string) => Promise<void>;
+
   clearError: () => void;
-  refresh: () => Promise<void>;
+  refreshAll: () => Promise<void>;
 }
 
 export const useChatHistory = ({
@@ -27,169 +36,220 @@ export const useChatHistory = ({
 }: UseChatHistoryOptions): UseChatHistoryReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
 
-  // 페이지네이션 관리 (cursor → page 기반)
-  const currentPageRef = useRef<number>(1);
-  const isInitialLoadedRef = useRef(false);
+  // 🔹 그룹
+  const [hasMoreGroup, setHasMoreGroup] = useState(true);
+  const [totalCountGroup, setTotalCountGroup] = useState(0);
+  const currentPageGroupRef = useRef(1);
 
-  // 메시지 스토어 - 전체 메시지 관리
+  // 🔹 개인 (userId별)
+  const [hasMorePrivate, setHasMorePrivate] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [totalCountPrivate, setTotalCountPrivate] = useState<
+    Record<string, number>
+  >({});
+  const privatePageRef = useRef<Record<string, number>>({}); // userId -> page
+
+  const isInitialGroupLoadedRef = useRef(false);
+
   const { setAllMessages, addMessages, clearMessages, setHistoryLoaded } =
     useChatMessageStore();
 
-  // 에러 처리 헬퍼
-  const handleError = useCallback((err: unknown, context: string) => {
-    const errorMessage =
-      err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다';
-    console.error(`[ChatHistory] ${context}:`, err);
-    setError(`${context}: ${errorMessage}`);
+  const handleError = useCallback((err: unknown, ctx: string) => {
+    const msg = err instanceof Error ? err.message : '알 수 없는 오류';
+    console.error(`[ChatHistory] ${ctx}:`, err);
+    setError(`${ctx}: ${msg}`);
   }, []);
 
-  // 초기 히스토리 로드
-  const loadInitialHistory = useCallback(async () => {
-    if (isLoading || isInitialLoadedRef.current) return;
-
+  // ✅ 그룹 초기 로드
+  const loadInitialGroup = useCallback(async () => {
+    if (isLoading || isInitialGroupLoadedRef.current) return;
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log(
-        `📚 전체 채팅 히스토리 로드 시작: ${roomId} (모든 타입 포함)`,
-      );
-
-      // 모든 타입의 메시지를 가져오기 위해 'ALL' 사용
-      const response: ChatHistoryResponse = await chatApi.getChatHistory(
+      const res: ChatHistoryResponse = await chatApi.getChatHistory(
         roomId,
-        1, // 첫 페이지
-        limit * 2, // 더 많은 메시지를 가져와서 클라이언트에서 필터링
-        'ALL', // 모든 메시지 타입 포함
+        1,
+        limit,
+        'ALL',
       );
+      const asc = res.messages
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        );
 
-      console.log(`📚 히스토리 로드 완료:`, {
-        messagesCount: response.messages.length,
-        hasMore: response.hasMore,
-        totalCount: response.totalCount,
-      });
+      setAllMessages(asc);
+      setHistoryLoaded(true);
 
-      // 메시지를 시간순으로 정렬 (오래된 것부터)
-      const sortedMessages = response.messages.sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      );
-
-      // 스토어에 설정 - 전체 메시지 저장
-      setAllMessages(sortedMessages);
-      setHasMore(response.hasMore);
-      setTotalCount(response.totalCount);
-      currentPageRef.current = response.currentPage || 1;
-      isInitialLoadedRef.current = true;
-    } catch (err) {
-      handleError(err, '초기 히스토리 로드 실패');
-      // 실패시 빈 배열로 초기화
-      setAllMessages([]);
-      setHasMore(false);
-      setTotalCount(0);
+      setHasMoreGroup(res.hasMore ?? res.totalCount > asc.length);
+      setTotalCountGroup(res.totalCount);
+      currentPageGroupRef.current = res.currentPage || 1;
+      isInitialGroupLoadedRef.current = true;
+    } catch (e) {
+      handleError(e, '그룹 초기 로드 실패');
+      // setAllMessages([]);
+      setHasMoreGroup(false);
+      setTotalCountGroup(0);
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, limit, setAllMessages, handleError, isLoading]);
+  }, [roomId, limit, isLoading, setAllMessages, setHistoryLoaded, handleError]);
 
-  // 더 많은 히스토리 로드 (페이지 기반)
-  const loadMoreHistory = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
-
+  // ✅ 그룹 더보기
+  const loadMoreGroup = useCallback(async () => {
+    if (isLoadingMore || !hasMoreGroup) return;
     setIsLoadingMore(true);
     setError(null);
 
     try {
-      const nextPage = currentPageRef.current + 1;
-      console.log(`📚 추가 히스토리 로드: page=${nextPage}`);
+      const next = currentPageGroupRef.current + 1;
+      const res = await chatApi.getChatHistory(roomId, next, limit, 'ALL');
 
-      const response: ChatHistoryResponse = await chatApi.getChatHistory(
-        roomId,
-        nextPage,
-        limit * 2, // 더 많은 메시지를 가져와서 클라이언트에서 필터링
-        'ALL', // 모든 타입 포함
-      );
-
-      console.log(`📚 추가 히스토리 로드 완료: ${response.messages.length}개`);
-
-      // 기존 메시지 앞에 추가 (과거 메시지가 상단에)
-      const sortedNewMessages = response.messages.sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      );
-
-      addMessages(sortedNewMessages, 'prepend'); // 앞쪽에 추가
-      setHasMore(response.hasMore);
-      currentPageRef.current = response.currentPage || currentPageRef.current;
-    } catch (err) {
-      handleError(err, '추가 히스토리 로드 실패');
+      const asc = res.messages
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        );
+      addMessages(asc, 'prepend'); // 과거를 위에 붙임
+      setHasMoreGroup(res.hasMore);
+      currentPageGroupRef.current = res.currentPage || next;
+    } catch (e) {
+      handleError(e, '그룹 더보기 실패');
     } finally {
       setIsLoadingMore(false);
     }
-  }, [roomId, limit, hasMore, isLoadingMore, addMessages, handleError]);
+  }, [roomId, limit, hasMoreGroup, isLoadingMore, addMessages, handleError]);
 
-  // 개인 메시지 히스토리 로드 - 더 이상 사용하지 않음 (클라이언트 사이드 필터링 사용)
-  const loadPrivateHistory = useCallback(async (userId: string) => {
-    // 이제 별도 API 호출 없이 클라이언트 사이드에서 필터링
-    console.log(`💬 개인 메시지 필터링: ${userId} (클라이언트 사이드)`);
-    // 아무것도 하지 않음 - ChatPanel에서 필터링 수행
-    return Promise.resolve();
-  }, []);
+  // ✅ 개인 초기 로드 (userId별)
+  const loadInitialPrivate = useCallback(
+    async (userId: string) => {
+      if (!userId) return;
+      if (privatePageRef.current[userId]) return; // 이미 로드됨(최초 페이지)
 
-  // 에러 클리어
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await chatApi.getPrivateHistory(roomId, userId, 1, limit);
 
-  // 새로고침 (처음부터 다시 로드)
-  const refresh = useCallback(async () => {
-    console.log('🔄 채팅 히스토리 새로고침');
+        const asc = res.messages
+          .slice()
+          .sort(
+            (a, b) =>
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+          );
+        addMessages(asc, 'prepend'); // 스토어 전체에 합류 (중복은 addMessages에서 제거되도록)
 
-    // 상태 초기화
-    currentPageRef.current = 1;
-    isInitialLoadedRef.current = false;
-    setHasMore(true);
-    setTotalCount(0);
-    clearMessages();
-    setHistoryLoaded(false);
+        setHasMorePrivate((prev) => ({ ...prev, [userId]: !!res.hasMore }));
+        setTotalCountPrivate((prev) => ({
+          ...prev,
+          [userId]: res.totalCount ?? asc.length,
+        }));
+        privatePageRef.current[userId] = res.currentPage || 1;
+      } catch (e) {
+        handleError(e, `개인(${userId}) 초기 로드 실패`);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [roomId, limit, addMessages, handleError],
+  );
 
-    // 다시 로드
-    await loadInitialHistory();
-  }, [loadInitialHistory, clearMessages, setHistoryLoaded]);
+  // ✅ 개인 더보기 (userId별)
+  const loadMorePrivate = useCallback(
+    async (userId: string) => {
+      if (!userId) return;
+      if (isLoadingMore || !hasMorePrivate[userId]) return;
+
+      setIsLoadingMore(true);
+      setError(null);
+      try {
+        const next = (privatePageRef.current[userId] ?? 1) + 1;
+        const res = await chatApi.getPrivateHistory(
+          roomId,
+          userId,
+          next,
+          limit,
+        );
+
+        const asc = res.messages
+          .slice()
+          .sort(
+            (a, b) =>
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+          );
+        addMessages(asc, 'prepend');
+
+        setHasMorePrivate((prev) => ({ ...prev, [userId]: !!res.hasMore }));
+        privatePageRef.current[userId] = res.currentPage || next;
+      } catch (e) {
+        handleError(e, `개인(${userId}) 더보기 실패`);
+      } finally {
+        setIsLoadingMore(false);
+      }
+    },
+    [roomId, limit, isLoadingMore, hasMorePrivate, addMessages, handleError],
+  );
+
+  const clearError = useCallback(() => setError(null), []);
+
+  // 전체 초기화 후 다시 그룹 1페이지
+  // ✅ 탭/상대 옵션을 받아서 적절히 초기 로드
+  const refreshAll = useCallback(
+    async (opts?: {
+      activeTab?: 'GROUP' | 'PRIVATE';
+      selectedPrivateUserId?: string;
+    }) => {
+      // ✅ 커서/플래그 리셋 (메시지는 비우지 않음)
+      currentPageGroupRef.current = 1;
+      privatePageRef.current = {};
+      isInitialGroupLoadedRef.current = false; // ★ 중요
+      setHasMoreGroup(true);
+      setHasMorePrivate({});
+      setTotalCountGroup(0);
+      setTotalCountPrivate({});
+      setError(null);
+      setHistoryLoaded(false);
+
+      try {
+        // 그룹 1페이지
+        await loadInitialGroup();
+
+        // PRIVATE 탭이라면 현재 상대도 즉시 초기 로드
+        if (opts?.activeTab === 'PRIVATE' && opts.selectedPrivateUserId) {
+          await loadInitialPrivate(opts.selectedPrivateUserId);
+        }
+      } catch (e) {
+        // 실패 시 기존 메시지를 유지 → 배너만 노출
+        // (여기서는 추가 조치 불필요; setError는 내부 load 함수가 이미 처리)
+      }
+    },
+    [loadInitialGroup, loadInitialPrivate, setHistoryLoaded],
+  );
 
   return {
-    // 상태
     isLoading,
     isLoadingMore,
-    hasMore,
     error,
-    totalCount,
 
-    // 액션
-    loadInitialHistory,
-    loadMoreHistory,
-    loadPrivateHistory,
+    hasMoreGroup,
+    hasMorePrivate,
+
+    totalCountGroup,
+    totalCountPrivate,
+
+    loadInitialGroup,
+    loadMoreGroup,
+
+    loadInitialPrivate,
+    loadMorePrivate,
+
     clearError,
-    refresh,
-  };
-};
-
-// 편의 훅들
-export const useRoomChatHistory = (roomId: string) => {
-  return useChatHistory({ roomId });
-};
-
-// 더 이상 사용하지 않음 - 클라이언트 사이드 필터링으로 대체
-export const usePrivateChatHistory = (roomId: string, userId: string) => {
-  const chatHistory = useChatHistory({ roomId });
-
-  return {
-    ...chatHistory,
-    // loadPrivateHistory는 더 이상 API 호출을 하지 않음
-    loadPrivateHistory: () => Promise.resolve(),
+    refreshAll,
   };
 };

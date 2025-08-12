@@ -6,27 +6,41 @@ import { useUserInfo } from '@/entities/user/model/useUserInfo';
 import { useRoomContext } from '@livekit/components-react';
 import type { ChatMessage } from '@/shared/types/chatMessage.interface';
 
-export const useStompChat = () => {
+type ConnStatus =
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'disconnected'
+  | 'failed'
+  | 'error';
+
+// STOMP 기반 채팅 연결/재연결 안정적 관리 및 그룹/개인/시스템 메시지를 발행·수신
+export const useStompChat = (opts?: { onReconnected?: () => void }) => {
   const { addMessage } = useChatMessageStore();
   const { userId } = useAuth();
   const { data: userInfo } = useUserInfo();
   const room = useRoomContext();
 
-  // userInfo에서 nickname과 profileUrl 추출
   const nickname = userInfo?.nickname || 'Anonymous';
   const profileUrl = userInfo?.profileUrl || '/default-avatar.png';
+
   const clientRef = useRef<ReturnType<typeof createStompClient> | null>(null);
   const isConnectedRef = useRef(false);
 
-  const [connectionStatus, setConnectionStatus] = useState('connecting');
-  const [reconnectAttempts, setReconnectAttempts] = useState(0);
-  const maxReconnectAttempts = 5;
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [connectionStatus, setConnectionStatus] =
+    useState<ConnStatus>('connecting');
 
-  // ✅ 테스트 모드 플래그(전역적으로 한번 읽어서 재사용)
+  // 재연결 제어
+  const attemptsRef = useRef(0);
+  const maxReconnectAttempts = 5;
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const shouldReconnectRef = useRef(true); // 사용자가 의도적으로 나갈 땐 false로
+  const wasDisconnectedRef = useRef(false); // 끊겼다가 복구됨을 표시
+
   const isTestBroker = import.meta.env.VITE_STOMP_TEST_MODE === 'true';
 
-  // ✅ 목적지 해석 헬퍼: 테스트 모드면 토픽(/sub/*)로, 실서버면 /pub/*
   const resolveDestination = useCallback(
     (
       kind: 'group' | 'private' | 'system',
@@ -36,14 +50,14 @@ export const useStompChat = () => {
       if (isTestBroker) {
         switch (kind) {
           case 'group':
-            return `/sub/room/${roomId}`; // 테스트: 바로 브로드캐스트될 토픽
+            return `/sub/room/${roomId}`;
           case 'private':
-            return `/sub/user/${receiverId}`; // 테스트: 대상 유저 토픽으로
+            return `/sub/user/${receiverId}`;
           case 'system':
-            return `/sub/system`; // 테스트: 시스템 토픽
+            return `/sub/system`;
         }
       }
-      // 실서버(백엔드 라우팅): 기존 /pub 경로 유지
+      // 실서버 경로 (예시)
       switch (kind) {
         case 'group':
           return '/pub/message/group';
@@ -56,7 +70,6 @@ export const useStompChat = () => {
     [isTestBroker],
   );
 
-  // Room ID 가져오기
   const getRoomId = async () => {
     if (room && typeof room.getSid === 'function') {
       try {
@@ -68,149 +81,165 @@ export const useStompChat = () => {
     return 'default-room';
   };
 
-  const connectStomp = useCallback(async () => {
-    // ✅ 테스트 모드 전달
+  const clearReconnectTimer = () => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+  };
+
+  // 최신 connect 함수를 참조하기 위한 ref (순환 의존성 회피)
+  const connectStompRef = useRef<() => Promise<void>>(async () => {});
+
+  const scheduleReconnect = () => {
+    if (!shouldReconnectRef.current) return; // 의도적 종료 시 중단
+    if (attemptsRef.current >= maxReconnectAttempts) {
+      setConnectionStatus('failed');
+      return;
+    }
+    attemptsRef.current += 1;
+    const attempt = attemptsRef.current;
+    const delay =
+      Math.min(1000 * 2 ** (attempt - 1), 15000) +
+      Math.floor(Math.random() * 500);
+
+    setConnectionStatus('reconnecting');
+    clearReconnectTimer();
+    reconnectTimeoutRef.current = setTimeout(() => {
+      connectStompRef.current();
+    }, delay);
+
+    wasDisconnectedRef.current = true;
+  };
+
+  const connectStompImpl = useCallback(async () => {
     const client = createStompClient(isTestBroker);
     clientRef.current = client;
+
+    setConnectionStatus('connecting');
     const roomId = await getRoomId();
 
     client.onConnect = () => {
-      console.log('[STOMP] 연결 성공');
       isConnectedRef.current = true;
       setConnectionStatus('connected');
-      setReconnectAttempts(0);
+      attemptsRef.current = 0;
+      clearReconnectTimer();
 
-      // 구독
+      // 재구독
       client.subscribe(`/sub/room/${roomId}`, (msg) => {
         try {
-          const message = JSON.parse(msg.body);
-          //  console.log('전체 메시지 수신:', message);
-          addMessage(message);
-        } catch (error) {
-          console.error('전체 메시지 파싱 에러:', error);
+          addMessage(JSON.parse(msg.body));
+        } catch (e) {
+          console.error('전체 메시지 파싱 에러:', e);
         }
       });
 
       client.subscribe(`/sub/user/${userId}`, (msg) => {
         try {
-          const message = JSON.parse(msg.body);
-          //  console.log('개인 메시지 수신:', message);
-          addMessage(message);
-        } catch (error) {
-          console.error('개인 메시지 파싱 에러:', error);
+          addMessage(JSON.parse(msg.body));
+        } catch (e) {
+          console.error('개인 메시지 파싱 에러:', e);
         }
       });
 
       client.subscribe('/sub/system', (msg) => {
         try {
-          const message = JSON.parse(msg.body);
-          //  console.log('시스템 메시지 수신:', message);
-          addMessage(message);
-        } catch (error) {
-          console.error('시스템 메시지 파싱 에러:', error);
+          addMessage(JSON.parse(msg.body));
+        } catch (e) {
+          console.error('시스템 메시지 파싱 에러:', e);
         }
       });
+
+      // 끊김 → 복구 후 동기화
+      if (wasDisconnectedRef.current) {
+        wasDisconnectedRef.current = false;
+        // 콜백 방식
+        opts?.onReconnected?.();
+        // (옵션) 이벤트 브로드캐스트
+        window.dispatchEvent(new Event('stomp:reconnected'));
+      }
     };
 
     client.onDisconnect = () => {
-      console.log('[STOMP] 연결 해제');
       isConnectedRef.current = false;
       setConnectionStatus('disconnected');
-      attemptReconnect();
+      scheduleReconnect();
     };
 
-    client.onStompError = (frame) => {
-      console.error('[STOMP] 에러:', frame);
+    client.onStompError = () => {
       isConnectedRef.current = false;
       setConnectionStatus('error');
-      attemptReconnect();
+      scheduleReconnect();
+    };
+
+    client.onWebSocketClose = () => {
+      isConnectedRef.current = false;
+      setConnectionStatus('disconnected');
+      scheduleReconnect();
     };
 
     client.activate();
-  }, [addMessage, userId, room, isTestBroker]);
+  }, [addMessage, isTestBroker, userId, room, opts]);
 
-  const attemptReconnect = useCallback(async () => {
-    if (reconnectAttempts >= maxReconnectAttempts) {
-      console.log('최대 재연결 시도 횟수 초과');
-      setConnectionStatus('failed');
-      return;
-    }
-
-    setConnectionStatus('reconnecting');
-    setReconnectAttempts((prev) => prev + 1);
-
-    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-
-    console.log(
-      `재연결 시도 ${reconnectAttempts + 1}/${maxReconnectAttempts} (${delay}ms 후)`,
-    );
-
-    reconnectTimeoutRef.current = setTimeout(async () => {
-      await connectStomp();
-    }, delay);
-  }, [reconnectAttempts, maxReconnectAttempts, connectStomp]);
-
+  // ref에 최신 connect 구현을 넣어줌
   useEffect(() => {
-    connectStomp();
+    connectStompRef.current = connectStompImpl;
+  }, [connectStompImpl]);
+
+  // 최초 연결 + online/offline 핸들링 + 정리
+  useEffect(() => {
+    shouldReconnectRef.current = true;
+    connectStompRef.current();
+
+    const onOnline = () => {
+      if (!isConnectedRef.current) {
+        clientRef.current
+          ?.deactivate()
+          .finally(() => connectStompRef.current());
+      }
+    };
+    const onOffline = () => setConnectionStatus('disconnected');
+
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
 
     return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
+      shouldReconnectRef.current = false; // 의도적 종료
+      clearReconnectTimer();
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
       clientRef.current?.deactivate();
     };
-  }, [connectStomp]);
+  }, []);
 
-  // 전체 채팅 전송
+  // ===== 전송 =====
   const sendGroupMessage = async (content: string) => {
-    if (!isConnectedRef.current || !clientRef.current) {
-      console.warn('[STOMP] 연결되지 않음 - 전체 메시지 전송 실패');
-      return;
-    }
-
+    if (!isConnectedRef.current || !clientRef.current) return;
     const roomId = await getRoomId();
 
-    const serverMessage = {
-      type: 'GROUP',
+    const payload = {
+      type: 'GROUP' as const,
       sender: { userId, nickname, profileUrl },
       content,
       timestamp: new Date().toISOString(),
       roomId,
     };
 
-    const localMessage: ChatMessage = {
-      type: 'GROUP',
-      sender: { userId, nickname, profileUrl },
-      content,
-      timestamp: new Date().toISOString(),
-    };
-
     try {
-      // ✅ 목적지 분기 적용
       const destination = resolveDestination('group', roomId);
-      clientRef.current.publish({
-        destination,
-        body: JSON.stringify(serverMessage),
-      });
-
-      // 본인 채팅창에도 표시
-      addMessage(localMessage);
+      clientRef.current.publish({ destination, body: JSON.stringify(payload) });
+      addMessage({ ...payload } as ChatMessage);
     } catch (error) {
       console.error('전체 메시지 전송 실패:', error);
     }
   };
 
-  // 개인 채팅 전송
   const sendPrivateMessage = async (receiverId: string, content: string) => {
-    if (!isConnectedRef.current || !clientRef.current) {
-      console.warn('[STOMP] 연결되지 않음 - 개인 메시지 전송 실패');
-      return;
-    }
-
+    if (!isConnectedRef.current || !clientRef.current) return;
     const roomId = await getRoomId();
 
-    const serverMessage = {
-      type: 'PRIVATE',
+    const payload = {
+      type: 'PRIVATE' as const,
       sender: { userId, nickname, profileUrl },
       receiver: receiverId,
       content,
@@ -218,59 +247,31 @@ export const useStompChat = () => {
       roomId,
     };
 
-    const localMessage: ChatMessage = {
-      type: 'PRIVATE',
-      sender: { userId, nickname, profileUrl },
-      receiver: receiverId,
-      content,
-      timestamp: new Date().toISOString(),
-    };
-
     try {
-      // ✅ 목적지 분기 적용 (테스트: /sub/user/{receiverId})
       const destination = resolveDestination('private', roomId, receiverId);
-      clientRef.current.publish({
-        destination,
-        body: JSON.stringify(serverMessage),
-      });
-
-      addMessage(localMessage);
+      clientRef.current.publish({ destination, body: JSON.stringify(payload) });
+      addMessage({ ...payload } as ChatMessage);
     } catch (error) {
       console.error('개인 메시지 전송 실패:', error);
     }
   };
 
-  // 시스템 메시지 전송
   const sendSystemMessage = async (content: string) => {
     if (!isConnectedRef.current || !clientRef.current) return;
-
     const roomId = await getRoomId();
 
-    const serverMessage = {
-      type: 'SYSTEM',
+    const payload = {
+      type: 'SYSTEM' as const,
       sender: { userId: null, nickname: 'SYSTEM', profileUrl: '' },
       content,
       timestamp: new Date().toISOString(),
       roomId,
     };
 
-    const localMessage: ChatMessage = {
-      type: 'SYSTEM',
-      sender: { userId: null, nickname: 'SYSTEM', profileUrl: '' },
-      content,
-      timestamp: new Date().toISOString(),
-    };
-
     try {
-      // ✅ 목적지 분기 적용
       const destination = resolveDestination('system', roomId);
-      clientRef.current.publish({
-        destination,
-        body: JSON.stringify(serverMessage),
-      });
-
-      addMessage(localMessage);
-      console.log('🔔 시스템 메시지 STOMP 전송 완료');
+      clientRef.current.publish({ destination, body: JSON.stringify(payload) });
+      addMessage({ ...payload } as ChatMessage);
     } catch (error) {
       console.error('시스템 메시지 전송 실패:', error);
     }
@@ -282,6 +283,6 @@ export const useStompChat = () => {
     sendSystemMessage,
     isConnected: isConnectedRef.current,
     connectionStatus,
-    reconnectAttempts,
+    reconnectAttempts: attemptsRef.current,
   };
 };

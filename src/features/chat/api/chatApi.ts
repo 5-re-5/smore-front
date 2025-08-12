@@ -1,5 +1,16 @@
 import type { ChatMessage } from '@/shared/types/chatMessage.interface';
-// Mock 데이터 생성 함수 추가
+
+/* -------------------------------------------------
+ * 환경 플래그
+ * ------------------------------------------------- */
+const USE_MOCK =
+  import.meta.env.DEV || import.meta.env.VITE_STOMP_TEST_MODE === 'true';
+// 성공(200) 이지만 응답이 비어있을 때, DEV/TEST에서만 mock으로 대체
+const USE_MOCK_WHEN_EMPTY = USE_MOCK;
+
+/* -------------------------------------------------
+ * Mock 데이터 생성/저장소
+ * ------------------------------------------------- */
 const generateMockMessages = (count: number): ChatMessage[] => {
   const users = [
     { userId: 1, nickname: 'Alice', profileUrl: '/api/placeholder/32/32' },
@@ -30,52 +41,48 @@ const generateMockMessages = (count: number): ChatMessage[] => {
 
   return Array.from({ length: count }, (_, index) => {
     const user = users[Math.floor(Math.random() * users.length)];
-    const messageType =
-      messageTypes[Math.floor(Math.random() * messageTypes.length)];
+    const type = messageTypes[Math.floor(Math.random() * messageTypes.length)];
     const content =
-      messageType === 'SYSTEM'
+      type === 'SYSTEM'
         ? `${user.nickname}님이 회의에 참여했습니다.`
         : sampleMessages[Math.floor(Math.random() * sampleMessages.length)];
 
-    const message: ChatMessage = {
-      type: messageType,
+    const msg: ChatMessage = {
+      type,
       sender: {
-        userId: messageType === 'SYSTEM' ? null : user.userId,
-        nickname: messageType === 'SYSTEM' ? 'SYSTEM' : user.nickname,
-        profileUrl: messageType === 'SYSTEM' ? '' : user.profileUrl,
+        userId: type === 'SYSTEM' ? null : user.userId,
+        nickname: type === 'SYSTEM' ? 'SYSTEM' : user.nickname,
+        profileUrl: type === 'SYSTEM' ? '' : user.profileUrl,
       },
       content,
-      timestamp: new Date(Date.now() - (count - index) * 120000).toISOString(), // 2분 간격
+      // 오래된 → 최신 순으로 2분 간격
+      timestamp: new Date(Date.now() - (count - index) * 120000).toISOString(),
     };
 
-    // PRIVATE 메시지의 경우 receiver 정보 추가
-    if (messageType === 'PRIVATE') {
+    if (type === 'PRIVATE') {
       const otherUsers = users.filter((u) => u.userId !== user.userId);
       const receiver =
         otherUsers[Math.floor(Math.random() * otherUsers.length)];
-      message.receiver = receiver.userId.toString();
+      msg.receiver = receiver.userId.toString();
     }
 
-    return message;
+    return msg;
   });
 };
 
-// 페이지네이션을 위한 Mock 데이터 저장소
 let mockMessagesStore: ChatMessage[] = [];
 
-// Mock 데이터 초기화 (75개 메시지 생성)
 const initializeMockData = () => {
+  if (!USE_MOCK) return; // 배포에서는 시드 금지
   if (mockMessagesStore.length === 0) {
     mockMessagesStore = generateMockMessages(75);
-    console.log(
-      '🎭 Mock 데이터 초기화 완료:',
-      mockMessagesStore.length,
-      '개 메시지',
-    );
+    console.log('🎭 Mock 데이터 초기화 완료:', mockMessagesStore.length, '개');
   }
 };
-////////////////////////////////////////////////////////////
-// API 응답 타입들 (camelCase 통일)
+
+/* -------------------------------------------------
+ * 백엔드 응답/어댑터 타입
+ * ------------------------------------------------- */
 export interface BackendChatMessage {
   messageId: number;
   roomId: number;
@@ -88,6 +95,7 @@ export interface BackendChatMessage {
     nickname: string;
     profileUrl: string;
   };
+  // 서버가 DM 수신자 정보를 줄 경우 여기에 receiverId 등을 추가해 매핑하세요.
 }
 
 export interface BackendChatResponse {
@@ -109,273 +117,256 @@ export interface BackendChatResponse {
   };
 }
 
-// 프론트엔드 사용 타입 (기존과 동일)
 export interface ChatHistoryResponse {
   messages: ChatMessage[];
   hasMore: boolean;
   currentPage?: number;
   totalCount: number;
-  nextCursor?: string | null; // 커서 기반일 때만 사용
+  nextCursor?: string | null; // 커서 기반 전환 대비
 }
 
-// Adapter 함수 (간단해짐)
-const adaptChatMessage = (backendMsg: BackendChatMessage): ChatMessage => {
-  return {
-    type: backendMsg.type as 'GROUP' | 'PRIVATE' | 'SYSTEM',
-    sender: {
-      userId: backendMsg.sender.userId,
-      nickname: backendMsg.sender.nickname,
-      profileUrl: backendMsg.sender.profileUrl,
-    },
-    content: backendMsg.content,
-    timestamp: backendMsg.createdAt,
-  };
-};
+const adaptChatMessage = (b: BackendChatMessage): ChatMessage => ({
+  type: b.type as 'GROUP' | 'PRIVATE' | 'SYSTEM',
+  sender: {
+    userId: b.sender.userId,
+    nickname: b.sender.nickname,
+    profileUrl: b.sender.profileUrl,
+  },
+  content: b.content,
+  timestamp: b.createdAt,
+  // receiver: 서버가 내려주면 매핑
+});
 
-const adaptChatResponse = (
-  backendResponse: BackendChatResponse,
-): ChatHistoryResponse => {
-  return {
-    messages: backendResponse.data.messages.map(adaptChatMessage),
-    hasMore: backendResponse.data.pagination.hasNext,
-    currentPage: backendResponse.data.pagination.currentPage,
-    totalCount: backendResponse.data.pagination.totalMessages,
-  };
-};
+const adaptChatResponse = (r: BackendChatResponse): ChatHistoryResponse => ({
+  messages: r.data.messages.map(adaptChatMessage),
+  hasMore: r.data.pagination.hasNext,
+  currentPage: r.data.pagination.currentPage,
+  totalCount: r.data.pagination.totalMessages,
+});
 
+/* -------------------------------------------------
+ * 전송 타입
+ * ------------------------------------------------- */
 export interface SendMessageRequest {
   type: 'GROUP' | 'PRIVATE' | 'SYSTEM';
   content: string;
   roomId: string;
-  receiverId?: string; // 개인 메시지용
+  receiverId?: string;
 }
-
 export interface SendMessageResponse {
   success: boolean;
   messageId: string;
   timestamp: string;
 }
 
-// 채팅 API 클래스
+/* -------------------------------------------------
+ * Chat API
+ * ------------------------------------------------- */
 class ChatAPI {
-  private baseUrl = `${import.meta.env.VITE_BACK_URL}`; // 백엔드 API 기본 URL
+  private baseUrl = `${import.meta.env.VITE_BACK_URL}`;
 
-  // Mock 데이터 초기화 메서드 (외부에서 호출 가능)
   initializeMockData() {
     initializeMockData();
   }
 
-  // 메시지 히스토리 조회 (새로운 명세)
+  /** 그룹/전체 히스토리: page=1이 ‘최신 limit개’ */
   async getChatHistory(
     roomId: string,
     page: number = 1,
     limit: number = 50,
-    type: string = 'TEXT',
+    type: string = 'ALL',
   ): Promise<ChatHistoryResponse> {
     try {
       const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
+        page: String(page),
+        limit: String(limit),
         type,
       });
 
-      const response = await fetch(
+      const res = await fetch(
         `${this.baseUrl}/study-rooms/${roomId}/messages?${params}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            // Authorization: `Bearer ${token}` // 나중에 추가
-          },
-        },
+        { method: 'GET', headers: { 'Content-Type': 'application/json' } },
       );
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const backend = (await res.json()) as BackendChatResponse;
+      const adapted = adaptChatResponse(backend);
+
+      // DEV/TEST에서 200인데 비어있으면 mock으로 대체
+      if (USE_MOCK_WHEN_EMPTY && adapted.messages.length === 0) {
+        throw new Error('Empty response in dev/test → fallback to mock');
       }
 
-      const backendResponse: BackendChatResponse = await response.json();
-      return adaptChatResponse(backendResponse);
+      return adapted;
     } catch (error) {
       console.error('채팅 히스토리 조회 실패:', error);
 
-      // Mock 데이터로 페이지네이션 시뮬레이션 (page 기반)
-      if (mockMessagesStore.length === 0) {
-        initializeMockData();
+      // 배포에서는 mock 사용 금지 → 에러 전파
+      if (!USE_MOCK) {
+        throw error instanceof Error
+          ? error
+          : new Error('history fetch failed');
       }
 
-      // 타입 필터링 (ALL이 아닌 경우에만 필터링)
-      let filteredMessages = mockMessagesStore;
+      // ---- DEV/TEST: mock fallback ----
+      if (mockMessagesStore.length === 0) initializeMockData();
+
+      // 타입 필터링 (ALL: 전부, TEXT: GROUP+SYSTEM)
+      let filtered = mockMessagesStore;
       if (type !== 'ALL') {
-        filteredMessages = mockMessagesStore.filter((msg) => {
-          if (type === 'TEXT')
-            return msg.type === 'GROUP' || msg.type === 'SYSTEM';
-          return msg.type === type;
-        });
+        filtered = filtered.filter((msg) =>
+          type === 'TEXT'
+            ? msg.type === 'GROUP' || msg.type === 'SYSTEM'
+            : msg.type === type,
+        );
       }
 
-      // 페이지 기반 계산
-      const startIndex = (page - 1) * limit;
-      const endIndex = Math.min(startIndex + limit, filteredMessages.length);
-      const messages = filteredMessages.slice(startIndex, endIndex);
-      const hasMore = endIndex < filteredMessages.length;
+      // 오름차순 정렬(오래된→최신)
+      const asc = filtered
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        );
 
-      console.log('📚 Mock 히스토리 응답 (페이지 기반):', {
+      // page=1이 ‘최신 limit개’가 되도록 뒤에서부터 슬라이스
+      const total = asc.length;
+      const endIndex = Math.max(0, total - (page - 1) * limit);
+      const startIndex = Math.max(0, endIndex - limit);
+      const messages =
+        startIndex < endIndex ? asc.slice(startIndex, endIndex) : [];
+      const hasMore = startIndex > 0;
+
+      console.log('📚 Mock 히스토리(그룹) page:', {
         page,
         startIndex,
         endIndex,
-        returnedCount: messages.length,
+        returned: messages.length,
         hasMore,
-        totalInStore: filteredMessages.length,
+        total,
       });
 
-      return {
-        messages,
-        hasMore,
-        currentPage: page,
-        totalCount: filteredMessages.length,
-      };
-      // 백엔드 없을 때 임시 응답
-      // return {
-      //   messages: [],
-      //   hasMore: false,
-      //   totalCount: 0
-      // };
+      return { messages, hasMore, currentPage: page, totalCount: total };
     }
   }
 
-  // 개인 메시지 히스토리 조회 (특정 사용자와의 대화)
+  /** 개인(DM) 히스토리: page=1이 ‘최신 limit개’ */
   async getPrivateHistory(
     roomId: string,
     userId: string,
-    cursor?: string,
+    page: number = 1,
     limit: number = 50,
   ): Promise<ChatHistoryResponse> {
     try {
       const params = new URLSearchParams({
         userId,
-        limit: limit.toString(),
-        ...(cursor && { cursor }),
+        page: String(page),
+        limit: String(limit),
       });
 
-      const response = await fetch(
+      const res = await fetch(
         `${this.baseUrl}/rooms/${roomId}/private-history?${params}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
+        { method: 'GET', headers: { 'Content-Type': 'application/json' } },
       );
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const data = (await res.json()) as ChatHistoryResponse;
+
+      if (
+        USE_MOCK_WHEN_EMPTY &&
+        (!data.messages || data.messages.length === 0)
+      ) {
+        throw new Error(
+          'Empty private response in dev/test → fallback to mock',
+        );
       }
 
-      return await response.json();
+      return data;
     } catch (error) {
-      console.error('개인 채팅 히스토리 조회 실패 - Mock 데이터 사용:', error);
+      console.error('개인 채팅 히스토리 조회 실패:', error);
 
-      // 👈 다양한 사용자 간의 대화로 수정
-      const currentUserId = 3; // 현재 사용자 ID
-      const targetUserId = parseInt(userId);
+      // 배포에서는 mock 사용 금지 → 에러 전파
+      if (!USE_MOCK) {
+        throw error instanceof Error
+          ? error
+          : new Error('private history failed');
+      }
 
-      const mockUsers = [
-        { userId: 1, nickname: 'Alice' },
-        { userId: 2, nickname: 'Bob' },
-        { userId: 3, nickname: 'Charlie' },
-        { userId: 4, nickname: 'Diana' },
-        { userId: 5, nickname: 'Eve' },
-      ];
+      // ---- DEV/TEST: mock fallback ----
+      if (mockMessagesStore.length === 0) initializeMockData();
 
-      const currentUser =
-        mockUsers.find((u) => u.userId === currentUserId) || mockUsers[2];
-      const targetUser =
-        mockUsers.find((u) => u.userId === targetUserId) || mockUsers[0];
+      // ⚠️ 임시 현재 사용자 ID (실서버에서는 토큰에서 서버가 판별)
+      const currentUserId = 3;
+      const targetId = parseInt(userId, 10);
 
-      // 개인 메시지 Mock 데이터 (양방향 대화)
-      const privateMessages: ChatMessage[] = Array.from(
-        { length: 15 },
-        (_, index) => {
-          const isFromCurrentUser = index % 3 !== 0; // 3분의 2는 내가 보낸 메시지
-          const sender = isFromCurrentUser ? currentUser : targetUser;
-          const receiver = isFromCurrentUser
-            ? targetUserId.toString()
-            : currentUserId.toString();
-
-          const sampleMessages = [
-            '안녕하세요!',
-            '오늘 회의 어떠셨나요?',
-            '자료 확인 부탁드려요.',
-            '네, 알겠습니다.',
-            '수고하셨습니다!',
-            '질문이 있어서 연락드려요.',
-            '확인했습니다.',
-            '내일 뵙겠습니다.',
-            '좋은 아이디어네요!',
-            '진행상황 어떤가요?',
-          ];
-
-          return {
-            type: 'PRIVATE',
-            sender: {
-              userId: sender.userId,
-              nickname: sender.nickname,
-              profileUrl: '/api/placeholder/32/32',
-            },
-            receiver,
-            content: sampleMessages[index % sampleMessages.length],
-            timestamp: new Date(
-              Date.now() - (15 - index) * 300000,
-            ).toISOString(), // 5분 간격
-          };
-        },
-      );
-
-      return {
-        messages: privateMessages.slice(0, limit),
-        hasMore: privateMessages.length > limit,
-        nextCursor: undefined,
-        totalCount: privateMessages.length,
-      };
-    }
-  }
-
-  // 메시지 전송 (백업용 - STOMP 실패시 사용)
-  async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
-    try {
-      const response = await fetch(`${this.baseUrl}/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
+      // ‘나 ↔ 상대’ DM만 추출
+      const onlyPair = mockMessagesStore.filter((m) => {
+        if (m.type !== 'PRIVATE') return false;
+        const s = m.sender?.userId ?? -1;
+        const r = m.receiver ? parseInt(m.receiver, 10) : -1;
+        return (
+          (s === currentUserId && r === targetId) ||
+          (s === targetId && r === currentUserId)
+        );
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      // 오름차순 정렬
+      const asc = onlyPair
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+        );
 
-      return await response.json();
-    } catch (error) {
-      console.error('메시지 전송 실패:', error);
-      throw error;
+      const total = asc.length;
+      const endIndex = Math.max(0, total - (page - 1) * limit);
+      const startIndex = Math.max(0, endIndex - limit);
+      const messages =
+        startIndex < endIndex ? asc.slice(startIndex, endIndex) : [];
+      const hasMore = startIndex > 0;
+
+      console.log('📚 Mock 히스토리(개인) page:', {
+        userId,
+        page,
+        startIndex,
+        endIndex,
+        returned: messages.length,
+        hasMore,
+        total,
+      });
+
+      return { messages, hasMore, currentPage: page, totalCount: total };
     }
   }
-  // Mock 데이터 초기화 (테스트용)
+
+  /** (백업) HTTP 전송. 일반적으로는 STOMP 사용 */
+  async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
+    const res = await fetch(`${this.baseUrl}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    return res.json();
+  }
+
+  /* 테스트/도우미 */
   resetMockData() {
+    if (!USE_MOCK) return;
     mockMessagesStore = [];
     console.log('🔄 Mock 데이터 초기화됨');
   }
-
-  // Mock 데이터에 새 메시지 추가 (실시간 메시지 시뮬레이션)
   addMockMessage(message: ChatMessage) {
-    mockMessagesStore.push(message); // 맨 앞에 추가 (최신 메시지)
+    if (!USE_MOCK) return;
+    if (!message.timestamp) message.timestamp = new Date().toISOString();
+    mockMessagesStore.push(message);
     console.log('➕ Mock 메시지 추가됨. 총', mockMessagesStore.length, '개');
   }
 }
 
-// 싱글톤 인스턴스 생성
+/* -------------------------------------------------
+ * 싱글톤 & 편의 export
+ * ------------------------------------------------- */
 export const chatApi = new ChatAPI();
 
 export const getChatHistory = (
@@ -388,14 +379,14 @@ export const getChatHistory = (
 export const getPrivateHistory = (
   roomId: string,
   userId: string,
-  cursor?: string,
+  page?: number,
   limit?: number,
-) => chatApi.getPrivateHistory(roomId, userId, cursor, limit);
+) => chatApi.getPrivateHistory(roomId, userId, page, limit);
 
 export const sendMessage = (request: SendMessageRequest) =>
   chatApi.sendMessage(request);
 
-// 테스트용 함수들
+// 테스트용
 export const resetMockChatData = () => chatApi.resetMockData();
 export const addMockChatMessage = (message: ChatMessage) =>
   chatApi.addMockMessage(message);
