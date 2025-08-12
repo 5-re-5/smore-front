@@ -6,9 +6,11 @@ import {
   createRoom,
   type CreateRoomFormData,
 } from '@/entities/room/api/createRoom';
+import { useJoinRoomMutation } from '@/entities/room/api/queries';
 import { useAuthStore } from '@/entities/user/model/useAuthStore';
 import { useRouter } from '@tanstack/react-router';
 import { toast } from 'sonner';
+import { useUserInfo } from '@/entities/user';
 
 const CATEGORY_MAP = {
   취업: 'EMPLOYMENT',
@@ -107,6 +109,8 @@ export const useRoomCreateForm = () => {
   const router = useRouter();
 
   const { getUserId } = useAuthStore();
+  const { data: userInfo } = useUserInfo();
+  const joinRoomMutation = useJoinRoomMutation();
 
   const form = useForm({
     resolver: zodResolver(roomCreateSchema),
@@ -149,7 +153,30 @@ export const useRoomCreateForm = () => {
     },
     onSuccess: (data) => {
       toast.success('스터디룸이 성공적으로 생성되었습니다!');
-      router.navigate({ to: `/room/${data.roomId}/prejoin` });
+
+      const userId = getUserId();
+      if (!userId || !userInfo?.nickname) {
+        toast.error('사용자 정보가 없습니다. 다시 로그인해주세요.');
+        return;
+      }
+
+      joinRoomMutation.mutate(
+        {
+          roomId: data.roomId,
+          userId,
+          identity: userInfo.nickname,
+        },
+        {
+          onSuccess: () => {
+            router.navigate({ to: `/room/${data.roomId}` });
+          },
+          onError: (error) => {
+            console.error('방 참가 실패:', error);
+            toast.error('방 참가에 실패했습니다. 다시 시도해주세요.');
+          },
+        },
+      );
+
       form.reset();
     },
     onError: (error) => {
@@ -161,6 +188,6 @@ export const useRoomCreateForm = () => {
   return {
     form,
     createRoomMutation,
-    isSubmitting: createRoomMutation.isPending,
+    isSubmitting: createRoomMutation.isPending || joinRoomMutation.isPending,
   };
 };
