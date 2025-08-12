@@ -1,11 +1,21 @@
 import { useState } from 'react';
 import type { FunctionComponent } from 'react';
 import MarshmallowHeatmap from './MarshmallowHeatmap';
+import { useUserInfo } from '@/entities/user/model/useUserInfo';
 
 const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
 
 // 스낵 타입 정의
 type SnackType = 'O' | 'RE';
+
+interface ProfileCardProps {
+  userId: string;
+}
+
+// 경험치 퍼센트 계산 함수
+const getExpPercentage = (current: number) => {
+  return Math.min((current / 100) * 100, 100);
+};
 
 /**
  * grade 문자열을 스캔해서 ["O","RE",...] 형태로 파싱하고,
@@ -27,7 +37,7 @@ function parseSnackTypes(grade: string): SnackType[] {
   return types;
 }
 
-const getSnackIcons = (grade: string) => {
+const getSnackIcons = (grade: string = '') => {
   const types = parseSnackTypes(grade);
   return types.map((type, idx) => {
     const src = type === 'O' ? '/images/OREO_O.webp' : '/images/OREO_RE.webp';
@@ -68,18 +78,34 @@ const ProfileImage: FunctionComponent<{ src?: string; alt: string }> = ({
   );
 };
 
-const dummyUser = {
-  name: '김종운',
-  streak: 25,
-  goal: '토익 스피킹 IH 취득',
-  grade: 'OREREOREO',
-  profileImg: '',
-};
-
-const ProfileCard: FunctionComponent = () => {
+const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
   const handleEditProfile = () => {
     window.location.href = '/profile-edit';
   };
+
+  const { data: userInfo } = useUserInfo();
+
+  const dummyUser = {
+    name: userInfo?.nickname,
+    streak: 25,
+    goal: userInfo?.targetDateTitle,
+    grade: userInfo?.level,
+    profileImg: userInfo?.profileUrl || ' ',
+    point: 900,
+  };
+
+  // ── 포인트 100 초과 시 색상 전환 ───────────────────────────────
+  const point = dummyUser.point;
+  const isOver100 = point >= 100;
+
+  const fillCls = isOver100
+    ? 'bg-gradient-to-t from-[#22C55E] to-[#16A34A] shadow-[1px_1px_4px_rgba(22,163,74,0.4)]'
+    : 'bg-gradient-to-t from-[#357ABD] to-[#4A90E2] shadow-[1px_1px_4px_rgba(74,144,226,0.4)]';
+
+  const highlightCls = isOver100
+    ? 'bg-gradient-to-t from-[#86EFAC] to-[#22C55E]'
+    : 'bg-gradient-to-t from-[#6BA6F0] to-[#4A90E2]';
+  // ──────────────────────────────────────────────────────────────
 
   return (
     <div
@@ -90,7 +116,7 @@ const ProfileCard: FunctionComponent = () => {
         flex flex-col
         py-[65px] px-[56px]
         gap-[16px] lg:gap-[38px]
-        relative box-content
+        relative
       "
     >
       {/* 상단 정보 영역 */}
@@ -102,7 +128,7 @@ const ProfileCard: FunctionComponent = () => {
             <button
               onClick={handleEditProfile}
               title="프로필 수정"
-              className="w-[50px] h-[50px] absolute right-[-10px] bottom-[-10px]"
+              className="cursor-pointer w-[50px] h-[50px] absolute right-[-10px] bottom-[-10px]"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -236,9 +262,10 @@ const ProfileCard: FunctionComponent = () => {
             mr-[6px] relative
           "
         >
+          {/* 오레오 등급 이름 */}
           <div
             className="
-              w-[150px] h-[45px]
+              w-[250px] h-[45px]
               [grid-row:0/span_1] [grid-column:0/span_1]
               bg-[#EBF3FF] rounded-[141px] z-[99999]
               filter
@@ -252,9 +279,77 @@ const ProfileCard: FunctionComponent = () => {
           >
             {dummyUser.grade}
           </div>
+          {/* 오레오 등급 이미지 */}
           <div className="flex -space-x-[10px] justify-center items-end">
             {getSnackIcons(dummyUser.grade)}
           </div>
+
+          {/* 경험치 바 섹션 */}
+          <div className="flex flex-col items-end h-4/6 absolute right-0 pr-4">
+            {/* 경험치 텍스트 */}
+            <div className="flex justify-between items-center mb-[8px]">
+              <span className="text-[13px] font-semibold text-[#666] tracking-[0.01em]">
+                {dummyUser.point} / 100P
+              </span>
+            </div>
+
+            {/* 경험치 바 배경 */}
+            <div
+              className="
+                relative w-[14px] h-full 
+                bg-[#EBF3FF] rounded-[7px]
+                shadow-[inset_2px_2px_6px_#D5E2F0,inset_-2px_-2px_6px_#FFFFFF]
+                border-[1px] border-[#E2E7FA]
+                overflow-hidden
+              "
+            >
+              {/* 경험치 바 진행률 */}
+              <div
+                className={`
+                  absolute bottom-0 left-0 w-full
+                  transition-all duration-700 ease-out
+                  ${fillCls}
+                `}
+                style={{
+                  height: `${getExpPercentage(point)}%`,
+                  // height: `${Math.min(getExpPercentage(point), 100)}%`, // 캡을 더 확실히 하고 싶다면 사용
+                }}
+              >
+                {/* 하이라이트 */}
+                <div
+                  className={`
+                    absolute top-0 left-0 w-full h-[6px]
+                    opacity-60
+                    ${highlightCls}
+                  `}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 뽑기 버튼 */}
+          {isOver100 && (
+            <button
+              type="button"
+              title="뽑기"
+              aria-label="뽑기"
+              className="
+                cursor-pointer
+                absolute left-3 bottom-3
+                h-[42px] px-[18px]
+                bg-[#EBF3FF] rounded-[14px]
+                border border-[#E2E7FA]
+                text-[#2B5E85] font-semibold text-[14px] tracking-[0.02em]
+                shadow-[6px_6px_14px_#DBE4F0,-6px_-6px_14px_#FFFFFF]
+                transition-all duration-150
+                hover:translate-y-[-1px]
+                active:shadow-[inset_3px_3px_8px_#D9E4EE,inset_-3px_-3px_8px_#FFFFFF]
+                active:translate-y-0
+              "
+            >
+              🎁 뽑기
+            </button>
+          )}
         </div>
       </div>
 

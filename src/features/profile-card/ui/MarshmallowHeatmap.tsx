@@ -1,24 +1,21 @@
 // MarshmallowHeatmap.tsx
-import type { FC } from 'react';
-// MarshmallowHeatmap.tsx
-import React from 'react';
+import React, { useEffect, useRef, useState, type FC } from 'react';
 
 type Level = 0 | 1 | 2 | 3 | 4;
 export type ContributionData = Record<string, Level>;
 
 type MarshmallowHeatmapProps = {
-  /** 주(열) x 요일(행) 2D 데이터 (선택) */
   data?: number[][];
-  /** 날짜 키 맵(YYYY-MM-DD -> 0..4) (선택) */
   dataByDate?: ContributionData;
-  /** 오른쪽 끝 날짜 (기본: 오늘) */
   endDate?: string | Date;
 };
 
-const CELL = 14.369; // 각 잔디 크기(px)
-const GAP = 4; // 셀 간격(px)
-const QUARTER_EXTRA_GAP = GAP * 8; // 분기 경계에서 추가 여백
-const PALETTE = ['#eee6da', '#f9ccb4', '#f9a57b', '#d67739', '#7e4420']; // 0..4
+// ---- base (상한) 값 ----
+const BASE_CELL = 14.369; // 최대 셀 크기
+const GAP = 4; // 컬럼/행 간격
+const LABEL_W = 28; // 좌측 요일 라벨 폭
+const QUARTER_EXTRA_FACTOR = 8; // 분기 여백 = GAP * 8
+const PALETTE = ['#eee6da', '#f9ccb4', '#f9a57b', '#d67739', '#7e4420'];
 
 // ----- date utils -----
 const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
@@ -26,7 +23,7 @@ const toISO = (d: Date) =>
   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const startOfWeekSunday = (d: Date) => {
   const x = new Date(d);
-  const day = x.getDay(); // 0..6 (Sun=0)
+  const day = x.getDay();
   x.setDate(x.getDate() - day);
   x.setHours(0, 0, 0, 0);
   return x;
@@ -38,7 +35,7 @@ const addDays = (d: Date, n: number) => {
 };
 const addWeeks = (d: Date, n: number) => addDays(d, n * 7);
 
-// 월/요일 라벨
+// 라벨
 const MONTH_FULL = [
   'January',
   'February',
@@ -53,7 +50,6 @@ const MONTH_FULL = [
   'November',
   'December',
 ];
-// GitHub 순서(오른쪽 끝이 오늘, 1년치): Aug ~ Jul
 const MONTH_SHORT = [
   'Aug',
   'Sep',
@@ -79,7 +75,7 @@ const DAY_FULL = [
 ];
 const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// 분기 시작 여부 (Jan/Apr/Jul/Oct 시작 주이고, 그 주의 시작일이 그 달 7일 이내)
+// 분기 시작 여부
 const isQuarterStartWeek = (columns: Date[], colIdx: number) => {
   if (colIdx <= 0) return false;
   const cur = columns[colIdx];
@@ -91,9 +87,7 @@ const isQuarterStartWeek = (columns: Date[], colIdx: number) => {
   );
 };
 
-// 월 헤더 세그먼트 (달이 바뀌고 그 주가 해당 달 첫 7일이면 표시)
 type MonthSeg = { idx: number; full: string; short: string };
-
 const getRandom = () => Math.floor(Math.random() * 5) as Level;
 
 const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
@@ -101,19 +95,22 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
   dataByDate,
   endDate = new Date(),
 }) => {
+  // 전체 래퍼(가용 폭 측정용)
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [cell, setCell] = useState(BASE_CELL);
+
   // === 지난 1년치(53주) 컬럼 계산 ===
   const end = new Date(endDate);
-  const lastSunday = startOfWeekSunday(end); // 오른쪽 끝 주의 일요일
-  const firstSunday = addWeeks(lastSunday, -52); // 52주 전 일요일 (총 53주)
-  const weeks = Array.from({ length: 53 }, (_, i) => addWeeks(firstSunday, i)); // 각 주(열)의 시작일(일요일)
+  const lastSunday = startOfWeekSunday(end);
+  const firstSunday = addWeeks(lastSunday, -52);
+  const weeks = Array.from({ length: 53 }, (_, i) => addWeeks(firstSunday, i));
 
-  // 7일(행) x 53주(열) 값
+  // 그리드 데이터
   const grid: Level[][] = weeks.map((colStart, xi) =>
     Array.from({ length: 7 }, (_, yi) => {
       const cellDate = addDays(colStart, yi);
       const key = toISO(cellDate);
-      if (cellDate > end) return 0; // 미래는 0
-
+      if (cellDate > end) return 0;
       if (dataByDate && key in dataByDate) return dataByDate[key]!;
       if (data?.[xi]?.[yi] !== undefined) {
         const raw = data[xi][yi]!;
@@ -125,16 +122,45 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
 
   // ----- 시각적 컬럼 구성: spacer(분기 경계 여백) + week -----
   type VisualCol = { kind: 'spacer' } | { kind: 'week'; colIdx: number };
-
   const visualCols: VisualCol[] = [];
   for (let i = 0; i < weeks.length; i++) {
-    if (isQuarterStartWeek(weeks, i)) {
-      visualCols.push({ kind: 'spacer' });
-    }
+    if (isQuarterStartWeek(weeks, i)) visualCols.push({ kind: 'spacer' });
     visualCols.push({ kind: 'week', colIdx: i });
   }
+  const spacerCount = visualCols.filter((v) => v.kind === 'spacer').length;
+  const totalCols = visualCols.length;
 
-  // 헤더용 월 세그먼트 계산 (week 기준)
+  // 가용 폭에 맞춰 셀 크기 동적 조정
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+
+    const recompute = () => {
+      const quarterExtra = GAP * QUARTER_EXTRA_FACTOR; // px
+      const available = Math.max(0, el.clientWidth - LABEL_W); // 오른쪽 그리드에 할당 가능한 폭
+      const baseNeed =
+        weeks.length * BASE_CELL +
+        spacerCount * quarterExtra +
+        (totalCols - 1) * GAP;
+
+      if (available >= baseNeed) {
+        setCell(BASE_CELL);
+      } else {
+        const newCell =
+          (available - spacerCount * quarterExtra - (totalCols - 1) * GAP) /
+          weeks.length;
+        // 너무 작아지면 읽기 어려우니 하한선(8px) 부여
+        setCell(Math.max(8, Math.round(newCell * 1000) / 1000));
+      }
+    };
+
+    recompute();
+    const ro = new ResizeObserver(recompute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [weeks.length, spacerCount, totalCols]);
+
+  // 월 세그먼트
   const monthSegs: MonthSeg[] = [];
   for (let i = 0; i < weeks.length; i++) {
     const d = weeks[i];
@@ -154,61 +180,50 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
     return { ...s, weekSpan: nextWeekIdx - s.idx };
   });
 
-  // "week 인덱스"를 "visual 인덱스"로 변환 (spacer 포함)
+  // week 인덱스 -> visual 인덱스
   const weekIdxToVisualIdx = (weekIdx: number) => {
-    let v = 0;
     for (let i = 0; i < visualCols.length; i++) {
       const vc = visualCols[i];
-      if (vc.kind === 'week' && vc.colIdx === weekIdx) {
-        v = i;
-        break;
-      }
+      if (vc.kind === 'week' && vc.colIdx === weekIdx) return i;
     }
-    return v;
+    return 0;
   };
 
-  // 헤더를 위한 visual grid column 정의
-  // spacer는 고정 폭(QUARTER_EXTRA_GAP), week는 CELL 폭
+  // 헤더/본문 공통: grid-template-columns
+  const quarterExtraGap = GAP * QUARTER_EXTRA_FACTOR; // px
   const gridTemplateColumns = visualCols
-    .map((vc) =>
-      vc.kind === 'spacer' ? `${QUARTER_EXTRA_GAP}px` : `${CELL}px`,
-    )
+    .map((vc) => (vc.kind === 'spacer' ? `${quarterExtraGap}px` : `${cell}px`))
     .join(' ');
 
-  // 요일 라벨은 월/수/금만 노출
   const showWeekdayLabel = (dayIdx: number) =>
     dayIdx === 1 || dayIdx === 3 || dayIdx === 5;
 
   return (
-    <div className="w-full py-3 flex flex-col items-start">
-      {/* 월 헤더 (visual grid에 정렬) */}
+    <div
+      ref={wrapRef}
+      className="w-full py-3 flex flex-col items-start overflow-hidden"
+    >
+      {/* 월 헤더 */}
       <div className="flex items-start">
-        {/* 요일 라벨 컬럼 자리 맞춤용 빈 공간 (헤더 라인에서 요일 텍스트 대신 폭만 확보) */}
-        <div style={{ width: 28, height: 13 }} aria-hidden="true" />
+        <div style={{ width: LABEL_W, height: 13 }} aria-hidden="true" />
         <div
           className="relative grid text-xs"
-          style={{
-            gridTemplateColumns,
-            columnGap: GAP,
-          }}
+          style={{ gridTemplateColumns, columnGap: GAP }}
           aria-hidden="true"
         >
-          {/* 각 월 세그먼트 라벨을 grid line으로 배치 */}
           {monthSegsWithSpan.map((seg, i) => {
             const startV = weekIdxToVisualIdx(seg.idx);
-            // seg.weekSpan 주가 커버하는 마지막 주의 시작 visual index
             const endWeekIdx = seg.idx + seg.weekSpan; // exclusive
             const endV =
               endWeekIdx >= weeks.length
                 ? visualCols.length
                 : weekIdxToVisualIdx(endWeekIdx);
-
             return (
               <div
                 key={i}
                 className="ContributionCalendar-label relative"
                 style={{
-                  gridColumn: `${startV + 1} / ${endV + 1}`, // CSS grid 1-based
+                  gridColumn: `${startV + 1} / ${endV + 1}`,
                   height: 13,
                 }}
               >
@@ -224,19 +239,19 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
 
       {/* 본문 (요일 x 주) */}
       <div className="flex items-start mt-1">
-        {/* 요일 라벨 영역 */}
+        {/* 요일 라벨 */}
         <div
           className="relative text-xs"
           style={{
-            width: 28,
+            width: LABEL_W,
             display: 'grid',
-            gridTemplateRows: `repeat(7, ${CELL}px)`,
+            gridTemplateRows: `repeat(7, ${cell}px)`,
             rowGap: GAP,
-            height: `calc(${CELL * 7 + GAP * 6}px)`,
+            height: cell * 7 + GAP * 6,
           }}
         >
           {DAY_SHORT.map((dShort, rowIdx) => (
-            <div key={dShort} className="relative" style={{ height: CELL }}>
+            <div key={dShort} className="relative" style={{ height: cell }}>
               <span className="sr-only">{DAY_FULL[rowIdx]}</span>
               <span
                 aria-hidden="true"
@@ -252,19 +267,18 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
           ))}
         </div>
 
-        {/* 그래프 그리드 (spacer 포함한 시각적 컬럼 구조) */}
+        {/* 그리드 */}
         <div
           role="grid"
           aria-readonly="true"
           className="grid"
           style={{
             gridTemplateColumns,
-            gridTemplateRows: `repeat(7, ${CELL}px)`,
+            gridTemplateRows: `repeat(7, ${cell}px)`,
             columnGap: GAP,
             rowGap: GAP,
           }}
         >
-          {/* spacer 컬럼은 세로로 빈 칸 하나를 전체 행 높이로 차지 */}
           {visualCols.map((vc, vColIdx) => {
             if (vc.kind === 'spacer') {
               return (
@@ -274,13 +288,12 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
                   style={{
                     gridColumn: vColIdx + 1,
                     gridRow: `1 / span 7`,
-                    width: QUARTER_EXTRA_GAP,
+                    width: quarterExtraGap,
                   }}
                 />
               );
             }
 
-            // week 컬럼: 각 요일 셀을 해당 grid 좌표에 직접 배치
             const { colIdx } = vc;
             return (
               <React.Fragment key={`wk-${vColIdx}-${colIdx}`}>
@@ -288,7 +301,6 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
                   const date = addDays(weeks[colIdx], rowIdx);
                   const key = toISO(date);
                   const lvl = grid[colIdx][rowIdx];
-
                   return (
                     <div
                       key={`${vColIdx}-${rowIdx}`}
@@ -302,8 +314,8 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
                       style={{
                         gridColumn: vColIdx + 1,
                         gridRow: rowIdx + 1,
-                        width: CELL,
-                        height: CELL,
+                        width: cell,
+                        height: cell,
                         background: PALETTE[lvl],
                         transition: 'background 0.15s',
                       }}
@@ -316,14 +328,14 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
         </div>
       </div>
 
-      {/* 강도 범례 */}
+      {/* 범례 */}
       <div className="flex items-center gap-2 text-sm mt-3">
         <span>Less</span>
         {PALETTE.map((c, i) => (
           <span
             key={i}
             className="inline-block rounded-[4px]"
-            style={{ width: CELL, height: CELL, background: c }}
+            style={{ width: cell, height: cell, background: c }}
           />
         ))}
         <span>More</span>
