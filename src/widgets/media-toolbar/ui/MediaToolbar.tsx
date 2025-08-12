@@ -3,24 +3,32 @@ import { useParticipants } from '@livekit/components-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { Bot, BotOff, Users, MessageCircle } from 'lucide-react';
 
-import { useLeaveRoomMutation } from '@/entities/room/api/queries';
+import {
+  useLeaveRoomMutation,
+  useDeleteRoomMutation,
+} from '@/entities/room/api/queries';
 import { useAuth } from '@/entities/user';
 import { useFaceDetectionStore } from '@/features/face-detection';
 import { useRoomStateStore } from '@/features/room';
 import { Button } from '@/shared/ui';
 import RoomMediaControls from './RoomMediaControls';
 import { getMediaButtonStyle } from './styles';
+import { useQueryClient } from '@tanstack/react-query';
+
 
 type MediaToolbarProps = {
   isChatOpen: boolean;
   onToggleChat: () => void;
+  isOwner: boolean;
 };
 
-function MediaToolbar({ isChatOpen, onToggleChat }: MediaToolbarProps) {
+function MediaToolbar({isOwner, isChatOpen, onToggleChat }: MediaToolbarProps) {
   const navigate = useNavigate();
   const { roomId } = useParams({ from: '/room/$roomId' });
   const { userId } = useAuth();
   const leaveRoomMutation = useLeaveRoomMutation();
+  const deleteRoomMutation = useDeleteRoomMutation();
+  const queryClient = useQueryClient();
 
   const [showParticipants, setShowParticipants] = useState(false);
   const participants = useParticipants();
@@ -36,8 +44,25 @@ function MediaToolbar({ isChatOpen, onToggleChat }: MediaToolbarProps) {
       alert('사용자 정보가 없습니다.');
       return;
     }
+    queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
 
     setIntentionalExit(roomIdNumber, true);
+    if (isOwner) {
+      deleteRoomMutation.mutate(
+        { roomId: roomIdNumber, userId },
+        {
+          onSuccess: () => {
+            navigate({ to: '/study-list' });
+          },
+          onError: (error) => {
+            console.error('방 삭제 실패:', error);
+            alert('방 삭제에 실패했습니다.');
+            setIntentionalExit(roomIdNumber, false);
+          },
+        },
+      );
+      return;
+    }
 
     leaveRoomMutation.mutate(
       { roomId: roomIdNumber, userId },
@@ -65,15 +90,19 @@ function MediaToolbar({ isChatOpen, onToggleChat }: MediaToolbarProps) {
           <div className="flex items-center">
             <Button
               onClick={handleLeaveRoom}
-              disabled={leaveRoomMutation.isPending}
+              disabled={
+              leaveRoomMutation.isPending || deleteRoomMutation.isPending
+            }
               className={`w-2.5rem h-2.5rem rounded-lg bg-[#FF4949] hover:bg-red-600 transition-colors flex items-center justify-center text-white font-bold ${
                 leaveRoomMutation.isPending
-                  ? 'opacity-50 cursor-not-allowed'
-                  : ''
+                  || deleteRoomMutation.isPending
+                ? 'opacity-50 cursor-not-allowed'
+                 
+                : ''
               }`}
               aria-label="방 나가기"
             >
-              방 나가기
+              {isOwner ? '방 삭제' : '방 나가기'}
             </Button>
           </div>
 

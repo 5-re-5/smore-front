@@ -390,7 +390,7 @@ function RoomPage() {
       >
         {!isSpeakerMuted && <RoomAudioRenderer />}
         <StartAudio label="" />
-        <RoomLayout />
+        <RoomLayout isOwner={participantData?.isOwner || false} />
       </LiveKitRoom>
     </div>
   );

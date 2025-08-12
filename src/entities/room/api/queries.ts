@@ -3,6 +3,7 @@ import { getRoomInfo } from './room';
 import { joinRoom } from './joinRoom';
 import { rejoinRoom } from './rejoinRoom';
 import { leaveRoom } from './leaveRoom';
+import { deleteRoom } from './deleteRoom';
 import { useRoomTokenStore } from '../model/useRoomTokenStore';
 import { roomQueryKeys } from './queryKeys';
 
@@ -73,6 +74,18 @@ export const useLeaveRoomMutation = () => {
       leaveRoom(roomId, userId),
     onSuccess: (_, variables) => {
       // 방 나가기 성공 시 토큰 삭제
+      clearToken(variables.roomId);
+    },
+  });
+};
+
+export const useDeleteRoomMutation = () => {
+  const { clearToken } = useRoomTokenStore();
+
+  return useMutation({
+    mutationFn: ({ roomId, userId }: { roomId: number; userId: number }) =>
+      deleteRoom(roomId, userId),
+    onSuccess: (_, variables) => {
       clearToken(variables.roomId);
     },
   });

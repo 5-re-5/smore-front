@@ -5,7 +5,11 @@ import { MediaToolbar } from '@/widgets/media-toolbar';
 import ChatPanel from '@/features/chat/ui/ChatPanel';
 import VideoGrid from './VideoGrid';
 
-function RoomLayout() {
+interface RoomLayoutProps {
+  isOwner: boolean;
+}
+
+function RoomLayout({ isOwner }: RoomLayoutProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
@@ -49,6 +53,7 @@ function RoomLayout() {
       <MediaToolbar
         isChatOpen={isChatOpen}
         onToggleChat={() => setIsChatOpen((v) => !v)}
+        isOwner={isOwner} 
       />
     </div>
   );
