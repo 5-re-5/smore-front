@@ -22,7 +22,7 @@ function RoomLayout({
   return (
     <div className="h-full flex flex-col">
       {/* 헤더 */}
-      <div className="bg-[#292D32] border-b px-4 py-3">
+      <div className="bg-[#292D32] px-4 py-3">
         <h1 className="text-lg font-semibold text-white">{roomTitle}</h1>
       </div>
 

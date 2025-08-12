@@ -326,8 +326,8 @@ function RoomPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* <div className="h-screen flex flex-col bg-[#101214]"> */}
+    // <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-[#101214]">
       {permissionStatus && (
         <PermissionBanner
           permissionStatus={permissionStatus}
