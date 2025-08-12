@@ -2,20 +2,40 @@
 import React, { useEffect, useRef, useState, type FC } from 'react';
 
 type Level = 0 | 1 | 2 | 3 | 4;
-export type ContributionData = Record<string, Level>;
+
+/** API 원본 그대로 전달받는 포인트 타입 */
+export type StudyPoint = { date: string; minutes: number };
 
 type MarshmallowHeatmapProps = {
-  data?: number[][];
-  dataByDate?: ContributionData;
+  /** API의 study_track.points 그대로 */
+  points?: StudyPoint[];
+  /** 히트맵 오른쪽 끝 기준 날짜(기본: 오늘) */
   endDate?: string | Date;
 };
 
-// ---- base (상한) 값 ----
-const BASE_CELL = 14.369; // 최대 셀 크기
-const GAP = 4; // 컬럼/행 간격
-const LABEL_W = 28; // 좌측 요일 라벨 폭
+// ---- 레이아웃 상수 ----
+const BASE_CELL = 14.369; // 최대 셀 크기(px)
+const GAP = 4; // 컬럼/행 간격(px)
+const LABEL_W = 28; // 좌측 요일 라벨 폭(px)
 const QUARTER_EXTRA_FACTOR = 8; // 분기 여백 = GAP * 8
-const PALETTE = ['#eee6da', '#f9ccb4', '#f9a57b', '#d67739', '#7e4420'];
+
+// 팔레트(마시멜로 → 진하게)
+const PALETTE: [string, string, string, string, string] = [
+  '#eee6da', // 0
+  '#f9ccb4', // 1
+  '#f9a57b', // 2
+  '#d67739', // 3
+  '#7e4420', // 4
+];
+
+// 범례 라벨(분 기준)
+const LEVEL_LABELS: [string, string, string, string, string] = [
+  '0m',
+  '1–60m',
+  '61–120m',
+  '121–180m',
+  '181m+',
+];
 
 // ----- date utils -----
 const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
@@ -23,7 +43,7 @@ const toISO = (d: Date) =>
   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const startOfWeekSunday = (d: Date) => {
   const x = new Date(d);
-  const day = x.getDay();
+  const day = x.getDay(); // 0=Sun
   x.setDate(x.getDate() - day);
   x.setHours(0, 0, 0, 0);
   return x;
@@ -51,11 +71,6 @@ const MONTH_FULL = [
   'December',
 ];
 const MONTH_SHORT = [
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
   'Jan',
   'Feb',
   'Mar',
@@ -63,7 +78,13 @@ const MONTH_SHORT = [
   'May',
   'Jun',
   'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
+
 const DAY_FULL = [
   'Sunday',
   'Monday',
@@ -75,7 +96,7 @@ const DAY_FULL = [
 ];
 const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// 분기 시작 여부
+// 분기 시작 여부(분기 시작 주에 스페이서 열 추가)
 const isQuarterStartWeek = (columns: Date[], colIdx: number) => {
   if (colIdx <= 0) return false;
   const cur = columns[colIdx];
@@ -88,11 +109,25 @@ const isQuarterStartWeek = (columns: Date[], colIdx: number) => {
 };
 
 type MonthSeg = { idx: number; full: string; short: string };
-const getRandom = () => Math.floor(Math.random() * 5) as Level;
+
+/** minutes → level(0..4) */
+const minutesToLevel = (m: number): Level => {
+  if (m <= 0) return 0 as const;
+  if (m <= 60) return 1 as const;
+  if (m <= 120) return 2 as const;
+  if (m <= 180) return 3 as const;
+  return 4 as const;
+};
+
+// 날짜 문자열 해시(애니메이션 지연 랜덤성 확보용, SSR 불일치 방지)
+const hashString = (s: string) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
 
 const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
-  data,
-  dataByDate,
+  points,
   endDate = new Date(),
 }) => {
   // 전체 래퍼(가용 폭 측정용)
@@ -105,18 +140,31 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
   const firstSunday = addWeeks(lastSunday, -52);
   const weeks = Array.from({ length: 53 }, (_, i) => addWeeks(firstSunday, i));
 
-  // 그리드 데이터
-  const grid: Level[][] = weeks.map((colStart, xi) =>
+  // API 원본(points)을 날짜 → level / minutes 로 맵 보관
+  const levelByDate: Record<string, Level> = React.useMemo(() => {
+    const map: Record<string, Level> = {};
+    (points ?? []).forEach(({ date, minutes }) => {
+      map[date] = minutesToLevel(minutes);
+    });
+    return map;
+  }, [points]);
+
+  const minutesByDate: Record<string, number> = React.useMemo(() => {
+    const map: Record<string, number> = {};
+    (points ?? []).forEach(({ date, minutes }) => {
+      map[date] = minutes;
+    });
+    return map;
+  }, [points]);
+
+  // 그리드 데이터(없으면 0)
+  const grid: Level[][] = weeks.map((colStart) =>
     Array.from({ length: 7 }, (_, yi) => {
       const cellDate = addDays(colStart, yi);
       const key = toISO(cellDate);
       if (cellDate > end) return 0;
-      if (dataByDate && key in dataByDate) return dataByDate[key]!;
-      if (data?.[xi]?.[yi] !== undefined) {
-        const raw = data[xi][yi]!;
-        return (raw < 0 ? 0 : raw > 4 ? 4 : raw) as Level;
-      }
-      return getRandom();
+      if (key in levelByDate) return levelByDate[key]!;
+      return 0;
     }),
   );
 
@@ -137,7 +185,7 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
 
     const recompute = () => {
       const quarterExtra = GAP * QUARTER_EXTRA_FACTOR; // px
-      const available = Math.max(0, el.clientWidth - LABEL_W); // 오른쪽 그리드에 할당 가능한 폭
+      const available = Math.max(0, el.clientWidth - LABEL_W);
       const baseNeed =
         weeks.length * BASE_CELL +
         spacerCount * quarterExtra +
@@ -149,7 +197,6 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
         const newCell =
           (available - spacerCount * quarterExtra - (totalCols - 1) * GAP) /
           weeks.length;
-        // 너무 작아지면 읽기 어려우니 하한선(8px) 부여
         setCell(Math.max(8, Math.round(newCell * 1000) / 1000));
       }
     };
@@ -160,7 +207,7 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
     return () => ro.disconnect();
   }, [weeks.length, spacerCount, totalCols]);
 
-  // 월 세그먼트
+  // 월 세그먼트 (월 이름 라벨)
   const monthSegs: MonthSeg[] = [];
   for (let i = 0; i < weeks.length; i++) {
     const d = weeks[i];
@@ -198,11 +245,60 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
   const showWeekdayLabel = (dayIdx: number) =>
     dayIdx === 1 || dayIdx === 3 || dayIdx === 5;
 
+  // 이글이글(ember) 강도/속도 매핑
+  const speedByLevel: Record<Level, string> = {
+    0: '0s', // 사용 안 함
+    1: '2.2s',
+    2: '2.0s',
+    3: '1.8s',
+    4: '1.6s',
+  };
+  const blur1ByLevel: Record<Level, string> = {
+    0: '0px',
+    1: '3px',
+    2: '4px',
+    3: '5px',
+    4: '6px',
+  };
+  const blur2ByLevel: Record<Level, string> = {
+    0: '0px',
+    1: '6px',
+    2: '8px',
+    3: '10px',
+    4: '12px',
+  };
+
   return (
     <div
       ref={wrapRef}
       className="w-full py-3 flex flex-col items-start overflow-hidden"
     >
+      {/* 🔥 glow keyframes & class */}
+      <style>{`
+        .mm-cell { position: relative; }
+        .mm-ember {
+          animation-name: mm-flicker;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+          animation-direction: alternate;
+          will-change: transform, box-shadow;
+        }
+        @keyframes mm-flicker {
+          0% {
+            transform: translateZ(0) scale(1);
+            box-shadow:
+              0 0 0 var(--mm-glow, transparent),
+              0 0 0 var(--mm-glow, transparent);
+          }
+          100% {
+            transform: translateZ(0) scale(1.05);
+            box-shadow:
+              0 0 var(--mm-blur1, 6px) var(--mm-glow, transparent),
+              0 0 var(--mm-blur2, 12px) var(--mm-glow, transparent);
+          }
+        }
+      `}</style>
+
       {/* 월 헤더 */}
       <div className="flex items-start">
         <div style={{ width: LABEL_W, height: 13 }} aria-hidden="true" />
@@ -288,7 +384,7 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
                   style={{
                     gridColumn: vColIdx + 1,
                     gridRow: `1 / span 7`,
-                    width: quarterExtraGap,
+                    width: GAP * QUARTER_EXTRA_FACTOR,
                   }}
                 />
               );
@@ -301,16 +397,24 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
                   const date = addDays(weeks[colIdx], rowIdx);
                   const key = toISO(date);
                   const lvl = grid[colIdx][rowIdx];
+                  const mins = minutesByDate[key] ?? 0;
+
+                  // ember(불꽃) 효과 변수
+                  const ember = lvl > 0;
+                  const delaySeed = hashString(key) % 9; // 0..8
+                  const delay = `${(delaySeed * 0.07).toFixed(2)}s`;
+
                   return (
                     <div
                       key={`${vColIdx}-${rowIdx}`}
                       role="gridcell"
                       data-date={key}
                       data-level={lvl}
+                      data-minutes={mins}
                       aria-selected={false}
                       aria-describedby={`contribution-graph-legend-level-${lvl}`}
-                      title={`${key}: level ${lvl}`}
-                      className="rounded-[4px]"
+                      title={`${key}: ${mins}분`}
+                      className={`rounded-[4px] mm-cell ${ember ? 'mm-ember' : ''}`}
                       style={{
                         gridColumn: vColIdx + 1,
                         gridRow: rowIdx + 1,
@@ -318,6 +422,14 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
                         height: cell,
                         background: PALETTE[lvl],
                         transition: 'background 0.15s',
+                        // // glow 변수 주입
+                        // // @ts-expect-error CSS custom props
+                        // '--mm-glow': PALETTE[lvl],
+                        // '--mm-speed': speedByLevel[lvl],
+                        // '--mm-blur1': blur1ByLevel[lvl],
+                        // '--mm-blur2': blur2ByLevel[lvl],
+                        // animationDuration: ember ? speedByLevel[lvl] : undefined,
+                        // animationDelay: ember ? delay : undefined,
                       }}
                     />
                   );
@@ -334,8 +446,11 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
         {PALETTE.map((c, i) => (
           <span
             key={i}
-            className="inline-block rounded-[4px]"
+            id={`contribution-graph-legend-level-${i}`}
+            className="inline-block rounded-[4px] border border-black/5"
             style={{ width: cell, height: cell, background: c }}
+            title={LEVEL_LABELS[i]}
+            aria-label={LEVEL_LABELS[i]}
           />
         ))}
         <span>More</span>

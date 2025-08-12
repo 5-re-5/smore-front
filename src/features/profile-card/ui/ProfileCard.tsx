@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { FunctionComponent } from 'react';
-import MarshmallowHeatmap from './MarshmallowHeatmap';
+import MarshmallowHeatmap, { type StudyPoint } from './MarshmallowHeatmap';
 import { useUserInfo } from '@/entities/user/model/useUserInfo';
 import { request } from '@/shared/api/request';
 
@@ -198,6 +198,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
   const [rouletteResult, setRouletteResult] = useState<SnackType | null>(null);
   const [drawing, setDrawing] = useState(false);
 
+  // 컴포넌트 상태 추가
+  const [streak, setStreak] = useState(0);
+  const [studyPoints, setStudyPoints] = useState<StudyPoint[]>([]);
+
   // userInfo.grade 변경 시 grade 초기화
   useEffect(() => {
     if (userInfo?.level) setGrade(userInfo.level);
@@ -256,6 +260,34 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
       setTimeout(() => setDrawing(false), 1200);
     }
   };
+
+  // 통계 조회 useEffect 추가
+  useEffect(() => {
+    type StatsResponse = {
+      userId: number;
+      totalAttendance: number;
+      weekdayGraph: number[];
+      weeklyGraph: number[];
+      studyTrack: { points: { date: string; minutes: number }[] };
+    };
+
+    const fetchStats = async () => {
+      try {
+        const res = await request<StatsResponse>({
+          method: 'get',
+          url: `/api/v1/study-times/statistics/${userId}`,
+        });
+
+        // 연속 출석
+        setStreak(res.data.totalAttendance);
+        setStudyPoints(res.data.studyTrack.points);
+      } catch (err) {
+        console.error('공부 통계 조회 실패:', err);
+      }
+    };
+
+    if (userId) fetchStats();
+  }, [userId]);
 
   const dummyUser = {
     name: userInfo?.nickname,
@@ -415,7 +447,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
                           not-italic
             "
             >
-              {`연속 ${dummyUser.streak}일 출석!`}
+              {`연속 ${streak}일 출석!`}
             </div>
             <div className="text-[32px] font-bold text-[#154559]">
               {dummyUser.name}
@@ -541,7 +573,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
             마시멜로 굽기
           </h3>
         </div>
-        <MarshmallowHeatmap />
+        <MarshmallowHeatmap points={studyPoints} />
       </div>
     </div>
   );
