@@ -89,7 +89,7 @@ export const resizeImageToTargetSize = async (
 /**
  * Blob에서 Image 객체를 생성합니다.
  */
-const loadImageFromBlob = (blob: Blob): Promise<HTMLImageElement> => {
+export const loadImageFromBlob = (blob: Blob): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const image = new Image();
     const url = URL.createObjectURL(blob);
@@ -171,7 +171,7 @@ const resizeByDimensions = async (
 /**
  * 지정된 크기와 품질로 이미지 Blob을 생성합니다.
  */
-const createResizedBlobWithDimensions = async (
+export const createResizedBlobWithDimensions = async (
   image: HTMLImageElement,
   width: number,
   height: number,
