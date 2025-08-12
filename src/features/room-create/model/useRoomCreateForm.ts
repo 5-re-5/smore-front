@@ -6,6 +6,7 @@ import {
   createRoom,
   type CreateRoomFormData,
 } from '@/entities/room/api/createRoom';
+import { useAuthStore } from '@/entities/user/model/useAuthStore';
 
 const CATEGORY_MAP = {
   취업: 'EMPLOYMENT',
@@ -101,6 +102,8 @@ const roomCreateSchema = z.object({
 export type RoomCreateFormData = z.infer<typeof roomCreateSchema>;
 
 export const useRoomCreateForm = () => {
+  const { getUserId } = useAuthStore();
+
   const form = useForm({
     resolver: zodResolver(roomCreateSchema),
     mode: 'onChange' as const,
@@ -108,9 +111,9 @@ export const useRoomCreateForm = () => {
       title: '',
       isPrivate: false,
       password: '',
-      maxParticipants: 2,
+      maxParticipants: 6,
       category: '',
-      isPomodoroEnabled: false,
+      isPomodoroEnabled: true,
       focusTime: 25,
       breakTime: 5,
       tags: [],
@@ -121,6 +124,11 @@ export const useRoomCreateForm = () => {
 
   const createRoomMutation = useMutation({
     mutationFn: (data: RoomCreateFormData) => {
+      const userId = getUserId();
+      if (!userId) {
+        throw new Error('로그인이 필요합니다.');
+      }
+
       const formData: CreateRoomFormData = {
         title: data.title,
         description: data.description || undefined,
@@ -133,7 +141,7 @@ export const useRoomCreateForm = () => {
         room_image: data.thumbnailFile,
       };
 
-      return createRoom(formData);
+      return createRoom(formData, userId);
     },
     onSuccess: () => {
       alert('스터디룸이 성공적으로 생성되었습니다!');

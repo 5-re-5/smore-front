@@ -21,7 +21,10 @@ export interface CreateRoomResponse {
   createdAt: string;
 }
 
-export const createRoom = async (formData: CreateRoomFormData) => {
+export const createRoom = async (
+  formData: CreateRoomFormData,
+  userId: number,
+) => {
   const form = new FormData();
 
   form.append('title', formData.title);
@@ -48,7 +51,7 @@ export const createRoom = async (formData: CreateRoomFormData) => {
 
   return request<CreateRoomResponse>({
     method: REQUEST_METHOD.POST,
-    url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms`,
+    url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms?userId=${userId}`,
     data: form,
     headers: {
       'Content-Type': 'multipart/form-data',
