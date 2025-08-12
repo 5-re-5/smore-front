@@ -7,6 +7,7 @@ import {
   type CreateRoomFormData,
 } from '@/entities/room/api/createRoom';
 import { useAuthStore } from '@/entities/user/model/useAuthStore';
+import { useRouter } from '@tanstack/react-router';
 
 const CATEGORY_MAP = {
   취업: 'EMPLOYMENT',
@@ -102,6 +103,8 @@ const roomCreateSchema = z.object({
 export type RoomCreateFormData = z.infer<typeof roomCreateSchema>;
 
 export const useRoomCreateForm = () => {
+  const router = useRouter();
+
   const { getUserId } = useAuthStore();
 
   const form = useForm({
@@ -138,13 +141,14 @@ export const useRoomCreateForm = () => {
         category: CATEGORY_MAP[data.category as keyof typeof CATEGORY_MAP],
         focusTime: data.isPomodoroEnabled ? data.focusTime : undefined,
         breakTime: data.isPomodoroEnabled ? data.breakTime : undefined,
-        room_image: data.thumbnailFile,
+        roomImage: data.thumbnailFile,
       };
 
       return createRoom(formData, userId);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       alert('스터디룸이 성공적으로 생성되었습니다!');
+      router.navigate({ to: `/room/${data.roomId}/prejoin` });
       form.reset();
     },
     onError: (error) => {
