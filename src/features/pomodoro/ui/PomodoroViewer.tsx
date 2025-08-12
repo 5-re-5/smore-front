@@ -17,10 +17,6 @@ export const PomodoroViewer = () => {
     return (remainingTime / totalTime) * 100;
   };
 
-  const getPhaseColor = (): string => {
-    return phase === 'study' ? 'text-blue-500' : 'text-green-500';
-  };
-
   const getStatusMessage = (): string => {
     if (!isRunning) {
       return '정지';
@@ -29,24 +25,68 @@ export const PomodoroViewer = () => {
   };
 
   return (
-    <div className="flex flex-col items-center space-y-2 p-1 bg-grey-50 rounded-lg ">
+    <div className="flex flex-col items-center">
       <div className="relative">
-        <CircularProgress
-          progress={getProgress()}
-          size={100}
-          strokeWidth={20}
-          className={getPhaseColor()}
-        />
+        {/* Outer white neumorphism container - 184.32px = 11.52rem */}
         <div
-          className={` absolute inset-0 flex items-center justify-center text-sm font-medium ${isRunning ? getPhaseColor() : 'text-gray-500'}`}
+          className="relative flex items-center justify-center"
+          style={{
+            width: '11.52rem',
+            height: '11.52rem',
+            borderRadius: '9rem',
+            border: '0.045rem solid #D6E3F3',
+            background: '#E3EDF7',
+            boxShadow: `
+              0.09rem 0.09rem 0.18rem 0 rgba(114, 142, 171, 0.10),
+              -0.27rem -0.27rem 0.9rem 0 #FFF,
+              0.18rem 0.18rem 0.9rem 0 rgba(111, 140, 176, 0.41)
+            `,
+          }}
         >
-          {getStatusMessage()}
-        </div>
-        <div className="absolute bottom-0.5 left-8 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-sm font-bold text-white">
-              {formatTime(remainingTime)}
+          {/* Progress circle positioned absolutely */}
+          <CircularProgress progress={getProgress()} />
+
+          {/* Status display container - same size as button container */}
+          <div
+            className="relative flex items-center justify-center z-10"
+            style={{
+              width: '4.23rem',
+              height: '4.23rem',
+              borderRadius: '9rem',
+              border: '0.045rem solid #D6E3F3',
+              background: '#E3EDF7',
+              // boxShadow: `
+              //   0.09rem 0.09rem 0.18rem 0 rgba(114, 142, 171, 0.10),
+              //   -0.27rem -0.27rem 0.9rem 0 #FFF,
+              //   0.18rem 0.18rem 0.9rem 0 rgba(111, 140, 176, 0.41)
+              // `
+            }}
+          >
+            {/* Status text display - same size as actual button */}
+            <div
+              className="flex items-center justify-center text-xs font-medium text-gray-700"
+              style={{
+                width: '3.33rem',
+                height: '3.33rem',
+                borderRadius: '9rem',
+                border: '0.045rem solid #D6E3F3',
+                background: '#E3EDF7',
+                boxShadow: `
+                  0.09rem 0.09rem 0.18rem 0 rgba(114, 142, 171, 0.10),
+                  -0.27rem -0.27rem 0.9rem 0 #FFF,
+                  0.18rem 0.18rem 0.9rem 0 rgba(111, 140, 176, 0.41)
+                `,
+              }}
+            >
+              {getStatusMessage()}
             </div>
+          </div>
+        </div>
+
+        {/* Time display positioned outside the circle - white text only */}
+        <div className="absolute bottom-7 left-1/2 transform -translate-x-1/2">
+          <div className="text-md font-bold text-white">
+            {formatTime(remainingTime)}
           </div>
         </div>
       </div>
