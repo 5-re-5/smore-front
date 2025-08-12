@@ -1,16 +1,21 @@
-import { useState } from 'react';
+import ChatPanel from '@/features/chat/ui/ChatPanel';
 import { PomodoroSection } from '@/features/pomodoro';
 import { StopwatchController } from '@/features/stopwatch';
 import { MediaToolbar } from '@/widgets/media-toolbar';
-import ChatPanel from '@/features/chat/ui/ChatPanel';
+import { useState } from 'react';
 import VideoGrid from './VideoGrid';
 
 interface RoomLayoutProps {
   isOwner: boolean;
+  isPomodoro: boolean;
   roomTitle?: string;
 }
 
-function RoomLayout({ isOwner, roomTitle = '스터디룸' }: RoomLayoutProps) {
+function RoomLayout({
+  isOwner,
+  roomTitle = '스터디룸',
+  isPomodoro,
+}: RoomLayoutProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
@@ -27,7 +32,7 @@ function RoomLayout({ isOwner, roomTitle = '스터디룸' }: RoomLayoutProps) {
           {/* Tools: Pomodoro + Stopwatch */}
           <div className="flex justify-center items-center py-4">
             <div className="flex items-center gap-8">
-              <PomodoroSection />
+              {isPomodoro ? <PomodoroSection /> : null}
               <StopwatchController />
             </div>
           </div>

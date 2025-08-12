@@ -1,22 +1,22 @@
 import {
   useRejoinRoomMutation,
-  useRoomToken,
   useRoomInfoQuery,
+  useRoomToken,
 } from '@/entities/room/api/queries';
 import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 import { useAuth } from '@/entities/user';
 import { useRoomParticipantQuery } from '@/entities/user/api/queries/userQueries';
-import { useStopwatchStore } from '@/features/stopwatch';
-import { useRoomStateStore } from '@/features/room';
 import { usePomodoroStore } from '@/features/pomodoro';
+import { useRoomStateStore } from '@/features/room';
+import { useStopwatchStore } from '@/features/stopwatch';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
+import { useMediaSync } from '@/shared/hooks/useMediaSync';
 import { Button } from '@/shared/ui/button';
 import { PermissionBanner } from '@/shared/ui/permission-banner';
 import { loadMediaSettings } from '@/shared/utils/mediaSettings';
-import { useMediaSync } from '@/shared/hooks/useMediaSync';
 import {
-  checkAllMediaPermissions,
   canUseMedia,
+  checkAllMediaPermissions,
   type MediaPermissionStatus,
 } from '@/shared/utils/permissionUtils';
 import { RoomLayout } from '@/widgets';
@@ -390,7 +390,10 @@ function RoomPage() {
       >
         {!isSpeakerMuted && <RoomAudioRenderer />}
         <StartAudio label="" />
-        <RoomLayout isOwner={participantData?.isOwner || false} />
+        <RoomLayout
+          isOwner={participantData?.isOwner || false}
+          isPomodoro={!!roomInfo?.focusTime}
+        />
       </LiveKitRoom>
     </div>
   );
