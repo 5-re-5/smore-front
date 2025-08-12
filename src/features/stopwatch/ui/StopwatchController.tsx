@@ -1,5 +1,5 @@
+import { Pause, Play } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { Play, Pause } from 'lucide-react';
 import { useStopwatchStore } from '../model/useStopwatchStore';
 
 const MS = 1000;
@@ -72,7 +72,7 @@ export const StopwatchController = () => {
       className="text-gray-600 p-3 w-100"
       style={{
         borderRadius: '7.56px',
-        background: '#E5ECF6',
+        background: isRunning ? '#E5ECF6' : '#F6E5E5',
         boxShadow:
           '0 -1.599px 1.599px 0 #D8DFE8 inset, 0 1.599px 1.599px 0 #EFF6FF inset, 0 6.048px 12.096px 0 rgba(46, 47, 49, 0.17)',
       }}
@@ -88,7 +88,7 @@ export const StopwatchController = () => {
           className="px-3 py-1 text-sm flex items-center gap-1"
           style={{
             borderRadius: '5.292px',
-            background: '#E5ECF6',
+            background: isRunning ? '#E5ECF6' : '#F6E5E5',
             boxShadow:
               '0 -1.12px 1.12px 0 #D8DFE8 inset, 0 1.12px 1.12px 0 #EFF6FF inset, 0 4.234px 8.467px 0 rgba(46, 47, 49, 0.17)',
             color: isRunning ? '#3B82F6' : '#EF4444',
