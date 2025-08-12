@@ -11,6 +11,7 @@ import { useRoomStateStore } from '@/features/room';
 import { useStopwatchStore } from '@/features/stopwatch';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
 import { useMediaSync } from '@/shared/hooks/useMediaSync';
+import { SmoreLogoHeader } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
 import { PermissionBanner } from '@/shared/ui/permission-banner';
 import { loadMediaSettings } from '@/shared/utils/mediaSettings';
@@ -326,6 +327,7 @@ function RoomPage() {
 
   return (
     <div className="h-screen flex flex-col">
+      {/* <div className="h-screen flex flex-col bg-[#101214]"> */}
       {permissionStatus && (
         <PermissionBanner
           permissionStatus={permissionStatus}
@@ -337,12 +339,15 @@ function RoomPage() {
       )}
 
       {connectionStatus === 'connecting' && (
-        <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-40">
+        <div className="fixed inset-0 bg-[#101214] bg-opacity-95 flex flex-col items-center justify-center z-51 min-h-screen gap-6">
+          <SmoreLogoHeader />
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p>화상회의에 연결 중...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-lg text-white">화상 회의에 연결중</p>
             {retryCount > 0 && (
-              <p className="text-sm text-gray-500">재시도 {retryCount}회</p>
+              <p className="text-sm text-gray-500 mt-2">
+                재시도 {retryCount}회
+              </p>
             )}
           </div>
         </div>
