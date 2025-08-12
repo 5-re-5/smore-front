@@ -7,16 +7,20 @@ import { CategoryModal } from './CategoryModal';
 import { useInfiniteStudyRoomsQuery } from '../api/useStudyRoomsQuery';
 import { useIntersectionObserver } from '@/shared/hooks/useIntersectionObserver';
 type StudyListContentProps = {
+  search?: string;
   /** 제목을 숨기고 싶으면 false */
   showHeading?: boolean;
   /** children이 없을 때 쓸 기본 제목 */
   defaultHeading?: React.ReactNode;
   children?: React.ReactNode; // 제목 슬롯
+  onClearSearch?: () => void;
 };
 export default function StudyListContent({
+  search,
   showHeading = true,
   defaultHeading = '스터디 목록',
   children,
+  onClearSearch,
 }: StudyListContentProps) {
   const [sortBy, setSortBy] = useState<'popular' | 'latest'>('latest');
   const [hideFullRooms, setHideFullRooms] = useState(false);
@@ -27,6 +31,7 @@ export default function StudyListContent({
     setSortBy('latest');
     setHideFullRooms(false);
     setSelectedCategory(null);
+    onClearSearch?.(); // ★ URL의 q 제거 → 전체 목록
   };
 
   const {
@@ -41,6 +46,7 @@ export default function StudyListContent({
     sort: sortBy,
     category: selectedCategory || undefined,
     hideFullRooms,
+    search,
   });
 
   const allStudyRooms = useMemo(() => {

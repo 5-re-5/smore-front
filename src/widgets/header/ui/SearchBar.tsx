@@ -17,10 +17,19 @@ export const SearchBar = () => {
     });
   };
 
-  const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (composingRef.current) return; // 한글 IME 조합 중이면 제출 방지
-    goSearch(keyword);
+    const query = keyword.trim();
+    if (!query) {
+      navigate({
+        // 같은 검색 상세 페이지에서 q만 삭제
+        to: searchDetailRoute.to,
+        search: (prev) => ({ ...prev, q: undefined }),
+        replace: true,
+      });
+      return;
+    }
+    navigate({ to: searchDetailRoute.to, search: { q: query } });
   };
 
   return (
