@@ -185,6 +185,101 @@ export const studyRoomHandlers = [
     },
   ),
 
+  // 채팅 메시지 조회 API
+  http.get(
+    `${import.meta.env.VITE_BACK_URL}/study-rooms/:roomId/messages`,
+    ({ request, params }) => {
+      const roomId = params.roomId as string;
+      const url = new URL(request.url);
+      const page = parseInt(url.searchParams.get('page') || '1');
+      const limit = parseInt(url.searchParams.get('limit') || '50');
+      const type = url.searchParams.get('type') || 'TEXT';
+
+      console.log('🎯 MSW: Intercepted chat messages request:', {
+        roomId,
+        page,
+        limit,
+        type,
+      });
+
+      // Mock 채팅 메시지 생성
+      const totalMessages = 125;
+      const messagesPerPage = limit;
+      const totalPages = Math.ceil(totalMessages / messagesPerPage);
+      const hasNext = page < totalPages;
+      const hasPrev = page > 1;
+
+      // 페이지별 메시지 생성
+      const startIndex = (page - 1) * messagesPerPage;
+      const endIndex = Math.min(startIndex + messagesPerPage, totalMessages);
+
+      const messages = Array.from({ length: endIndex - startIndex }, (_, i) => {
+        const messageIndex = startIndex + i + 1;
+        const users = [
+          {
+            userId: 1,
+            nickname: 'Alice',
+            profileUrl: 'https://picsum.photos/32/32?random=1',
+          },
+          {
+            userId: 2,
+            nickname: 'Bob',
+            profileUrl: 'https://picsum.photos/32/32?random=2',
+          },
+          {
+            userId: 3,
+            nickname: 'Charlie',
+            profileUrl: 'https://picsum.photos/32/32?random=3',
+          },
+        ];
+        const user = users[messageIndex % users.length];
+
+        return {
+          messageId: totalMessages - messageIndex + 1, // 최신이 큰 ID
+          roomId: parseInt(roomId),
+          userId: user.userId,
+          content: `메시지 ${messageIndex}: 안녕하세요! 채팅 테스트 중입니다.`,
+          type: type,
+          createdAt: new Date(
+            Date.now() - (totalMessages - messageIndex) * 60000,
+          ).toISOString(),
+          sender: {
+            userId: user.userId,
+            nickname: user.nickname,
+            profileUrl: user.profileUrl,
+          },
+        };
+      });
+
+      const responseData = {
+        data: {
+          messages,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalMessages,
+            messagesPerPage,
+            hasNext,
+            hasPrev,
+          },
+          roomInfo: {
+            roomId: parseInt(roomId),
+            title: 'JavaScript 심화 스터디',
+            currentParticipants: 4,
+          },
+        },
+      };
+
+      console.log('✅ MSW: Returning chat messages:', {
+        page,
+        messagesCount: messages.length,
+        hasNext,
+      });
+
+      return HttpResponse.json(responseData);
+    },
+  ),
+
   // LiveKit 토큰 생성 API
   http.post(`${import.meta.env.VITE_BACK_URL}/token`, async ({ request }) => {
     const body = (await request.json()) as {
