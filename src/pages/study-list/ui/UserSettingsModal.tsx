@@ -33,7 +33,7 @@ interface UserSettingsModalProps {
 export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
   const userSettings = useUserSettings({ userProfile });
   const today = useMemo(() => startOfDay(new Date()), []);
-  const minDate = useMemo(() => new Date(2020, 0, 1), []);
+  const minDate = useMemo(() => new Date(2025, 7, 1), []);
   const maxDate = useMemo(() => addYears(today, 5), [today]); // 오늘로부터 5년
 
   return (
@@ -106,19 +106,19 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
               onChange={(e) => userSettings.setDetermination(e.target.value)}
               placeholder="오늘의 각오를 입력해주세요"
               className="w-full"
-              maxLength={20}
+              maxLength={15}
             />
             <div className="flex justify-end mt-1">
               <span
                 className={`text-xs ${
-                  userSettings.determination.length >= 20
+                  userSettings.determination.length >= 15
                     ? 'text-red-500'
-                    : userSettings.determination.length >= 18
+                    : userSettings.determination.length >= 12
                       ? 'text-orange-500'
                       : 'text-gray-500'
                 }`}
               >
-                {userSettings.determination.length}/20
+                {userSettings.determination.length}/15
               </span>
             </div>
           </div>

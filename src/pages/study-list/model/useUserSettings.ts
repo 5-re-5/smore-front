@@ -25,7 +25,7 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
   const [determination, setDeterminationState] = useState<string>('');
 
   const setDetermination = useCallback((value: string) => {
-    const limitedValue = value.length > 20 ? value.slice(0, 20) : value;
+    const limitedValue = value.length > 15 ? value.slice(0, 15) : value;
     setDeterminationState(limitedValue);
   }, []);
   const [targetDateTitle, setTargetDateTitleState] = useState<string>('');
@@ -75,10 +75,10 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
   const convertToApiData = () => {
     const totalStudyTime = parseInt(targetHour) * 60 + parseInt(targetMinute);
     return {
-      goalStudyTime: totalStudyTime,
-      determination: determination.trim(),
-      targetDate: formatDateForServer(selectedDate!),
-      targetDateTitle: targetDateTitle.trim(),
+      goalStudyTime: totalStudyTime ?? null,
+      determination: determination.trim() ?? null,
+      targetDate: formatDateForServer(selectedDate!) ?? null,
+      targetDateTitle: targetDateTitle.trim() ?? null,
     };
   };
 

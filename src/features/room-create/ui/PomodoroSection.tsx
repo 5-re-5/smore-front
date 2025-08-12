@@ -83,15 +83,16 @@ export function PomodoroSection({
                   type="number"
                   min="1"
                   max="100"
-                  value={field.value || 25}
-                  onChange={(e) =>
-                    field.onChange(parseInt(e.target.value) || 25)
-                  }
+                  value={field.value ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(
+                      value === '' ? undefined : parseInt(value) || undefined,
+                    );
+                  }}
                   className="w-20"
                   disabled={!isPomodoroEnabled}
-                  placeholder={
-                    !isPomodoroEnabled ? '뽀모도로 활성화 시 사용' : '25'
-                  }
+                  placeholder={'25'}
                 />
               )}
             />
@@ -126,15 +127,16 @@ export function PomodoroSection({
                   type="number"
                   min="1"
                   max="20"
-                  value={field.value || 5}
-                  onChange={(e) =>
-                    field.onChange(parseInt(e.target.value) || 5)
-                  }
+                  value={field.value ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(
+                      value === '' ? undefined : parseInt(value) || undefined,
+                    );
+                  }}
                   className="w-20"
                   disabled={!isPomodoroEnabled}
-                  placeholder={
-                    !isPomodoroEnabled ? '뽀모도로 활성화 시 사용' : '5'
-                  }
+                  placeholder={'5'}
                 />
               )}
             />
