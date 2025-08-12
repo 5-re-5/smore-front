@@ -30,12 +30,6 @@ export const PomodoroViewer = () => {
 
   return (
     <div className="flex flex-col items-center space-y-2 p-1 bg-grey-50 rounded-lg ">
-      <div className="text-center">
-        <div className={`text-sm font-medium ${getPhaseColor()}`}>
-          {phase === 'study' ? '집중 시간' : '휴식 시간'}
-        </div>
-      </div>
-
       <div className="relative">
         <CircularProgress
           progress={getProgress()}
