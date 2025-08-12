@@ -1,10 +1,22 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useUrlAuth } from '../model';
 import { UserInfoBox } from './UserInfoBox';
 import { useUserProfileQuery, useAuth } from '@/entities/user';
 import StudyListContent from './StudyListContent';
+import { studyListRoute } from '../route';
+import { useEffect } from 'react';
+import { searchDetailRoute } from '@/pages/search-detail-page/route';
 
 export default function StudyListPage() {
+  const { q } = studyListRoute.useSearch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (q) {
+      navigate({ to: searchDetailRoute.to, search: { q }, replace: true });
+    }
+  }, [q, navigate]);
+
   // URL에서 userId 파라미터 처리
   useUrlAuth();
 
