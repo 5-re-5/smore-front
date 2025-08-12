@@ -422,14 +422,16 @@ const MarshmallowHeatmap: FC<MarshmallowHeatmapProps> = ({
                         height: cell,
                         background: PALETTE[lvl],
                         transition: 'background 0.15s',
-                        // // glow 변수 주입
-                        // // @ts-expect-error CSS custom props
-                        // '--mm-glow': PALETTE[lvl],
-                        // '--mm-speed': speedByLevel[lvl],
-                        // '--mm-blur1': blur1ByLevel[lvl],
-                        // '--mm-blur2': blur2ByLevel[lvl],
-                        // animationDuration: ember ? speedByLevel[lvl] : undefined,
-                        // animationDelay: ember ? delay : undefined,
+                        // glow 변수 주입
+                        // @ts-expect-error CSS custom props
+                        '--mm-glow': PALETTE[lvl],
+                        '--mm-speed': speedByLevel[lvl],
+                        '--mm-blur1': blur1ByLevel[lvl],
+                        '--mm-blur2': blur2ByLevel[lvl],
+                        animationDuration: ember
+                          ? speedByLevel[lvl]
+                          : undefined,
+                        animationDelay: ember ? delay : undefined,
                       }}
                     />
                   );
