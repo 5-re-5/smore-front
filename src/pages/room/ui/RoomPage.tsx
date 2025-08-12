@@ -13,6 +13,7 @@ import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
 import { Button } from '@/shared/ui/button';
 import { PermissionBanner } from '@/shared/ui/permission-banner';
 import { loadMediaSettings } from '@/shared/utils/mediaSettings';
+import { useMediaSync } from '@/shared/hooks/useMediaSync';
 import {
   checkAllMediaPermissions,
   canUseMedia,
@@ -26,7 +27,7 @@ import {
 } from '@livekit/components-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { DisconnectReason } from 'livekit-client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
@@ -80,25 +81,35 @@ function RoomPage() {
       const permissions = await checkAllMediaPermissions();
       setPermissionStatus(permissions);
 
+      // 현재 mediaSettings를 최신으로 가져오기
+      const currentMediaSettings = loadMediaSettings();
+
       // 권한 상태에 따라 실제 사용할 미디어 설정 결정
-      const actualVideo = canUseMedia(permissions.video, mediaSettings.video);
-      const actualAudio = canUseMedia(permissions.audio, mediaSettings.audio);
+      const actualVideo = canUseMedia(
+        permissions.video,
+        currentMediaSettings.video,
+      );
+      const actualAudio = canUseMedia(
+        permissions.audio,
+        currentMediaSettings.audio,
+      );
 
       setActualMediaSettings({
-        ...mediaSettings,
+        ...currentMediaSettings,
         video: actualVideo,
         audio: actualAudio,
       });
     } catch (error) {
       console.warn('권한 확인 실패:', error);
       // 권한 확인 실패 시 안전하게 false로 설정
+      const currentMediaSettings = loadMediaSettings();
       setActualMediaSettings({
-        ...mediaSettings,
+        ...currentMediaSettings,
         video: false,
         audio: false,
       });
     }
-  }, [mediaSettings]);
+  }, []); // mediaSettings 의존성 제거 - 내부에서 최신 값 직접 로드
 
   // 저장된 토큰 조회
   const token = useRoomToken(roomIdNumber);
@@ -112,6 +123,15 @@ function RoomPage() {
     roomIdNumber,
     userId || 0,
   );
+
+  // 미디어 동기화 훅
+  const { sendInitialMediaSettings } = useMediaSync({
+    roomId: roomIdNumber,
+    userId: userId || 0,
+    onError: (error) => {
+      console.error('미디어 설정 동기화 실패:', error);
+    },
+  });
 
   // 자동 재입장 시도
   const attemptAutoRejoin = useCallback(async () => {
@@ -152,6 +172,20 @@ function RoomPage() {
   useEffect(() => {
     checkPermissionsAndUpdateSettings();
   }, [checkPermissionsAndUpdateSettings]);
+
+  // 미디어 동기화 함수 ref
+  const sendInitialMediaSettingsRef = useRef(sendInitialMediaSettings);
+  sendInitialMediaSettingsRef.current = sendInitialMediaSettings;
+
+  // 초기 미디어 설정 서버 동기화
+  useEffect(() => {
+    if (actualMediaSettings && userId && roomIdNumber) {
+      sendInitialMediaSettingsRef.current({
+        audioEnabled: actualMediaSettings.audio,
+        videoEnabled: actualMediaSettings.video,
+      });
+    }
+  }, [actualMediaSettings, userId, roomIdNumber]); // sendInitialMediaSettings 의존성 제거
 
   // 방 정보 및 참가자 데이터 동기화
   useEffect(() => {
