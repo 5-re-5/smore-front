@@ -282,15 +282,15 @@ function RoomPage() {
   // 토큰이 없거나 재입장 중이면 로딩 상태
   if (!token || autoRejoinStatus === 'attempting') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="fixed inset-0 bg-[#101214] bg-opacity-95 flex flex-col items-center justify-center z-51 min-h-screen gap-6">
+        <SmoreLogoHeader />
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <h2 className="text-xl font-semibold mt-4 text-gray-900">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-white">
             {autoRejoinStatus === 'attempting'
-              ? '방에 재입장 중...'
-              : '스터디룸에 연결 중...'}
-          </h2>
-          <p className="text-gray-600 mt-2">잠시만 기다려주세요</p>
+              ? '방에 재입장 중'
+              : '스터디룸에 연결 중'}
+          </p>
         </div>
       </div>
     );
