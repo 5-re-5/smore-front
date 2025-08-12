@@ -131,3 +131,22 @@ export const getRoomParticipantInfo = async (
 
   return response.data;
 };
+
+export interface UpdateMediaSettingsData {
+  audioEnabled: boolean;
+  videoEnabled: boolean;
+}
+
+export const updateRoomParticipantMedia = async (
+  roomId: number,
+  userId: number,
+  data: UpdateMediaSettingsData,
+) => {
+  const response = await request({
+    method: REQUEST_METHOD.PATCH,
+    url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/${roomId}/participants/${userId}`,
+    data,
+  });
+
+  return response.data;
+};

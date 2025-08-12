@@ -2,12 +2,15 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import ChatUserList from '@/features/chat/ui/ChatUserList';
 import ChatMessageList from './ChatMessageList';
 import ChatInput from './ChatInput';
-import { useChatMessageStore } from '../model/useChatMessageStore';
+import {
+  useChatMessageStore,
+  useAllMessages,
+  useHistoryLoaded,
+} from '../model/useChatMessageStore';
 import { useChatHistory } from '../hooks/useChatHistory';
 import { useRoomContext, useParticipants } from '@livekit/components-react';
-import { useUserStore } from '@/entities/user/model/useUserStore';
+import { useAuth } from '@/entities/user/model/useAuth';
 import { useStompChat } from '../hooks/useStompChat';
-
 interface ChatPanelProps {
   isOpen?: boolean;
 }
@@ -19,6 +22,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   const [roomId, setRoomId] = useState<string>('');
   const [roomIdLoading, setRoomIdLoading] = useState(true);
   const { connectionStatus, reconnectAttempts } = useStompChat();
+  const status = connectionStatus;
 
   // 스크롤 관리를 위한 상태
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -29,16 +33,24 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   const [showNewMessageButton, setShowNewMessageButton] = useState(false);
 
   // 스토어 및 훅들
-  const { messages } = useChatMessageStore();
-  const { userId: currentUserId } = useUserStore();
+  const { getFilteredMessages } = useChatMessageStore();
+  const allMessages = useAllMessages();
+  const isHistoryLoaded = useHistoryLoaded();
+  const { userId: currentUserId } = useAuth();
   const room = useRoomContext();
   const participants = useParticipants();
 
   // Mock 데이터 초기화 (컴포넌트 마운트 시 한 번만)
   useEffect(() => {
-    import('../api/chatApi').then(({ chatApi }) => {
-      chatApi.initializeMockData();
-    });
+    // ✅ 개발/테스트에서만 mock 시드
+    if (
+      import.meta.env.DEV ||
+      import.meta.env.VITE_STOMP_TEST_MODE === 'true'
+    ) {
+      import('../api/chatApi').then(({ chatApi }) => {
+        chatApi.initializeMockData();
+      });
+    }
   }, []);
 
   // Room ID 가져오기 (getSid 사용)
@@ -65,58 +77,131 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   const {
     isLoading,
     isLoadingMore,
-    hasMore,
+    hasMoreGroup,
+    hasMorePrivate,
     error,
-    totalCount,
-    loadInitialHistory,
-    loadMoreHistory,
-    loadPrivateHistory,
+    loadInitialGroup,
+    loadMoreGroup,
+    loadInitialPrivate,
+    loadMorePrivate,
     clearError,
-    refresh,
+    refreshAll,
   } = useChatHistory({ roomId, limit: 50 });
 
-  // Room ID가 준비되면 히스토리 로드
-  useEffect(() => {
-    if (!roomIdLoading && roomId) {
-      loadInitialHistory();
+  // 새로고침. 전체 초기화 및 1페이지 다시 로드
+  const handleRefresh = async () => {
+    await refreshAll();
+    if (tab === 'PRIVATE' && selectedPrivateUserId) {
+      await loadInitialPrivate(selectedPrivateUserId);
     }
-  }, [roomId, roomIdLoading, loadInitialHistory]);
+    setTimeout(() => scrollToBottom(true), 50);
+  };
 
-  // 채팅창이 열릴 때 자동 스크롤 (scrollToBottom 함수 정의 후에 위치)
+  //STOMP 재연결 시 자동 호출
+  useEffect(() => {
+    const onReconnected = () => handleRefresh();
+    window.addEventListener('stomp:reconnected', onReconnected);
+    return () => window.removeEventListener('stomp:reconnected', onReconnected);
+  }, [handleRefresh]);
 
-  // 탭 변경시 처리
-  const handleTabChange = async (newTab: 'GROUP' | 'PRIVATE') => {
+  // 자동 스크롤 실행 함수
+  const scrollToBottom = useCallback((smooth = true) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: smooth ? 'smooth' : 'auto',
+    });
+  }, []);
+
+  // Room ID 준비되면 그룹 초기 로드
+  useEffect(() => {
+    if (!roomIdLoading && roomId && !isHistoryLoaded) {
+      loadInitialGroup();
+    }
+  }, [roomIdLoading, roomId, isHistoryLoaded, loadInitialGroup]);
+
+  // PRIVATE 탭에서 상대가 선택되면 해당 개인 초기 로드
+  useEffect(() => {
+    if (tab === 'PRIVATE' && selectedPrivateUserId) {
+      loadInitialPrivate(selectedPrivateUserId).then(() => {
+        setTimeout(() => scrollToBottom(true), 50);
+      });
+    }
+  }, [tab, selectedPrivateUserId, loadInitialPrivate, scrollToBottom]);
+
+  // 채팅창이 열릴 때 자동 스크롤
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => scrollToBottom(true), 200);
+    }
+  }, [isOpen, scrollToBottom]);
+
+  // 탭 변경시 처리 - API 호출 없이 클라이언트 사이드 필터링
+  const handleTabChange = (newTab: 'GROUP' | 'PRIVATE') => {
+    // console.log(`탭 변경: ${tab} → ${newTab} (클라이언트 사이드 필터링)`);
     setTab(newTab);
     setShowNewMessageButton(false); // 버튼 숨기기
     setNewMessageCount(0); // 카운트 리셋
 
     if (newTab === 'GROUP') {
       setSelectedPrivateUserId('');
-      await loadInitialHistory();
     } else {
-      setSelectedPrivateUserId('');
+      setSelectedPrivateUserId(''); // 개인 탭에서는 사용자 선택 초기화
     }
 
-    // 탭 변경 후 자동 스크롤
-    setTimeout(() => scrollToBottom(true), 100);
+    setLastMessageTimestamp(''); // 오탐방지용
+    // 탭 변경 후 자동 스크롤 (즉시 실행)
+    setTimeout(() => scrollToBottom(true), 50);
   };
 
-  // 개인 대화 상대 변경시 처리
-  const handlePrivateUserChange = async (userId: string) => {
-    // console.log(`👤 개인 대화 상대 변경: ${selectedPrivateUserId} → ${userId}`);
+  // 개인 대화 상대 변경시 처리 - API 호출 없이 클라이언트 사이드 필터링
+  const handlePrivateUserChange = (userId: string) => {
+    // console.log(
+    //   `👤 개인 대화 상대 변경: ${selectedPrivateUserId} → ${userId} (클라이언트 사이드 필터링)`,
+    // );
     setSelectedPrivateUserId(userId);
     setShowNewMessageButton(false); // 버튼 숨기기
     setNewMessageCount(0); // 카운트 리셋
-    if (userId) {
-      await loadPrivateHistory(userId);
-    } else {
-      await loadInitialHistory();
-    }
 
-    // 대화 상대 변경 후 자동 스크롤
-    setTimeout(() => scrollToBottom(true), 100);
+    setLastMessageTimestamp(''); // 오탐 방지용
+    // 대화 상대 변경 후 자동 스크롤 (즉시 실행)
+    setTimeout(() => scrollToBottom(true), 50);
   };
 
+  // 더보기 버튼 핸들러
+  const handleScrollTop = async () => {
+    if (isLoadingMore || isLoading) return;
+
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const prevScrollHeight = container.scrollHeight;
+    const prevScrollTop = container.scrollTop;
+
+    setIsLoadingHistory(true);
+    try {
+      if (tab === 'GROUP') {
+        if (hasMoreGroup) {
+          await loadMoreGroup();
+        }
+      } else {
+        if (selectedPrivateUserId && hasMorePrivate[selectedPrivateUserId]) {
+          await loadMorePrivate(selectedPrivateUserId);
+        }
+      }
+
+      // 프레임 이후 높이 계산 → 현재 위치 유지
+      requestAnimationFrame(() => {
+        const newScrollHeight = container.scrollHeight;
+        const heightDiff = newScrollHeight - prevScrollHeight;
+        container.scrollTop = prevScrollTop + heightDiff;
+      });
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
   // 새 메시지 보기 버튼 클릭 핸들러
   const handleViewNewMessages = () => {
     // console.log('📨 새 메시지 보기 버튼 클릭');
@@ -125,28 +210,26 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
     setNewMessageCount(0);
   };
 
-  // 현재 탭에 맞게 메시지 필터링
-  const filteredMessages = messages.filter((msg) => {
+  // 현재 탭에 맞게 메시지 필터링 - 클라이언트 사이드 필터링 활용
+  const filteredMessages = (() => {
     if (tab === 'GROUP') {
-      return msg.type === 'GROUP' || msg.type === 'SYSTEM';
+      // 그룹 메시지 필터링
+      return getFilteredMessages({ type: ['GROUP', 'SYSTEM'] });
     } else if (tab === 'PRIVATE') {
-      if (msg.type !== 'PRIVATE') return false;
-
       if (!selectedPrivateUserId) {
-        return true;
+        // 모든 개인 메시지 표시
+        return getFilteredMessages({ type: 'PRIVATE' });
+      } else {
+        // 특정 사용자와의 개인 대화
+        return getFilteredMessages({
+          type: 'PRIVATE',
+          userId: selectedPrivateUserId,
+          currentUserId: currentUserId?.toString() || '',
+        });
       }
-
-      const isFromSelected =
-        msg.sender.userId?.toString() === selectedPrivateUserId;
-      const isToSelected = msg.receiver === selectedPrivateUserId;
-      const isFromMe =
-        msg.sender.userId?.toString() === currentUserId?.toString();
-      const isToMe = msg.receiver === currentUserId?.toString();
-
-      return (isFromSelected && isToMe) || (isFromMe && isToSelected);
     }
-    return false;
-  });
+    return [];
+  })();
 
   // 선택 가능한 참가자 목록
   const selectableParticipants = participants
@@ -172,17 +255,6 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
       element.scrollHeight - element.scrollTop - element.clientHeight <=
       threshold
     );
-  }, []);
-
-  // 자동 스크롤 실행 함수
-  const scrollToBottom = useCallback((smooth = true) => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: smooth ? 'smooth' : 'auto',
-    });
   }, []);
 
   // 스크롤 이벤트 핸들러
@@ -250,39 +322,6 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
     scrollToBottom,
   ]);
 
-  // 채팅창이 열릴 때 자동 스크롤
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => scrollToBottom(true), 200);
-    }
-  }, [isOpen, scrollToBottom]);
-
-  const handleScrollTop = () => {
-    if (!isLoadingMore && hasMore) {
-      console.log('📜 더보기 버튼 클릭');
-      setIsLoadingHistory(true);
-
-      const container = scrollContainerRef.current;
-      if (container) {
-        const prevScrollHeight = container.scrollHeight;
-        const prevScrollTop = container.scrollTop;
-
-        loadMoreHistory().then(() => {
-          requestAnimationFrame(() => {
-            if (container) {
-              const newScrollHeight = container.scrollHeight;
-              const heightDiff = newScrollHeight - prevScrollHeight;
-              // 스크롤 위치 복원 (사용자가 보던 위치 유지)
-              container.scrollTop = prevScrollTop + heightDiff;
-              // console.log('📜 스크롤 위치 복원:', { prevScrollTop, heightDiff, newScrollTop: prevScrollTop + heightDiff });
-            }
-            setIsLoadingHistory(false);
-            // console.log('📜 더보기 완료');
-          });
-        });
-      }
-    }
-  };
   // Room ID 로딩 중일 때
   if (roomIdLoading) {
     return (
@@ -297,23 +336,25 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   }
 
   return (
-    <div className="flex flex-col h-full w-80 bg-[#1e2230] text-white rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 bg-[#2A2F46] text-white overflow-hidden pb-3 -mt-3">
+      {/* absolute 위치로 인한 상단 여백 보정 */}
+
       {/* Header with Stats */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         <div className="flex items-center gap-2">
           <span className="text-white font-semibold text-sm">
             참가자({participants.length})
           </span>
-          {totalCount > 0 && (
+          {allMessages.length > 0 && (
             <span className="text-xs text-gray-400">
-              • 메시지 {totalCount}개
+              • 전체 {allMessages.length}개 | 현재 {filteredMessages.length}개
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-2">
           <button
-            onClick={refresh}
+            onClick={handleRefresh}
             className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-gray-700"
             disabled={isLoading}
           >
@@ -331,10 +372,10 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
       <div className="flex justify-center gap-4 py-2 border-b border-gray-700">
         <button
           onClick={() => handleTabChange('GROUP')}
-          className={`px-4 py-1 rounded-full text-sm ${
+          className={`px-4 py-1 rounded-full text-sm transition-all duration-200 ${
             tab === 'GROUP'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-700 text-gray-300'
+              ? 'bg-gray-700 text-white shadow-inner shadow-[inset_0_2px_8px_rgba(0,0,0,0.6),0_0_0_2px_rgba(255,255,255,0.3)]'
+              : 'text-gray-300 hover:text-gray-100'
           }`}
           disabled={isLoading}
         >
@@ -342,10 +383,10 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
         </button>
         <button
           onClick={() => handleTabChange('PRIVATE')}
-          className={`px-4 py-1 rounded-full text-sm ${
+          className={`px-4 py-1 rounded-full text-sm transition-all duration-200 ${
             tab === 'PRIVATE'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-700 text-gray-300'
+              ? 'bg-gray-700 text-white shadow-inner  shadow-[inset_0_2px_8px_rgba(0,0,0,0.6),0_0_0_2px_rgba(255,255,255,0.3)]'
+              : 'text-gray-300 hover:text-gray-100'
           }`}
           disabled={isLoading}
         >
@@ -397,17 +438,17 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
           </div>
         </div>
       )}
-      {connectionStatus === 'disconnected' && (
+      {status === 'disconnected' && (
         <div className="bg-red-600/20 border border-red-600/50 text-red-200 p-2 mx-3 mt-2 rounded text-sm">
           🔴 연결이 끊어졌습니다
         </div>
       )}
-      {connectionStatus === 'reconnecting' && (
+      {status === 'reconnecting' && (
         <div className="bg-yellow-600/20 border border-yellow-600/50 text-yellow-200 p-2 mx-3 mt-2 rounded text-sm">
           🔄 재연결 중... ({reconnectAttempts}/5)
         </div>
       )}
-      {connectionStatus === 'failed' && (
+      {status === 'failed' && (
         <div className="bg-red-600/20 border border-red-600/50 text-red-200 p-2 mx-3 mt-2 rounded text-sm">
           <div className="flex items-center justify-between">
             <span>❌ 연결 실패 - 네트워크를 확인해주세요</span>
@@ -430,7 +471,11 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
       {/* 메시지 목록 */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-3"
+        className="flex-1 min-h-0 overflow-y-auto p-3"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#4b5563 #2A2F46',
+        }}
         onScroll={handleScroll}
       >
         {isLoadingMore && (
@@ -439,16 +484,32 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
           </div>
         )}
 
-        {hasMore && !isLoadingMore && !isLoading && (
-          <div className="text-center py-2">
-            <button
-              onClick={handleScrollTop}
-              className="text-gray-400 hover:text-gray-300 underline text-xs"
-            >
-              이전 메시지 더 보기
-            </button>
-          </div>
-        )}
+        {tab === 'GROUP'
+          ? hasMoreGroup &&
+            !isLoadingMore &&
+            !isLoading && (
+              <div className="text-center py-2">
+                <button
+                  onClick={handleScrollTop}
+                  className="text-gray-400 hover:text-gray-300 underline text-xs"
+                >
+                  이전 메시지 더 보기
+                </button>
+              </div>
+            )
+          : selectedPrivateUserId &&
+            hasMorePrivate[selectedPrivateUserId] &&
+            !isLoadingMore &&
+            !isLoading && (
+              <div className="text-center py-2">
+                <button
+                  onClick={handleScrollTop}
+                  className="text-gray-400 hover:text-gray-300 underline text-xs"
+                >
+                  이전 메시지 더 보기
+                </button>
+              </div>
+            )}
 
         <ChatMessageList messages={filteredMessages} />
       </div>
@@ -457,7 +518,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
         <div className="px-3 py-2 border-t border-gray-700 bg-[#1e2230]">
           <button
             onClick={handleViewNewMessages}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-lg"
+            className="w-full bg-[#161929] hover:bg-gray-500 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer"
           >
             <span>새 메시지 {newMessageCount}개 보기</span>
             <span className="text-lg">↓</span>
