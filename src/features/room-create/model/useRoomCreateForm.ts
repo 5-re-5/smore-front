@@ -8,6 +8,7 @@ import {
 } from '@/entities/room/api/createRoom';
 import { useAuthStore } from '@/entities/user/model/useAuthStore';
 import { useRouter } from '@tanstack/react-router';
+import { toast } from 'sonner';
 
 const CATEGORY_MAP = {
   취업: 'EMPLOYMENT',
@@ -147,13 +148,13 @@ export const useRoomCreateForm = () => {
       return createRoom(formData, userId);
     },
     onSuccess: (data) => {
-      alert('스터디룸이 성공적으로 생성되었습니다!');
+      toast.success('스터디룸이 성공적으로 생성되었습니다!');
       router.navigate({ to: `/room/${data.roomId}/prejoin` });
       form.reset();
     },
     onError: (error) => {
       console.error('스터디룸 생성 실패:', error);
-      alert('스터디룸 생성에 실패했습니다. 다시 시도해주세요.');
+      toast.error('스터디룸 생성에 실패했습니다. 다시 시도해주세요.');
     },
   });
 

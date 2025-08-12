@@ -8,6 +8,7 @@ Chart.register(...registerables); //중복 캔버스 사용 문제 방지. 차�
 
 import { router } from '@/app/routing/config/router';
 import { Provider as QueryProvider } from '@/shared/lib/reactQuery/Provider';
+import { Toaster } from '@/shared/ui';
 
 import reportWebVitals, { logWebVitals } from '@/app/reportWebVitals';
 import '@/app/styles.css';
@@ -48,6 +49,7 @@ if (rootElement && !rootElement.innerHTML) {
       <StrictMode>
         <QueryProvider>
           <RouterProvider router={router} />
+          <Toaster />
           {showDevtools && <ReactQueryDevtools buttonPosition="bottom-right" />}
         </QueryProvider>
       </StrictMode>,
