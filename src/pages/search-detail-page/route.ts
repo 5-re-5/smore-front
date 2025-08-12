@@ -1,11 +1,13 @@
 import { createRoute } from '@tanstack/react-router';
 import { rootRoute } from '@/app/routing/__root';
 import SearchDetailPage from './ui/SearchDetailPage';
-import { z } from 'zod';
 
 export const searchDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/search-detail',
-  validateSearch: z.object({ q: z.string().optional() }),
+  // ✅ search 타입 선언
+  validateSearch: (search: Record<string, unknown>): { q?: string } => {
+    return { q: typeof search.q === 'string' ? search.q : undefined };
+  },
   component: SearchDetailPage,
 });

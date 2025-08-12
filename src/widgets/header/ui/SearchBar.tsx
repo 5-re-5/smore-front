@@ -1,32 +1,50 @@
 import { searchDetailRoute } from '@/pages/search-detail-page/route';
 import { useSearchKeyword } from '@/shared/stores/useSearchKeyword';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useRef } from 'react';
 
 export const SearchBar = () => {
   const navigate = useNavigate();
   const { keyword, set, clear } = useSearchKeyword();
-  const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement | null>(null);
-
-  // rawOverride가 있으면 그 값으로, 없으면 ref/스토어 값으로 실행
+  const CLEAR_ON_SUBMIT = false;
   const submit = (rawOverride?: string) => {
     const raw = (rawOverride ?? inputRef.current?.value ?? keyword) || '';
     const q = raw.trim();
 
     if (!q) {
       clear();
+      // 포커스 제거 → 커서 사라짐
+      inputRef.current?.blur();
       navigate({
         to: searchDetailRoute.to,
-        search: (prev) => ({ ...prev, q: undefined }),
+        search: {} as { q?: string },
         replace: true,
       });
       return;
     }
 
-    qc.invalidateQueries({ queryKey: ['study-rooms'], refetchType: 'all' });
+    // qc.invalidateQueries({ queryKey: ['study-rooms'], refetchType: 'all' });
+    // 제출 직후 입력창 비우기 + 포커스 제거 → placeholder 다시 표시
+    if (CLEAR_ON_SUBMIT) {
+      set('');
+      inputRef.current?.blur();
+    }
     navigate({ to: searchDetailRoute.to, search: { q } });
+  };
+
+  // Enter 처리 (캡처 단계에서 가장 먼저 잡음)
+  const handleEnterCapture = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter' && e.key !== 'NumpadEnter') return;
+    e.preventDefault();
+    e.stopPropagation();
+    submit((e.currentTarget as HTMLInputElement).value);
+  };
+  const blockEnterBubble = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === 'NumpadEnter') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
   };
 
   return (
@@ -57,20 +75,19 @@ export const SearchBar = () => {
         <input
           ref={inputRef}
           type="text"
-          name="q"
+          // 1) name 제거: 바깥 폼이 제출돼도 q가 붙지 않음
+          // name="q"
+          // 2) 어떤 폼에도 속하지 않도록 form 속성으로 분리
+          form="__searchbar_no_form__"
           maxLength={20}
           placeholder="나에게 맞는 스터디를 찾아보세요"
-          className="flex-1 bg-transparent border-none outline-none placeholder-header-text text-[1.25rem] font-medium leading-normal font-['Noto_Sans_KR'] text-header-text text-center"
+          className="flex-1 bg-transparent border-none outline-none placeholder-header-text text-[1.25rem] font-medium leading-normal font-['Noto_Sans_KR'] text-header-text text-center focus:placeholder-transparent transition-colors"
           value={keyword}
           onChange={(e) => set(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key !== 'Enter' && e.key !== 'NumpadEnter') return;
-            // 상위 폼 기본 제출/버블링 방지
-            e.preventDefault();
-            e.stopPropagation();
-            // 조합 중 여부와 관계없이 현재 값으로 즉시 검색
-            submit((e.currentTarget as HTMLInputElement).value);
-          }}
+          // 3) 캡처 단계에서 엔터 가로채기 → 즉시 submit
+          onKeyDownCapture={handleEnterCapture}
+          // 혹시를 대비해 버블 단계에서도 기본동작 차단
+          onKeyUp={blockEnterBubble}
           aria-label="검색어"
         />
       </div>

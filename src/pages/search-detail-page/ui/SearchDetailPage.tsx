@@ -7,19 +7,19 @@ import { useSearchKeyword } from '@/shared/stores/useSearchKeyword';
 export default function SearchDetailPage() {
   const { q } = searchDetailRoute.useSearch();
   const navigate = useNavigate();
-  const { set, clear } = useSearchKeyword();
+  const { clear } = useSearchKeyword();
 
   // URL q ↔ 헤더 입력 동기화
   useEffect(() => {
-    if (q) set(q);
-    else clear();
-  }, [q, set, clear]);
+    // ✅ 전체 목록일 때만 입력칸을 비움
+    if (q === undefined) clear();
+  }, [q, clear]);
 
   const clearSearch = () => {
     clear(); // 검색바 비우기
     navigate({
       to: searchDetailRoute.to,
-      search: (prev) => ({ ...prev, q: undefined }),
+      search: {} as { q?: string },
       replace: true,
     });
   };
