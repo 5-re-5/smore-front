@@ -1,16 +1,25 @@
 export type FocusTrack = {
   labels: string[]; // ["00", "01", ..., "23"]
-  scores: number[]; // [95, 93, ..., 81], 각 시간대별 평균 집중도 점수(0~100)
+  scores: number[]; // 0~100 범위
 };
 
 export type AiInsights = {
   feedback: string;
-  average_focus_duration: number;
-  focus_track: FocusTrack;
+  bestFocusTime: {
+    start: string;
+    end: string;
+    avgFocusScore: number;
+  };
+  worstFocusTime: {
+    start: string;
+    end: string;
+    avgFocusScore: number;
+  };
+  averageFocusDuration: number;
+  focusTrack: FocusTrack;
 };
 
+// request<T>의 T 타입을 data 안에 들어가는 실제 페이로드 형태로 맞춤
 export type AiInsightsApiResponse = {
-  data: {
-    ai_insights: AiInsights;
-  };
+  aiInsights: AiInsights;
 };
