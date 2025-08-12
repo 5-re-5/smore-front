@@ -393,6 +393,7 @@ function RoomPage() {
         <RoomLayout
           isOwner={participantData?.isOwner || false}
           isPomodoro={!!roomInfo?.focusTime}
+          roomTitle={roomInfo?.title}
         />
       </LiveKitRoom>
     </div>

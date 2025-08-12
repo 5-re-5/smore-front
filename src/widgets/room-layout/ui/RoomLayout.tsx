@@ -21,8 +21,8 @@ function RoomLayout({
   return (
     <div className="h-full flex flex-col">
       {/* 헤더 */}
-      <div className="bg-white border-b px-4 py-3">
-        <h1 className="text-lg font-semibold text-gray-900">{roomTitle}</h1>
+      <div className="bg-[#292D32] border-b px-4 py-3">
+        <h1 className="text-lg font-semibold text-white">{roomTitle}</h1>
       </div>
 
       {/* 중간 영역: 도구들 + 카메라 + 채팅 */}
