@@ -1,4 +1,5 @@
 import ChatPanel from '@/features/chat/ui/ChatPanel';
+import { FocusGauge } from '@/features/focus-gauge';
 import { PomodoroSection } from '@/features/pomodoro';
 import { StopwatchController } from '@/features/stopwatch';
 import { MediaToolbar } from '@/widgets/media-toolbar';
@@ -32,6 +33,7 @@ function RoomLayout({
           {/* Tools: Pomodoro + Stopwatch */}
           <div className="flex justify-center items-center py-4">
             <div className="flex items-center gap-8">
+              <FocusGauge />
               {isPomodoro ? <PomodoroSection /> : null}
               <StopwatchController />
             </div>
