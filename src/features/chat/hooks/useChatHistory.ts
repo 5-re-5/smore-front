@@ -54,7 +54,7 @@ export const useChatHistory = ({
 
   const isInitialGroupLoadedRef = useRef(false);
 
-  const { setAllMessages, addMessages, clearMessages, setHistoryLoaded } =
+  const { setAllMessages, addMessages, setHistoryLoaded } =
     useChatMessageStore();
 
   const handleError = useCallback((err: unknown, ctx: string) => {
