@@ -35,18 +35,22 @@ function EditPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // 사용자 정보가 로드되면 초기값 설정
   useEffect(() => {
     if (userInfo) {
-      setNickname(userInfo.nickname || '');
+      // 닉네임은 비어있을 때만 설정 (사용자가 변경한 값 보호)
+      if (!nickname) {
+        setNickname(userInfo.nickname || '');
+      }
       // 새로 업로드한 이미지가 없고 기존 프로필 이미지가 있으면 설정
       if (!previewUrl && userInfo.profileUrl) {
         setPreviewUrl(userInfo.profileUrl);
       }
     }
-  }, [userInfo, previewUrl]);
+  }, [userInfo, previewUrl, nickname]);
 
   // 이미지 디코딩 검증 함수
   const canDecodeImageFromFile = async (file: File): Promise<boolean> => {
@@ -228,9 +232,12 @@ function EditPage() {
 
     // 이름이 기존과 동일하면 무조건 에러
     if (nickname.trim() === userInfo?.nickname) {
-      toast.error('기존 이름과 동일합니다. 다른 이름을 입력해주세요');
+      setNicknameError('기존 이름과 동일합니다. 다른 이름을 입력해주세요');
       return;
     }
+
+    // 닉네임 에러 상태 초기화
+    setNicknameError(null);
 
     setIsLoading(true);
 
@@ -330,7 +337,13 @@ function EditPage() {
           <input
             type="text"
             value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
+            onChange={(e) => {
+              setNickname(e.target.value);
+              // 입력 시 에러 상태 초기화
+              if (nicknameError) {
+                setNicknameError(null);
+              }
+            }}
             maxLength={5}
             className="w-full h-[3.125rem] px-4 text-base bg-transparent border-0 outline-none rounded-[1.875rem]"
             style={{
@@ -340,6 +353,10 @@ function EditPage() {
             }}
             placeholder="이름을 입력하세요"
           />
+          {/* 닉네임 에러 메시지 */}
+          {nicknameError && (
+            <p className="mt-2 text-sm text-red-600">{nicknameError}</p>
+          )}
         </div>
 
         {/* 액션 버튼 섹션 */}
