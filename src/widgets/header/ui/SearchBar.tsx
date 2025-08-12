@@ -5,17 +5,17 @@ import { useNavigate } from '@tanstack/react-router';
 import { useRef } from 'react';
 
 export const SearchBar = () => {
-  const composingRef = useRef(false);
   const navigate = useNavigate();
   const { keyword, set, clear } = useSearchKeyword();
   const qc = useQueryClient();
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
-    const q = keyword.trim();
+  // rawOverride가 있으면 그 값으로, 없으면 ref/스토어 값으로 실행
+  const submit = (rawOverride?: string) => {
+    const raw = (rawOverride ?? inputRef.current?.value ?? keyword) || '';
+    const q = raw.trim();
 
-    // 빈 검색어: q 제거(현재 페이지에서 전체 목록)
     if (!q) {
-      e.preventDefault();
       clear();
       navigate({
         to: searchDetailRoute.to,
@@ -25,27 +25,19 @@ export const SearchBar = () => {
       return;
     }
 
-    // 동일 q 재검색도 새로 불러오고 싶다면 invalidate
     qc.invalidateQueries({ queryKey: ['study-rooms'], refetchType: 'all' });
-
-    // SPA 내비게이션
-    e.preventDefault();
     navigate({ to: searchDetailRoute.to, search: { q } });
   };
 
   return (
-    <form
-      method="get"
-      action={searchDetailRoute.to} // 폴백: 혹시 JS 이슈가 있어도 반드시 /search-detail로 제출
-      onSubmit={handleSubmit}
-      className="relative flex items-center"
-    >
+    <div className="relative flex items-center" role="search">
       <div className="flex items-center px-6 py-3 gap-4 w-[37.5rem] h-[3.125rem] rounded-[2.625rem] bg-header-button-bg shadow-[inset_-0.375rem_-0.25rem_0.9375rem_0_var(--color-header-inset-light),inset_0.25rem_0.25rem_0.9375rem_0_var(--color-header-inset-dark)]">
         <button
-          type="submit"
+          type="button"
+          onClick={() => submit()}
           aria-label="검색 실행"
           className="shrink-0 p-0 bg-transparent border-0 cursor-pointer hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
-          onMouseDown={(e) => e.preventDefault()}
+          onMouseDown={(e) => e.preventDefault()} // 포커스 유지 원치 않으면 삭제
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -63,6 +55,7 @@ export const SearchBar = () => {
         </button>
 
         <input
+          ref={inputRef}
           type="text"
           name="q"
           maxLength={20}
@@ -70,9 +63,17 @@ export const SearchBar = () => {
           className="flex-1 bg-transparent border-none outline-none placeholder-header-text text-[1.25rem] font-medium leading-normal font-['Noto_Sans_KR'] text-header-text text-center"
           value={keyword}
           onChange={(e) => set(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter' && e.key !== 'NumpadEnter') return;
+            // 상위 폼 기본 제출/버블링 방지
+            e.preventDefault();
+            e.stopPropagation();
+            // 조합 중 여부와 관계없이 현재 값으로 즉시 검색
+            submit((e.currentTarget as HTMLInputElement).value);
+          }}
           aria-label="검색어"
         />
       </div>
-    </form>
+    </div>
   );
 };
