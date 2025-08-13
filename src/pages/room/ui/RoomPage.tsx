@@ -1,22 +1,23 @@
 import {
   useRejoinRoomMutation,
-  useRoomToken,
   useRoomInfoQuery,
+  useRoomToken,
 } from '@/entities/room/api/queries';
 import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 import { useAuth } from '@/entities/user';
 import { useRoomParticipantQuery } from '@/entities/user/api/queries/userQueries';
-import { useStopwatchStore } from '@/features/stopwatch';
-import { useRoomStateStore } from '@/features/room';
 import { usePomodoroStore } from '@/features/pomodoro';
+import { useRoomStateStore } from '@/features/room';
+import { useStopwatchStore } from '@/features/stopwatch';
 import { LIVEKIT_WS_URL } from '@/shared/config/livekit';
+import { useMediaSync } from '@/shared/hooks/useMediaSync';
+import { SmoreLogoHeader } from '@/shared/ui';
 import { Button } from '@/shared/ui/button';
 import { PermissionBanner } from '@/shared/ui/permission-banner';
 import { loadMediaSettings } from '@/shared/utils/mediaSettings';
-import { useMediaSync } from '@/shared/hooks/useMediaSync';
 import {
-  checkAllMediaPermissions,
   canUseMedia,
+  checkAllMediaPermissions,
   type MediaPermissionStatus,
 } from '@/shared/utils/permissionUtils';
 import { RoomLayout } from '@/widgets';
@@ -281,15 +282,15 @@ function RoomPage() {
   // 토큰이 없거나 재입장 중이면 로딩 상태
   if (!token || autoRejoinStatus === 'attempting') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="fixed inset-0 bg-[#101214] bg-opacity-95 flex flex-col items-center justify-center z-51 min-h-screen gap-6">
+        <SmoreLogoHeader />
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <h2 className="text-xl font-semibold mt-4 text-gray-900">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-white">
             {autoRejoinStatus === 'attempting'
-              ? '방에 재입장 중...'
-              : '스터디룸에 연결 중...'}
-          </h2>
-          <p className="text-gray-600 mt-2">잠시만 기다려주세요</p>
+              ? '방에 재입장 중'
+              : '스터디룸에 연결 중'}
+          </p>
         </div>
       </div>
     );
@@ -325,7 +326,8 @@ function RoomPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    // <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-[#101214]">
       {permissionStatus && (
         <PermissionBanner
           permissionStatus={permissionStatus}
@@ -337,12 +339,15 @@ function RoomPage() {
       )}
 
       {connectionStatus === 'connecting' && (
-        <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-40">
+        <div className="fixed inset-0 bg-[#101214] bg-opacity-95 flex flex-col items-center justify-center z-51 min-h-screen gap-6">
+          <SmoreLogoHeader />
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p>화상회의에 연결 중...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-lg text-white">화상 회의에 연결중</p>
             {retryCount > 0 && (
-              <p className="text-sm text-gray-500">재시도 {retryCount}회</p>
+              <p className="text-sm text-gray-500 mt-2">
+                재시도 {retryCount}회
+              </p>
             )}
           </div>
         </div>
@@ -390,7 +395,11 @@ function RoomPage() {
       >
         {!isSpeakerMuted && <RoomAudioRenderer />}
         <StartAudio label="" />
-        <RoomLayout />
+        <RoomLayout
+          isOwner={participantData?.isOwner || false}
+          isPomodoro={!!roomInfo?.focusTime}
+          roomTitle={roomInfo?.title}
+        />
       </LiveKitRoom>
     </div>
   );
