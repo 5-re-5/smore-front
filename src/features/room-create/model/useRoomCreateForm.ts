@@ -108,7 +108,7 @@ const roomCreateSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['password'],
-        message: '비공개 방에는 비밀번호를 입력해주세요',
+        message: '최소 1자, 최대 8자를 입력해주세요',
       });
     }
   });
