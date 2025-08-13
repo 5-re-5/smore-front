@@ -239,6 +239,7 @@ function PrejoinPage() {
                         placeholder="비밀번호를 입력하세요"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        maxLength={8}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !isJoining) {
