@@ -5,6 +5,7 @@ import {
   createDirectCroppedBlob,
   loadImageFromBlob,
 } from '@/features/focus-capture/model/imageResize';
+import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Trash2 } from 'lucide-react';
@@ -18,8 +19,6 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/png',
   'image/webp',
 ];
-
-const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const PROFILE_WIDTH = 40;

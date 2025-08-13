@@ -3,6 +3,7 @@ import type { StudyRoom } from '@/entities/study';
 import { UserIcon, LockIcon, ClockIcon } from '@/shared/ui/icons';
 import { Button } from '@/shared/ui';
 import { StudyModal } from './StudyModal';
+import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
 
 interface StudyCardProps {
   room: StudyRoom;
@@ -23,7 +24,7 @@ export function StudyCard({ room }: StudyCardProps) {
         {/* 썸네일 섹션 */}
         <div className="relative mt-[11px] mx-[10px]">
           <img
-            src={room.thumbnail || '/study-thumbnail.png'}
+            src={room.thumbnail || DEFAULT_PROFILE_IMG}
             alt={`${room.title} 썸네일`}
             className="w-full h-[160px] object-cover rounded-[30px]"
           />

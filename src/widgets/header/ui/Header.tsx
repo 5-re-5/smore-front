@@ -6,8 +6,7 @@ import { Logo } from './Logo';
 import { SearchBar } from './SearchBar';
 import { HeaderUserProfile } from './HeaderUserProfile';
 import { useSearchKeyword } from '@/shared/stores/useSearchKeyword';
-
-const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
+import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
 
 export const Header = () => {
   const { isLogin, userInfo, handleLogout } = useHeaderLogic();

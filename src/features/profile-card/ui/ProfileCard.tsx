@@ -3,8 +3,7 @@ import MarshmallowHeatmap, { type StudyPoint } from './MarshmallowHeatmap';
 import { useUserInfo } from '@/entities/user/model/useUserInfo';
 import { request } from '@/shared/api/request';
 import { useRouter } from '@tanstack/react-router';
-
-const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
+import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
 
 // 스낵 타입 정의
 type SnackType = 'O' | 'RE';
