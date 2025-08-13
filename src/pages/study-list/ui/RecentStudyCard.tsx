@@ -1,6 +1,6 @@
 import type { RecentStudyRoom } from '@/entities/study';
 import { Button } from '@/shared/ui/button';
-import { ArrowIcon, GroupIcon } from '@/shared/ui/icons';
+import { ArrowIcon, UserIcon } from '@/shared/ui/icons';
 import { useNavigate } from '@tanstack/react-router';
 
 interface RecentStudyCardProps {
@@ -41,7 +41,15 @@ export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
             </div>
 
             {/* 타이틀 */}
-            <h3 className="text-study-text text-lg font-bold leading-tight">
+            <h3
+              className="text-study-text text-lg font-bold leading-tight overflow-hidden"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                wordBreak: 'break-all',
+              }}
+            >
               {room.title}
             </h3>
 
@@ -50,8 +58,8 @@ export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
 
             {/* 참가자 수 */}
             <div className="flex items-center gap-[0.25rem] text-study-text text-sm">
-              <div className="text-study-primary">
-                <GroupIcon />
+              <div className="">
+                <UserIcon className="w-4 h-4 text-study-primary" />
               </div>
               <span>
                 {room.currentParticipants}/{room.maxParticipants}
