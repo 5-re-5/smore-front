@@ -30,6 +30,7 @@ import {
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { DisconnectReason } from 'livekit-client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
@@ -381,10 +382,11 @@ function RoomPage() {
           clearIntentionalExit(roomIdNumber); // 의도적 나가기 플래그 리셋
         }}
         onDisconnected={(reason?: DisconnectReason) => {
+          toast.error('룸 연결이 해제되었습니다.');
+          navigate({ to: '/study-list' });
           if (reason && reason !== DisconnectReason.CLIENT_INITIATED) {
             setConnectionStatus('disconnected');
             setErrorMessage(`연결이 해제되었습니다: ${reason}`);
-            console.log('연결이 해제되었습니다.');
           }
         }}
         onError={(error) => {
