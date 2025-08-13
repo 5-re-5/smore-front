@@ -3,6 +3,7 @@ import type { FunctionComponent } from 'react';
 import MarshmallowHeatmap, { type StudyPoint } from './MarshmallowHeatmap';
 import { useUserInfo } from '@/entities/user/model/useUserInfo';
 import { request } from '@/shared/api/request';
+import { useRouter } from '@tanstack/react-router';
 
 const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
 
@@ -183,8 +184,10 @@ const RouletteModal: React.FC<{
 };
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
+  const router = useRouter();
+
   const handleEditProfile = () => {
-    window.location.href = '/profile-edit';
+    router.navigate({ to: '/edit-page' });
   };
 
   const { data: userInfo } = useUserInfo();

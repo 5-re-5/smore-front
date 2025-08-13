@@ -225,6 +225,57 @@ export const createCroppedBlobWithDimensions = async (
 };
 
 /**
+ * 이미지 크기에 따라 적절한 방식으로 자르는 함수입니다.
+ * 큰 이미지: 스케일링 없이 가운데에서 바로 자르기
+ * 작은 이미지: 비율 유지하며 확대한 후 자르기
+ */
+export const createDirectCroppedBlob = async (
+  image: HTMLImageElement,
+  targetWidth: number,
+  targetHeight: number,
+  quality: number,
+  format: string,
+): Promise<Blob> => {
+  const originalWidth = image.width;
+  const originalHeight = image.height;
+
+  // 이미지가 목표 크기보다 큰 경우: 스케일링 없이 가운데에서 바로 자르기
+  if (originalWidth >= targetWidth && originalHeight >= targetHeight) {
+    // 중앙에서 자를 영역의 시작점 계산
+    const startX = (originalWidth - targetWidth) / 2;
+    const startY = (originalHeight - targetHeight) / 2;
+
+    // Canvas 설정 (목표 크기로)
+    const { context } = setupSharedCanvas(targetWidth, targetHeight);
+
+    // 이미지의 일부분만 Canvas에 그리기 (drawImage의 9-parameter 형식 사용)
+    context.drawImage(
+      image,
+      startX,
+      startY,
+      targetWidth,
+      targetHeight, // 소스 영역 (sx, sy, sWidth, sHeight)
+      0,
+      0,
+      targetWidth,
+      targetHeight, // 대상 영역 (dx, dy, dWidth, dHeight)
+    );
+
+    // Canvas를 Blob으로 변환
+    return sharedCanvasToBlob(format, quality);
+  }
+
+  // 이미지가 목표 크기보다 작은 경우: 기존 로직 사용 (비율 유지하며 확대 후 자르기)
+  return createCroppedBlobWithDimensions(
+    image,
+    targetWidth,
+    targetHeight,
+    quality,
+    format,
+  );
+};
+
+/**
  * 웹워커 확장성을 위한 인터페이스
  * 추후 웹워커로 이관할 때 동일한 인터페이스 사용 가능
  */
