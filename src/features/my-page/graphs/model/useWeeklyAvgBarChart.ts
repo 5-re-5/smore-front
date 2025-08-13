@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchWeeklyAvgBarChart } from '../api/WeeklyAvgBarChartApi';
 import type { WeeklyAvgBarChartApiResponse } from '../types/WeeklyAvgBarChartTypes';
 
-// 목데이터 (API 호출 실패 시 fallback)
+// API 실패 시 보여줄 fallback 목데이터 (5주치)
 const mockWeeklyGraph = [6.5, 8, 9.5, 7, 8.5];
 
 export function useWeeklyAvgBarChart(userId: string) {
@@ -11,13 +11,19 @@ export function useWeeklyAvgBarChart(userId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!userId) {
+      setWeeklyGraph(mockWeeklyGraph);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     fetchWeeklyAvgBarChart(userId)
       .then((data: WeeklyAvgBarChartApiResponse) => {
-        // ✅ 타입 적용 → data 형식 보장
-        setWeeklyGraph(data.data.weekly_graph);
+        setWeeklyGraph(data.weeklyGraph);
       })
       .catch((e: Error) => {
         setError(e.message || '네트워크 오류');

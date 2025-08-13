@@ -6,6 +6,7 @@ import { Logo } from './Logo';
 import { SearchBar } from './SearchBar';
 import { HeaderUserProfile } from './HeaderUserProfile';
 import { useSearchKeyword } from '@/shared/stores/useSearchKeyword';
+import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
 
 export const Header = () => {
   const { isLogin, userInfo, handleLogout } = useHeaderLogic();
@@ -55,7 +56,7 @@ export const Header = () => {
         </Link>
         <HeaderUserProfile
           nickname={userInfo.nickname}
-          profileUrl={userInfo.profileUrl}
+          profileUrl={userInfo.profileUrl || DEFAULT_PROFILE_IMG}
         />
 
         <Button

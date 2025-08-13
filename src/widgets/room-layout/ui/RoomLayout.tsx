@@ -5,19 +5,23 @@ import { StopwatchController } from '@/features/stopwatch';
 import { MediaToolbar } from '@/widgets/media-toolbar';
 import { useState } from 'react';
 import VideoGrid from './VideoGrid';
+import { useOwnerExitListener } from '@/features/room';
 
 interface RoomLayoutProps {
+  roomIdNumber: number;
   isOwner: boolean;
   isPomodoro: boolean;
   roomTitle?: string;
 }
 
 function RoomLayout({
+  roomIdNumber,
   isOwner,
   roomTitle = '스터디룸',
   isPomodoro,
 }: RoomLayoutProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  useOwnerExitListener(roomIdNumber);
 
   return (
     <div className="h-full flex flex-col">

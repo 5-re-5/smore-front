@@ -1,5 +1,6 @@
 import { request, REQUEST_METHOD } from '@/shared/api/request';
 import type { RecentStudyResponse, RecentStudyRoom } from '@/entities/study';
+import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
 
 interface RawRecentStudyRoom {
   roomId: number;
@@ -35,7 +36,7 @@ const adaptRecentStudyData = (
               .map((t) => t.trim())
               .filter((t) => t.length > 0)
           : [],
-        thumbnailUrl: room.thumbnailUrl,
+        thumbnailUrl: room.thumbnailUrl || DEFAULT_PROFILE_IMG,
         isDelete: room.isDelete,
       }),
     ),
