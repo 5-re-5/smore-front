@@ -369,6 +369,7 @@ function RoomPage() {
           if (reason && reason !== DisconnectReason.CLIENT_INITIATED) {
             setConnectionStatus('disconnected');
             setErrorMessage(`연결이 해제되었습니다: ${reason}`);
+            console.log('연결이 해제되었습니다.');
           }
         }}
         onError={(error) => {
@@ -390,6 +391,7 @@ function RoomPage() {
         {!isSpeakerMuted && <RoomAudioRenderer />}
         <StartAudio label="" />
         <RoomLayout
+          roomIdNumber={roomIdNumber}
           isOwner={participantData?.isOwner || false}
           isPomodoro={!!roomInfo?.focusTime}
           roomTitle={roomInfo?.title}
