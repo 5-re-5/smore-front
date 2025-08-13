@@ -1,11 +1,19 @@
+// src/features/my-page/graphs/api/WeeklyBarChartApi.ts
+import { request, REQUEST_METHOD } from '@/shared/api/request';
 import type { WeeklyBarChartApiResponse } from '../types/WeeklyBarChartTypes';
 
-export async function fetchWeeklyBarChart(
-  userId: string,
-): Promise<WeeklyBarChartApiResponse> {
-  const res = await fetch(
-    `${import.meta.env.VITE_BACK_URL}/api/v1/study-times/statistics/${userId}`,
-  );
-  if (!res.ok) throw new Error(`API 실패: ${res.status}`);
-  return res.json();
-}
+const getToken = (): string | null => {
+  return localStorage.getItem('accessToken');
+};
+
+export const fetchWeeklyBarChart = (userId: string) => {
+  const token = getToken();
+
+  return request<WeeklyBarChartApiResponse>({
+    method: REQUEST_METHOD.GET,
+    url: `/api/v1/study-times/statistics/${userId}`,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  }).then((res) => res.data);
+};

@@ -1,3 +1,4 @@
+//useAiFocusInsights.ts
 import { useEffect, useState } from 'react';
 import { getAiFocusInsights } from '../api/AiFocusLineChartApi';
 import type { AiInsights } from '../types/AiFocusLineChartTypes';
