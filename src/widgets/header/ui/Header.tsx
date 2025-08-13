@@ -5,14 +5,16 @@ import { useHeaderLogic } from '../model/useHeaderLogic';
 import { Logo } from './Logo';
 import { SearchBar } from './SearchBar';
 import { HeaderUserProfile } from './HeaderUserProfile';
+import { useSearchKeyword } from '@/shared/stores/useSearchKeyword';
 
 export const Header = () => {
   const { isLogin, userInfo, handleLogout } = useHeaderLogic();
+  const { clear } = useSearchKeyword();
 
   if (!isLogin) {
     return (
       <header className="flex items-center justify-between px-8 h-[5.625rem] bg-header-bg">
-        <Link to="/">
+        <Link to="/" onClick={clear}>
           <Logo />
         </Link>
         <div className="flex-1" />
@@ -32,7 +34,7 @@ export const Header = () => {
 
   return (
     <header className="flex items-center justify-between px-8 gap-6 h-[5.625rem] bg-header-bg">
-      <Link to="/study-list">
+      <Link to="/study-list" onClick={clear}>
         <Logo />
       </Link>
 

@@ -12,6 +12,7 @@ import {
 import { roomCreateRoute } from '@/pages/room-create/route';
 import { myPageRoute } from '@/pages/my-page/route';
 import { editPageRoute } from '@/pages/edit-page/route';
+import { searchDetailRoute } from '@/pages/search-detail-page/route';
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -23,6 +24,7 @@ const routeTree = rootRoute.addChildren([
   roomCreateRoute,
   myPageRoute,
   editPageRoute,
+  searchDetailRoute,
   // 여기에 다른 route 추가 가능
 ]);
 
