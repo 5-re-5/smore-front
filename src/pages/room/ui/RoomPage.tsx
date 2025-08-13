@@ -20,6 +20,7 @@ import {
   checkAllMediaPermissions,
   type MediaPermissionStatus,
 } from '@/shared/utils/permissionUtils';
+import { cleanupAllMediaTracks } from '@/shared/utils/trackCleanup';
 import { RoomLayout } from '@/widgets';
 import {
   LiveKitRoom,
@@ -273,6 +274,20 @@ function RoomPage() {
     return () => resetStopwatch();
   }, [resetStopwatch]);
 
+  // 브라우저 종료 시에만 track 정리 (탭 전환 시에는 정리하지 않음)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // 실제 브라우저 종료/새로고침 시에만 MediaTrack 정리
+      cleanupAllMediaTracks();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   // 토큰이 없거나 재입장 중이면 로딩 상태
   if (!token || autoRejoinStatus === 'attempting') {
     return (
@@ -369,6 +384,7 @@ function RoomPage() {
           if (reason && reason !== DisconnectReason.CLIENT_INITIATED) {
             setConnectionStatus('disconnected');
             setErrorMessage(`연결이 해제되었습니다: ${reason}`);
+            console.log('연결이 해제되었습니다.');
           }
         }}
         onError={(error) => {
@@ -390,6 +406,7 @@ function RoomPage() {
         {!isSpeakerMuted && <RoomAudioRenderer />}
         <StartAudio label="" />
         <RoomLayout
+          roomIdNumber={roomIdNumber}
           isOwner={participantData?.isOwner || false}
           isPomodoro={!!roomInfo?.focusTime}
           roomTitle={roomInfo?.title}

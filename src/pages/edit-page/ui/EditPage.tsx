@@ -227,6 +227,12 @@ function EditPage() {
       return;
     }
 
+    // OREO로 시작하는 닉네임 검증
+    if (nickname.trim().toUpperCase().startsWith('OREO')) {
+      toast.error('OREO로 시작하는 닉네임은 사용할 수 없습니다');
+      return;
+    }
+
     if (!userId) {
       toast.error('사용자 정보를 불러올 수 없습니다');
       return;
@@ -270,9 +276,9 @@ function EditPage() {
       });
 
       toast.success('프로필이 성공적으로 업데이트되었습니다');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('프로필 업데이트 실패:', error);
-      toast.error('프로필 업데이트에 실패했습니다');
+      toast.error('중복된 닉네임입니다.');
     } finally {
       setIsLoading(false);
     }
