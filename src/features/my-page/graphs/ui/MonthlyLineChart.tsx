@@ -120,7 +120,6 @@ const MonthlyLineChart: FunctionComponent<Props> = ({ userId }) => {
 
   const hours = getHoursArr(thisMonth).map(clampHour);
   const prevHours = getHoursArr(prevMonth).map(clampHour);
-  const hasData = hours.some((h) => h > 0) || prevHours.some((h) => h > 0);
 
   // 안전한 고유 ID (SVG url(#id) 호환)
   const uid = useMemo(() => 'mlc-' + Math.random().toString(36).slice(2), []);
@@ -137,9 +136,6 @@ const MonthlyLineChart: FunctionComponent<Props> = ({ userId }) => {
       </div>
     );
   }
-
-  const yTicks = [0, 2, 4, 6, 8, 10, 12];
-  const xTicks = [1, 5, 10, 15, 20, 25, 30];
 
   return (
     <div
