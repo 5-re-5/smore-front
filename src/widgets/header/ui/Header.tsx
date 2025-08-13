@@ -7,6 +7,8 @@ import { SearchBar } from './SearchBar';
 import { HeaderUserProfile } from './HeaderUserProfile';
 import { useSearchKeyword } from '@/shared/stores/useSearchKeyword';
 
+const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
+
 export const Header = () => {
   const { isLogin, userInfo, handleLogout } = useHeaderLogic();
   const { clear } = useSearchKeyword();
@@ -55,7 +57,7 @@ export const Header = () => {
         </Link>
         <HeaderUserProfile
           nickname={userInfo.nickname}
-          profileUrl={userInfo.profileUrl}
+          profileUrl={userInfo.profileUrl || DEFAULT_PROFILE_IMG}
         />
 
         <Button

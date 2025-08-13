@@ -19,6 +19,8 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/webp',
 ];
 
+const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
+
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const PROFILE_WIDTH = 40;
 const PROFILE_HEIGHT = 40;
@@ -231,9 +233,13 @@ function EditPage() {
       return;
     }
 
-    // 이름이 기존과 동일하면 무조건 에러
-    if (nickname.trim() === userInfo?.nickname) {
-      setNicknameError('기존 이름과 동일합니다. 다른 이름을 입력해주세요');
+    // 변경 사항 확인
+    const nicknameChanged = nickname.trim() !== userInfo?.nickname;
+    const imageChanged = profileImage !== null;
+
+    // 변경된 내용이 없는 경우
+    if (!nicknameChanged && !imageChanged) {
+      toast.info('변경된 내용이 없습니다');
       return;
     }
 
@@ -243,10 +249,21 @@ function EditPage() {
     setIsLoading(true);
 
     try {
-      await updateUserProfile(userId, {
-        nickname: nickname.trim(),
-        profileImage: profileImage || undefined,
-      });
+      // 변경된 필드만 포함하여 요청
+      const updateData: Partial<{
+        nickname: string;
+        profileImage: File;
+      }> = {};
+
+      if (nicknameChanged) {
+        updateData.nickname = nickname.trim();
+      }
+
+      if (imageChanged) {
+        updateData.profileImage = profileImage;
+      }
+
+      await updateUserProfile(userId, updateData);
 
       // 사용자 프로필 캐시 무효화
       queryClient.invalidateQueries({
@@ -254,7 +271,6 @@ function EditPage() {
       });
 
       toast.success('프로필이 성공적으로 업데이트되었습니다');
-      navigate({ to: '/my-page' });
     } catch (error) {
       console.error('프로필 업데이트 실패:', error);
       toast.error('프로필 업데이트에 실패했습니다');
@@ -288,15 +304,11 @@ function EditPage() {
             {/* 왼쪽 그룹: 썸네일 + 사진 변경 버튼 */}
             <div className="flex items-center">
               <div className="w-[2.5rem] h-[2.5rem] bg-gray-300 rounded-full overflow-hidden">
-                {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt="프로필 이미지"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-300"></div>
-                )}
+                <img
+                  src={previewUrl || DEFAULT_PROFILE_IMG}
+                  alt="프로필 이미지"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <button
                 className="ml-[2.75rem] h-[3.125rem] px-6 text-[0.875rem] rounded-[2.625rem]"
