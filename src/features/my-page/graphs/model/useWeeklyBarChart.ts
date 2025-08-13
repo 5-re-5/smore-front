@@ -23,7 +23,7 @@ export function useWeeklyBarChart(userId: string) {
 
     fetchWeeklyBarChart(userId)
       .then((data: WeeklyBarChartApiResponse) => {
-        setWeekdayGraph(data.weekday_graph);
+        setWeekdayGraph(data.weekdayGraph);
       })
       .catch((e: Error) => {
         console.error('[WeeklyBarChart] API 실패 → mock데이터 사용', e);

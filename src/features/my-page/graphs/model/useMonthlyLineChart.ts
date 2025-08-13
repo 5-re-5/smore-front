@@ -32,7 +32,9 @@ export function useMonthlyLineChart(userId: string) {
     fetchMonthlyStudyStatistics(userId)
       .then((res: ApiResponseForm<MonthlyLineChartApiResponse>) => {
         // res.data === MonthlyLineChartApiResponse
-        const points = res.data?.study_track?.points || mockMonth;
+        const points = res.data?.studyTrack?.points || mockMonth;
+        console.log(points);
+
         setMonthTrack(points);
       })
       .catch((err) => {
