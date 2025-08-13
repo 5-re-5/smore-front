@@ -1,23 +1,29 @@
-import { useState } from 'react';
+import ChatPanel from '@/features/chat/ui/ChatPanel';
+import { FocusGauge } from '@/features/focus-gauge';
 import { PomodoroSection } from '@/features/pomodoro';
 import { StopwatchController } from '@/features/stopwatch';
 import { MediaToolbar } from '@/widgets/media-toolbar';
-import ChatPanel from '@/features/chat/ui/ChatPanel';
+import { useState } from 'react';
 import VideoGrid from './VideoGrid';
 
 interface RoomLayoutProps {
   isOwner: boolean;
+  isPomodoro: boolean;
   roomTitle?: string;
 }
 
-function RoomLayout({ isOwner, roomTitle = '스터디룸' }: RoomLayoutProps) {
+function RoomLayout({
+  isOwner,
+  roomTitle = '스터디룸',
+  isPomodoro,
+}: RoomLayoutProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
     <div className="h-full flex flex-col">
       {/* 헤더 */}
-      <div className="bg-white border-b px-4 py-3">
-        <h1 className="text-lg font-semibold text-gray-900">{roomTitle}</h1>
+      <div className="bg-[#292D32] px-4 py-3">
+        <h1 className="text-lg font-semibold text-white">{roomTitle}</h1>
       </div>
 
       {/* 중간 영역: 도구들 + 카메라 + 채팅 */}
@@ -27,7 +33,8 @@ function RoomLayout({ isOwner, roomTitle = '스터디룸' }: RoomLayoutProps) {
           {/* Tools: Pomodoro + Stopwatch */}
           <div className="flex justify-center items-center py-4">
             <div className="flex items-center gap-8">
-              <PomodoroSection />
+              <FocusGauge />
+              {isPomodoro ? <PomodoroSection /> : null}
               <StopwatchController />
             </div>
           </div>

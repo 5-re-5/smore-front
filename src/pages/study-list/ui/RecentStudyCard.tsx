@@ -44,7 +44,7 @@ export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
             </h3>
 
             {/* 방장 이름 */}
-            <div className="text-study-text text-xs">{room.owner}</div>
+            <div className="text-study-text text-sm">{room.owner}</div>
 
             {/* 참가자 수 */}
             <div className="flex items-center gap-[0.25rem] text-study-text text-sm">
@@ -60,8 +60,11 @@ export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
             {/* 태그 */}
             <div className="flex flex-wrap gap-[0.25rem]">
               {room.tag.map((tag, index) => (
-                <span key={index} className="study-tag">
-                  {tag}
+                <span
+                  key={index}
+                  className="text-study-secondary text-xs font-bold "
+                >
+                  #{tag}
                 </span>
               ))}
             </div>

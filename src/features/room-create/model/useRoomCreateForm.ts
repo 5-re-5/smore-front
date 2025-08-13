@@ -122,8 +122,8 @@ export const useRoomCreateForm = () => {
       maxParticipants: 6,
       category: '',
       isPomodoroEnabled: true,
-      focusTime: 25,
-      breakTime: 5,
+      focusTime: undefined,
+      breakTime: undefined,
       tags: [],
       description: '',
       thumbnailFile: undefined,
@@ -144,8 +144,8 @@ export const useRoomCreateForm = () => {
         maxParticipants: data.maxParticipants,
         tag: data.tags.length > 0 ? data.tags.join(',') : undefined,
         category: CATEGORY_MAP[data.category as keyof typeof CATEGORY_MAP],
-        focusTime: data.isPomodoroEnabled ? data.focusTime : undefined,
-        breakTime: data.isPomodoroEnabled ? data.breakTime : undefined,
+        focusTime: data.isPomodoroEnabled ? data.focusTime || 25 : undefined,
+        breakTime: data.isPomodoroEnabled ? data.breakTime || 5 : undefined,
         roomImage: data.thumbnailFile,
       };
 

@@ -13,6 +13,7 @@ import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
 import type { ApiError } from '@/shared/api/request';
 import { Button } from '@/shared/ui/button';
 import { ArrowIcon } from '@/shared/ui/icons';
+import { SmoreLogoHeader } from '@/shared/ui';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,22 +25,6 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-
-const SmoreLogoHeader = () => {
-  return (
-    <h1
-      className="flex-1 text-center text-4xl font-black"
-      style={{ fontFamily: 'Black Han Sans' }}
-    >
-      <span className="text-white">S</span>
-      <span className="text-white">'</span>
-      <span className="text-white">m</span>
-      <span className="text-[#F75804]">o</span>
-      <span className="text-white">r</span>
-      <span className="text-white">e</span>
-    </h1>
-  );
-};
 
 const RoomNotFoundAlert = ({
   open,

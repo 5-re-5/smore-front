@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useStopwatchStore } from '@/features/stopwatch/model/useStopwatchStore';
 import { useFaceDetectionStore } from '@/features/face-detection';
+import { useFocusStore } from '@/features/focus-gauge/model/useFocusStore';
 import { useCameraCapture } from './useCameraCapture';
 import { resizeImageToTargetSize } from './imageResize';
 import { submitFocusImage } from '@/entities/focus/api/focusRecordsApi';
@@ -53,7 +54,7 @@ export const useAutoCaptureScheduler = (
   const getUserId = useAuthStore((state) => state.getUserId);
 
   /**
-   * 단일 캡쳐 작업 실행
+   * 단일 캡처 작업 실행
    */
   const executeSingleCapture = useCallback(async (): Promise<void> => {
     if (!videoRef.current || !enabled || !isFaceDetectionEnabled) {
@@ -66,7 +67,7 @@ export const useAutoCaptureScheduler = (
     }
 
     try {
-      // 1. 이미지 캡쳐
+      // 1. 이미지 캡처
       const capturedImage = await captureImageFromVideo(videoRef.current);
 
       // 2. 이미지 리사이징
@@ -76,10 +77,13 @@ export const useAutoCaptureScheduler = (
       });
 
       // 3. AI 서버 전송
-      await submitFocusImage({
+      const response = await submitFocusImage({
         userId,
         image: resizeResult.blob,
       });
+
+      // 4. 집중도 데이터를 store에 저장
+      useFocusStore.getState().setCurrentFocus(response.record);
 
       // 성공 stats 업데이트
       setStats((prev) => ({
@@ -95,7 +99,7 @@ export const useAutoCaptureScheduler = (
         failedCaptures: prev.failedCaptures + 1,
       }));
 
-      console.warn('자동 캡쳐 실패:', error);
+      console.warn('자동 캡처 실패:', error);
     }
   }, [
     videoRef,

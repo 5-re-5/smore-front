@@ -1,3 +1,4 @@
+import { Pause, Play } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { useStopwatchStore } from '../model/useStopwatchStore';
 
@@ -67,7 +68,15 @@ export const StopwatchController = () => {
   };
 
   return (
-    <div className="bg-black text-gray-400 p-3 rounded-lg w-100">
+    <div
+      className="text-gray-600 p-3 w-100"
+      style={{
+        borderRadius: '7.56px',
+        background: isRunning ? '#E5ECF6' : '#F6E5E5',
+        boxShadow:
+          '0 -1.599px 1.599px 0 #D8DFE8 inset, 0 1.599px 1.599px 0 #EFF6FF inset, 0 6.048px 12.096px 0 rgba(46, 47, 49, 0.17)',
+      }}
+    >
       {apiError && (
         <div className="mb-2 p-2 bg-red-900 text-red-200 rounded text-xs">
           {apiError}
@@ -76,18 +85,26 @@ export const StopwatchController = () => {
       <div className="flex items-center justify-between gap-1">
         <button
           onClick={handleStartPause}
-          className="bg-gray-600 px-3 py-1 rounded-md text-white text-sm"
+          className="px-3 py-1 text-sm flex items-center gap-1"
+          style={{
+            borderRadius: '5.292px',
+            background: isRunning ? '#E5ECF6' : '#F6E5E5',
+            boxShadow:
+              '0 -1.12px 1.12px 0 #D8DFE8 inset, 0 1.12px 1.12px 0 #EFF6FF inset, 0 4.234px 8.467px 0 rgba(46, 47, 49, 0.17)',
+            color: isRunning ? '#3B82F6' : '#EF4444',
+          }}
         >
+          {isRunning ? <Pause size={16} /> : <Play size={16} />}
           {isRunning ? '정지' : '시작'}
         </button>
         <div className="flex-1 text-center">
-          <div className="text-sm">오늘 공부 시간</div>
+          <div className="text-xs">오늘 공부 시간</div>
           <div className="text-lg font-mono">
             {formatTime(serverTodayStudyTime + todayTotalTime)}
           </div>
         </div>
         <div className="flex-1 text-center">
-          <div className="text-sm">목표 시간</div>
+          <div className="text-xs">목표 시간</div>
           <div className="text-lg font-mono">
             {formatTime(serverTargetStudyTime)}
           </div>
