@@ -3,211 +3,234 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { ChatMessage } from '@/shared/types/chatMessage.interface';
 
+/**
+ * ✅ 이 스토어가 보장하는 것
+ * - (기본) 서버가 준 정렬을 **그대로 유지**하여 렌더 (정렬 OFF)
+ * - messageId → clientMessageId → (createdAt/timestamp + userId + content) 순으로 **중복 제거**
+ * - 구 스키마( type/timestamp/sender )와 신 스키마( messageType/createdAt/user )를 모두 **흡수**
+ * - update/remove/getById는 messageId 또는 clientMessageId 기준
+ *
+ * ⚙️ 옵션:
+ * - RESPECT_SERVER_ORDER: true 이면 정렬을 절대 수행하지 않음 (서버 순서 그대로)
+ * - SERVER_ORDER_ASC: 서버가 오래된→최신(오름차순)으로 내려주면 true, 최신→오래된이면 false
+ */
+const RESPECT_SERVER_ORDER = true;  // 서버 정렬을 그대로 사용 (정렬 로직 OFF)
+const SERVER_ORDER_ASC = true;      // 서버 정렬이 오름차순이면 true, 내림차순이면 false
+
+/* ------------------------------ 유틸 ------------------------------ */
+
+/** 메시지 타입 통일: 'GROUP'|'SYSTEM'|'PRIVATE'(구) → 'CHAT'|'SYSTEM'|'PRIVATE'(신) */
+const normalizeType = (msg: any): 'CHAT' | 'SYSTEM' | 'PRIVATE' | string => {
+  if (msg?.messageType) return msg.messageType;
+  if (msg?.type === 'GROUP') return 'CHAT';
+  if (msg?.type === 'SYSTEM') return 'SYSTEM';
+  if (msg?.type === 'PRIVATE') return 'PRIVATE';
+  return String(msg?.type ?? 'CHAT');
+};
+
+/** 보낸 사람 userId 통일 */
+const getUserIdFrom = (msg: any): string | number | undefined => {
+  return msg?.user?.userId ?? msg?.sender?.userId ?? msg?.senderId ?? msg?.authorId;
+};
+
+/** createdAt(신) 또는 timestamp(구) → ms */
+const toTime = (msg: any): number => {
+  const iso = msg?.createdAt ?? msg?.timestamp;
+  const t = iso ? Date.parse(iso) : NaN;
+  return Number.isNaN(t) ? 0 : t;
+};
+
+/** 중복 판별용 키 (서버 ID 우선) */
+const primaryId = (msg: any): string => {
+  if (msg?.messageId != null) return `m:${String(msg.messageId)}`;
+  if (msg?.clientMessageId) return `c:${String(msg.clientMessageId)}`;
+  const uid = getUserIdFrom(msg);
+  return `f:${msg?.createdAt ?? msg?.timestamp ?? ''}|${uid ?? ''}|${msg?.content ?? ''}`;
+};
+
+/** (정렬 ON일 때만 사용) 오름차순 정렬: createdAt/timestamp → messageId */
+const compareAsc = (a: any, b: any) => {
+  const ta = toTime(a);
+  const tb = toTime(b);
+  if (ta !== tb) return ta - tb;
+  const am = a?.messageId, bm = b?.messageId;
+  if (typeof am === 'number' && typeof bm === 'number') return am - bm;
+  return String(am ?? '').localeCompare(String(bm ?? ''));
+};
+
+/* ---------------------------- 스토어 타입 ---------------------------- */
+
 interface ChatMessageState {
-  // 상태 - 전체 메시지를 하나의 배열에 저장
-  allMessages: ChatMessage[];
+  allMessages: ChatMessage[];   // 서버 정렬을 그대로 유지
   isLoading: boolean;
   error: string | null;
-  isHistoryLoaded: boolean; // 초기 히스토리 로드 완료 여부
+  isHistoryLoaded: boolean;
 
-  // 액션들
+  // 기본 액션
   addMessage: (message: ChatMessage) => void;
   setAllMessages: (messages: ChatMessage[]) => void;
-  addMessages: (
-    messages: ChatMessage[],
-    position?: 'prepend' | 'append',
-  ) => void;
-  removeMessage: (messageId: string) => void;
+  setMessages: (messages: ChatMessage[]) => void; // 별칭(호환)
+  addMessages: (messages: ChatMessage[], position?: 'prepend' | 'append') => void;
+  updateMessage: (messageId: string | number, updates: Partial<ChatMessage>) => void;
+  removeMessage: (messageId: string | number) => void;
   clearMessages: () => void;
-  updateMessage: (messageId: string, updates: Partial<ChatMessage>) => void;
 
-  // 로딩 상태 관리
+  // 상태
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setHistoryLoaded: (loaded: boolean) => void;
 
-  // 클라이언트 사이드 필터링 유틸리티
+  // 조회 유틸 (구/신 스키마 모두 허용)
   getFilteredMessages: (filter: {
-    type?: ChatMessage['type'] | ChatMessage['type'][];
+    type?: any; // ChatMessage['type'] | ChatMessage['messageType'] | 배열
     userId?: string;
     currentUserId?: string;
   }) => ChatMessage[];
-  getMessageById: (messageId: string) => ChatMessage | undefined;
-  getMessagesCount: (type?: ChatMessage['type']) => number;
+  getMessageById: (messageId: string | number) => ChatMessage | undefined;
+  getMessagesCount: (type?: any) => number;
 }
 
 export const useChatMessageStore = create<ChatMessageState>()(
   devtools(
     (set, get) => ({
-      // 초기 상태 - 모든 메시지를 하나의 배열에 저장
       allMessages: [],
       isLoading: false,
       error: null,
       isHistoryLoaded: false,
 
-      // 메시지 추가 (실시간으로 새 메시지 받을 때)
-      addMessage: (message: ChatMessage) => {
+      /* -------------------------- 단건 추가(실시간) -------------------------- */
+      addMessage: (incoming: ChatMessage) => {
         set((state) => {
-          // 중복 메시지 체크 (같은 시간, 같은 발신자, 같은 내용)
-          const isDuplicate = state.allMessages.some(
-            (msg) =>
-              msg.timestamp === message.timestamp &&
-              msg.sender.userId === message.sender.userId &&
-              msg.content === message.content,
-          );
+          const next = [...state.allMessages];
+          const key = primaryId(incoming);
+          const idx = next.findIndex((m) => primaryId(m) === key);
 
-          if (isDuplicate) {
-            console.warn('중복 메시지 무시:', message);
-            return state;
+          if (idx >= 0) {
+            // 서버 에코가 낙관적 메시지를 대체하도록 병합
+            next[idx] = { ...next[idx], ...incoming };
+          } else {
+            // 서버 정렬을 존중: 오름차순이면 뒤에, 내림차순이면 앞에 붙인다
+            if (RESPECT_SERVER_ORDER) {
+              SERVER_ORDER_ASC ? next.push(incoming) : next.unshift(incoming);
+            } else {
+              next.push(incoming);
+              next.sort(compareAsc);
+            }
           }
 
-          // 새 메시지를 맨 뒤에 추가 (최신 메시지)
-          const newMessages = [...state.allMessages, message];
-
-          // 시간순 정렬 (오래된 것부터)
-          newMessages.sort(
-            (a, b) =>
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-          );
-
-          console.log('새 메시지 추가:', message);
-          return { allMessages: newMessages };
+          return { allMessages: next };
         });
       },
 
-      // 전체 메시지 목록 설정 (히스토리 로드할 때)
+      /* -------------------------- 전체 설정(초기 이력) -------------------------- */
       setAllMessages: (messages: ChatMessage[]) => {
         set(() => {
-          console.log(`전체 메시지 목록 설정: ${messages.length}개`);
-          return {
-            allMessages: [...messages],
-            isHistoryLoaded: true,
-          };
+          // 중복 병합(순서 보존): 먼저 들어온 항목의 "자리"를 유지하면서 데이터는 최신으로 합쳐짐
+          const dedup = new Map<string, ChatMessage>();
+          for (const m of messages) {
+            const k = primaryId(m);
+            if (!dedup.has(k)) dedup.set(k, m);
+            else dedup.set(k, { ...dedup.get(k)!, ...m });
+          }
+          const arr = [...dedup.values()];
+          if (!RESPECT_SERVER_ORDER) arr.sort(compareAsc);
+          return { allMessages: arr, isHistoryLoaded: true };
         });
       },
 
-      // 호환성을 위한 별칭 (기존 코드와의 호환성)
+      // 구 API 호환
       setMessages: (messages: ChatMessage[]) => {
         get().setAllMessages(messages);
       },
 
-      // 메시지 목록 추가 (무한 스크롤용)
-      addMessages: (
-        newMessages: ChatMessage[],
-        position: 'prepend' | 'append' = 'append',
-      ) => {
+      /* ------------------------ 다건 추가(히스토리 페이지) ------------------------ */
+      addMessages: (newMessages: ChatMessage[], position: 'prepend' | 'append' = 'append') => {
         set((state) => {
-          let updatedMessages: ChatMessage[];
+          // position 힌트에 따라 앞/뒤로 합치되, 최종 순서는 서버가 내려준 순서를 존중
+          const merged = position === 'prepend'
+            ? [...newMessages, ...state.allMessages]
+            : [...state.allMessages, ...newMessages];
 
-          if (position === 'prepend') {
-            // 앞쪽에 추가 (오래된 메시지들)
-            updatedMessages = [...newMessages, ...state.allMessages];
-          } else {
-            // 뒤쪽에 추가 (새로운 메시지들)
-            updatedMessages = [...state.allMessages, ...newMessages];
+          const dedup = new Map<string, ChatMessage>();
+          for (const m of merged) {
+            const k = primaryId(m);
+            if (!dedup.has(k)) dedup.set(k, m);
+            else dedup.set(k, { ...dedup.get(k)!, ...m }); // 같은 자리 유지 + 데이터 갱신
           }
+          const arr = [...dedup.values()];
+          if (!RESPECT_SERVER_ORDER) arr.sort(compareAsc);
+          return { allMessages: arr };
+        });
+      },
 
-          // 중복 제거 (timestamp + userId + content 기준)
-          const uniqueMessages = updatedMessages.filter((msg, index, arr) => {
-            return (
-              arr.findIndex(
-                (m) =>
-                  m.timestamp === msg.timestamp &&
-                  m.sender.userId === msg.sender.userId &&
-                  m.content === msg.content,
-              ) === index
-            );
+      /* ------------------------------ 업데이트 ------------------------------ */
+      updateMessage: (messageId: string | number, updates: Partial<ChatMessage>) => {
+        set((state) => {
+          const next = state.allMessages.map((m: any) => {
+            const mid = m?.messageId != null ? String(m.messageId) : undefined;
+            const cid = m?.clientMessageId != null ? String(m.clientMessageId) : undefined;
+            const cmp = String(messageId);
+            if (mid === cmp || cid === cmp) return { ...m, ...updates };
+            return m;
           });
-
-          // 시간순 정렬
-          uniqueMessages.sort(
-            (a, b) =>
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-          );
-
-          console.log(
-            `메시지 추가 (${position}): ${newMessages.length}개, 총 ${uniqueMessages.length}개`,
-          );
-          return { allMessages: uniqueMessages };
+          if (!RESPECT_SERVER_ORDER) next.sort(compareAsc);
+          return { allMessages: next };
         });
       },
 
-      // 메시지 삭제
-      removeMessage: (messageId: string) => {
-        set((state) => ({
-          allMessages: state.allMessages.filter((msg) => {
-            // ID가 없는 경우 timestamp + content로 식별
-            if (!messageId) return true;
-
-            // 실제 ID가 있는 경우 (백엔드에서 생성된 메시지)
-            const msgId = `${msg.timestamp}-${msg.sender.userId}-${msg.content}`;
-            return msgId !== messageId;
-          }),
-        }));
+      /* -------------------------------- 삭제 -------------------------------- */
+      removeMessage: (messageId: string | number) => {
+        set((state) => {
+          const cmp = String(messageId);
+          const filtered = state.allMessages.filter((m: any) => {
+            const mid = m?.messageId != null ? String(m.messageId) : undefined;
+            const cid = m?.clientMessageId != null ? String(m.clientMessageId) : undefined;
+            if (mid && mid === cmp) return false;
+            if (cid && cid === cmp) return false;
+            return true;
+          });
+          return { allMessages: filtered };
+        });
       },
 
-      // 모든 메시지 삭제
+      /* ------------------------------ 초기화 ------------------------------ */
       clearMessages: () => {
-        set(() => {
-          console.log('모든 메시지 삭제');
-          return {
-            allMessages: [],
-            isHistoryLoaded: false,
-          };
-        });
+        set(() => ({ allMessages: [], isHistoryLoaded: false }));
       },
 
-      // 메시지 업데이트 (상태 변경 등)
-      updateMessage: (messageId: string, updates: Partial<ChatMessage>) => {
-        set((state) => ({
-          allMessages: state.allMessages.map((msg) => {
-            const msgId = `${msg.timestamp}-${msg.sender.userId}-${msg.content}`;
-            return msgId === messageId ? { ...msg, ...updates } : msg;
-          }),
-        }));
-      },
+      /* ------------------------------ 상태 ------------------------------ */
+      setLoading: (loading: boolean) => set(() => ({ isLoading: loading })),
+      setError: (error: string | null) => set(() => ({ error })),
+      setHistoryLoaded: (loaded: boolean) => set(() => ({ isHistoryLoaded: loaded })),
 
-      // 로딩 상태 설정
-      setLoading: (loading: boolean) => {
-        set(() => ({ isLoading: loading }));
-      },
-
-      // 에러 상태 설정
-      setError: (error: string | null) => {
-        set(() => ({ error }));
-      },
-
-      // 히스토리 로드 상태 설정
-      setHistoryLoaded: (loaded: boolean) => {
-        set(() => ({ isHistoryLoaded: loaded }));
-      },
-
-      // 클라이언트 사이드 필터링 (핵심 기능)
-      getFilteredMessages: (filter: {
-        type?: ChatMessage['type'] | ChatMessage['type'][];
-        userId?: string;
-        currentUserId?: string;
-      }) => {
+      /* ----------------------------- 필터/조회 ----------------------------- */
+      getFilteredMessages: (filter) => {
         const state = get();
+        const types = filter.type
+          ? (Array.isArray(filter.type) ? filter.type : [filter.type])
+          : undefined;
 
-        return state.allMessages.filter((msg) => {
-          // 타입 필터링
-          if (filter.type) {
-            const types = Array.isArray(filter.type)
-              ? filter.type
-              : [filter.type];
-            if (!types.includes(msg.type)) return false;
+        return state.allMessages.filter((msg: any) => {
+          // 타입 필터(구/신 통합). 'GROUP'이 넘어와도 'CHAT'과 매칭되도록 허용
+          if (types && types.length) {
+            const norm = normalizeType(msg);
+            const ok = types.some((t) => {
+              if (t === 'GROUP') return norm === 'CHAT';
+              return norm === t || norm === String(t);
+            });
+            if (!ok) return false;
           }
 
-          // 개인 메시지 필터링 (특정 사용자와의 대화)
-          if (filter.userId && filter.currentUserId && msg.type === 'PRIVATE') {
-            const isFromSelected =
-              msg.sender.userId?.toString() === filter.userId;
-            const isToSelected = msg.receiver === filter.userId;
-            const isFromMe =
-              msg.sender.userId?.toString() === filter.currentUserId;
-            const isToMe = msg.receiver === filter.currentUserId;
-
+          // PRIVATE 쿼리(레거시 호환): sender/receiver 기준
+          if (filter.userId && filter.currentUserId && normalizeType(msg) === 'PRIVATE') {
+            const from = String(getUserIdFrom(msg) ?? '');
+            const to   = String(msg?.receiver ?? msg?.to ?? '');
+            const sel  = String(filter.userId);
+            const me   = String(filter.currentUserId);
+            const isFromSelected = from === sel;
+            const isToSelected   = to === sel;
+            const isFromMe       = from === me;
+            const isToMe         = to === me;
             return (isFromSelected && isToMe) || (isFromMe && isToSelected);
           }
 
@@ -215,72 +238,52 @@ export const useChatMessageStore = create<ChatMessageState>()(
         });
       },
 
-      // 메시지 ID로 찾기
-      getMessageById: (messageId: string) => {
+      getMessageById: (messageId: string | number) => {
         const state = get();
-        return state.allMessages.find((msg) => {
-          const msgId = `${msg.timestamp}-${msg.sender.userId}-${msg.content}`;
-          return msgId === messageId;
+        const cmp = String(messageId);
+        return state.allMessages.find((m: any) => {
+          const mid = m?.messageId != null ? String(m.messageId) : undefined;
+          const cid = m?.clientMessageId != null ? String(m.clientMessageId) : undefined;
+          return mid === cmp || cid === cmp;
         });
       },
 
-      // 메시지 개수 조회 (타입별 가능)
-      getMessagesCount: (type?: ChatMessage['type']) => {
+      getMessagesCount: (type?: any) => {
         const state = get();
         if (!type) return state.allMessages.length;
-        return state.allMessages.filter((msg) => msg.type === type).length;
+        return state.allMessages.filter((m) => normalizeType(m) === (type === 'GROUP' ? 'CHAT' : type)).length;
       },
     }),
-    {
-      name: 'chat-message-store', // devtools에서 보이는 이름
-    },
+    { name: 'chat-message-store' },
   ),
 );
 
-// 편의 훅들 - 클라이언트 사이드 필터링 기반
-export const useChatMessages = () => {
-  return useChatMessageStore((state) => state.allMessages);
-};
+/* ------------------------------ 선택자 훅 ------------------------------ */
+// 전체
+export const useAllMessages = () =>
+  useChatMessageStore((s) => s.allMessages);
 
-export const useAllMessages = () => {
-  return useChatMessageStore((state) => state.allMessages);
-};
+// 로딩/에러
+export const useChatLoading = () =>
+  useChatMessageStore((s) => s.isLoading);
+export const useChatError = () =>
+  useChatMessageStore((s) => s.error);
 
-export const useChatLoading = () => {
-  return useChatMessageStore((state) => state.isLoading);
-};
+// 히스토리 로드 여부
+export const useHistoryLoaded = () =>
+  useChatMessageStore((s) => s.isHistoryLoaded);
 
-export const useChatError = () => {
-  return useChatMessageStore((state) => state.error);
-};
-
-// 선택자 훅들 (성능 최적화) - 클라이언트 사이드 필터링 활용
-export const useGroupMessages = () => {
-  return useChatMessageStore((state) =>
-    state.getFilteredMessages({ type: ['GROUP', 'SYSTEM'] }),
+// 그룹(= CHAT) + 시스템
+export const useGroupMessages = () =>
+  useChatMessageStore((s) =>
+    s.getFilteredMessages({ type: ['CHAT', 'SYSTEM'] }),
   );
-};
 
-export const usePrivateMessages = () => {
-  return useChatMessageStore((state) =>
-    state.getFilteredMessages({ type: 'PRIVATE' }),
+// 개인(레거시 호환; 현재 프로젝트에선 비사용)
+export const usePrivateMessages = () =>
+  useChatMessageStore((s) => s.getFilteredMessages({ type: 'PRIVATE' }));
+
+export const usePrivateMessagesWithUser = (userId: string, currentUserId: string) =>
+  useChatMessageStore((s) =>
+    s.getFilteredMessages({ type: 'PRIVATE', userId, currentUserId }),
   );
-};
-
-export const usePrivateMessagesWithUser = (
-  userId: string,
-  currentUserId: string,
-) => {
-  return useChatMessageStore((state) =>
-    state.getFilteredMessages({
-      type: 'PRIVATE',
-      userId,
-      currentUserId,
-    }),
-  );
-};
-
-// 히스토리 로드 상태 훅
-export const useHistoryLoaded = () => {
-  return useChatMessageStore((state) => state.isHistoryLoaded);
-};
