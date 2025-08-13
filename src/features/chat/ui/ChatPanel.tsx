@@ -23,10 +23,10 @@ const isNumericString = (v: unknown): v is string =>
   typeof v === 'string' && /^\d+$/.test(v);
 
 export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
-  console.log('🎯 ChatPanel 컴포넌트 렌더링:', {
-    isOpen,
-    timestamp: new Date().toISOString(),
-  });
+  // console.log('🎯 ChatPanel 컴포넌트 렌더링:', {
+  //   isOpen,
+  //   timestamp: new Date().toISOString(),
+  // });
 
   const IS_TEST_MODE = import.meta.env.VITE_STOMP_TEST_MODE === 'true';
 

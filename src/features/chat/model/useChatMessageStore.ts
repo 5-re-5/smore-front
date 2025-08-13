@@ -138,10 +138,10 @@ export const useChatMessageStore = create<ChatMessageState>()(
 
       /* -------------------------- 전체 설정(초기 이력) -------------------------- */
       setAllMessages: (messages: ChatMessage[]) => {
-        console.log('📝 setAllMessages 호출됨:', {
-          messagesCount: messages.length,
-          messages: messages.slice(0, 2),
-        });
+        // console.log('📝 setAllMessages 호출됨:', {
+        //   messagesCount: messages.length,
+        //   messages: messages.slice(0, 2),
+        // });
         set(() => {
           // 중복 병합(순서 보존): 먼저 들어온 항목의 "자리"를 유지하면서 데이터는 최신으로 합쳐짐
           const dedup = new Map<string, ChatMessage>();
@@ -152,10 +152,10 @@ export const useChatMessageStore = create<ChatMessageState>()(
           }
           const arr = [...dedup.values()];
           if (!RESPECT_SERVER_ORDER) arr.sort(compareAsc);
-          console.log('📝 setAllMessages 완료:', {
-            resultCount: arr.length,
-            isHistoryLoaded: true,
-          });
+          // console.log('📝 setAllMessages 완료:', {
+          //   resultCount: arr.length,
+          //   isHistoryLoaded: true,
+          // });
           return { allMessages: arr, isHistoryLoaded: true };
         });
       },
@@ -230,7 +230,7 @@ export const useChatMessageStore = create<ChatMessageState>()(
 
       /* ------------------------------ 초기화 ------------------------------ */
       clearMessages: () => {
-        console.log('🗑️ clearMessages 호출됨 - 스토어 초기화');
+        // console.log('🗑️ clearMessages 호출됨 - 스토어 초기화');
         set(() => ({ allMessages: [], isHistoryLoaded: false }));
       },
 

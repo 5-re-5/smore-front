@@ -175,11 +175,11 @@ export function useChatHistory(
   roomId: string | number | null | undefined,
   opts: Options = {},
 ) {
-  console.log('🎪 useChatHistory 훅 호출됨:', {
-    roomId,
-    opts,
-    timestamp: new Date().toISOString(),
-  });
+  // console.log('🎪 useChatHistory 훅 호출됨:', {
+  //   roomId,
+  //   opts,
+  //   timestamp: new Date().toISOString(),
+  // });
 
   const {
     pageSize = 50,
@@ -225,27 +225,27 @@ export function useChatHistory(
   const lastLoadedRoomIdRef = useRef<string | number | null>(null);
 
   // 의존성 값들을 별도로 로깅
-  console.log('🔍 useEffect 의존성 값들:', {
-    roomId,
-    autoInitial,
-    isHistoryLoaded,
-    messageCount,
-    'roomId 타입': typeof roomId,
-    'roomId 값': roomId,
-  });
+  // console.log('🔍 useEffect 의존성 값들:', {
+  //   roomId,
+  //   autoInitial,
+  //   isHistoryLoaded,
+  //   messageCount,
+  //   'roomId 타입': typeof roomId,
+  //   'roomId 값': roomId,
+  // });
 
   /** 초기 1페이지 로드 */
   const loadInitial = useCallback(async () => {
-    console.log('🚀 loadInitial 호출됨:', {
-      roomId,
-      timestamp: new Date().toISOString(),
-    });
+    // console.log('🚀 loadInitial 호출됨:', {
+    //   roomId,
+    //   timestamp: new Date().toISOString(),
+    // });
 
     if (!roomId) return;
 
     // 이미 로딩 중이면 중복 호출 방지
     if (isInitialLoading) {
-      console.log('⏸️ loadInitial 중복 호출 방지 - 이미 로딩 중');
+      // console.log('⏸️ loadInitial 중복 호출 방지 - 이미 로딩 중');
       return;
     }
 
@@ -274,33 +274,33 @@ export function useChatHistory(
       } = ingestHistoryResponse(wrappedResponse);
 
       // 디버깅: API 응답 전체 구조 확인
-      console.log('📨 API 응답 전체 구조:', {
-        fullResponse: res,
-        resData: res.data,
-        resDataKeys: Object.keys(res.data || {}),
-        resDataType: typeof res.data,
-      });
+      // console.log('📨 API 응답 전체 구조:', {
+      //   fullResponse: res,
+      //   resData: res.data,
+      //   resDataKeys: Object.keys(res.data || {}),
+      //   resDataType: typeof res.data,
+      // });
 
       // 디버깅: API 응답 처리
-      console.log('📨 API 응답 처리:', {
-        roomId,
-        rawResponseContent: responseData?.content,
-        rawContentLength: responseData?.content?.length,
-        parsedItems: items,
-        itemsCount: items.length,
-        hasNext: next,
-        nextCursor,
-        firstRawItem: responseData?.content?.[0],
-        firstParsedItem: items[0],
-      });
+      // console.log('📨 API 응답 처리:', {
+      //   roomId,
+      //   rawResponseContent: responseData?.content,
+      //   rawContentLength: responseData?.content?.length,
+      //   parsedItems: items,
+      //   itemsCount: items.length,
+      //   hasNext: next,
+      //   nextCursor,
+      //   firstRawItem: responseData?.content?.[0],
+      //   firstParsedItem: items[0],
+      // });
 
       setAllMessages(items); // ✅ 스토어 반영
 
       // 디버깅: 스토어에 저장 후 상태 확인
-      console.log('💾 스토어 저장 후:', {
-        storeMessages: useChatMessageStore.getState().allMessages,
-        storeCount: useChatMessageStore.getState().allMessages.length,
-      });
+      // console.log('💾 스토어 저장 후:', {
+      //   storeMessages: useChatMessageStore.getState().allMessages,
+      //   storeCount: useChatMessageStore.getState().allMessages.length,
+      // });
 
       serverCursorRef.current = nextCursor ?? undefined;
       setHasNext(!!next);
@@ -309,11 +309,11 @@ export function useChatHistory(
       // AbortController로 인한 취소는 에러로 처리하지 않음
       const err = e as { name?: string; message?: string };
       if (err.name === 'AbortError' || err.message?.includes('canceled')) {
-        console.log('🔄 API 요청 취소됨 (정상)');
+        // console.log('🔄 API 요청 취소됨 (정상)');
         return;
       }
 
-      console.log('🚨 loadInitial 에러 발생:', e);
+      // console.log('🚨 loadInitial 에러 발생:', e);
       const { public: msg } = toPublicError(e);
       setError(msg);
       if (import.meta.env.DEV)
@@ -345,11 +345,11 @@ export function useChatHistory(
     }
 
     // 디버깅: 커서 정보 확인
-    console.log('🔍 loadOlder 커서 정보:', {
-      cursor,
-      lastCreatedAtType: typeof cursor.lastCreatedAt,
-      lastCreatedAtValue: cursor.lastCreatedAt,
-    });
+    // console.log('🔍 loadOlder 커서 정보:', {
+    //   cursor,
+    //   lastCreatedAtType: typeof cursor.lastCreatedAt,
+    //   lastCreatedAtValue: cursor.lastCreatedAt,
+    // });
 
     pagingAbortRef.current?.abort();
     pagingAbortRef.current = new AbortController();
@@ -429,7 +429,7 @@ export function useChatHistory(
 
   /** 수동 초기화 + 초기 로드 재시작 (닫을 때는 호출하지 마세요) */
   const reset = useCallback(() => {
-    console.log('🔄 reset 함수 호출됨');
+    // console.log('🔄 reset 함수 호출됨');
 
     // 진행 중 요청 취소
     initialAbortRef.current?.abort();
@@ -448,7 +448,7 @@ export function useChatHistory(
     if (roomId) {
       setTimeout(() => {
         if (mountedRef.current) {
-          console.log('🔄 reset에서 loadInitial 직접 호출');
+          // console.log('🔄 reset에서 loadInitial 직접 호출');
           loadInitial();
         }
       }, 0);
@@ -457,20 +457,20 @@ export function useChatHistory(
 
   /** roomId가 준비되면 자동 초기 로드 (이미 로드된 경우 건너뜀) */
   useEffect(() => {
-    console.log('🔧 useChatHistory useEffect 실행:', {
-      roomId,
-      autoInitial,
-      isHistoryLoaded,
-      messageCount,
-      deps: [roomId, autoInitial, isHistoryLoaded, messageCount],
-    });
+    // console.log('🔧 useChatHistory useEffect 실행:', {
+    //   roomId,
+    //   autoInitial,
+    //   isHistoryLoaded,
+    //   messageCount,
+    //   deps: [roomId, autoInitial, isHistoryLoaded, messageCount],
+    // });
 
     if (!roomId) {
-      console.log('❌ roomId 없음, 종료');
+      // console.log('❌ roomId 없음, 종료');
       return;
     }
     if (!autoInitial) {
-      console.log('❌ autoInitial false, 종료');
+      // console.log('❌ autoInitial false, 종료');
       return;
     }
 
@@ -481,21 +481,21 @@ export function useChatHistory(
       messageCount > 0 &&
       lastLoadedRoomIdRef.current === roomId
     ) {
-      console.log('🔄 API 호출 스킵 - 이미 로드된 상태:', {
-        roomId,
-        isHistoryLoaded,
-        messageCount,
-        lastLoadedRoomId: lastLoadedRoomIdRef.current,
-      });
+      // console.log('🔄 API 호출 스킵 - 이미 로드된 상태:', {
+      //   roomId,
+      //   isHistoryLoaded,
+      //   messageCount,
+      //   lastLoadedRoomId: lastLoadedRoomIdRef.current,
+      // });
       return;
     }
 
-    console.log('🚀 API 호출 시작 - 새로운 로드:', {
-      roomId,
-      isHistoryLoaded,
-      messageCount,
-      lastLoadedRoomId: lastLoadedRoomIdRef.current,
-    });
+    // console.log('🚀 API 호출 시작 - 새로운 로드:', {
+    //   roomId,
+    //   isHistoryLoaded,
+    //   messageCount,
+    //   lastLoadedRoomId: lastLoadedRoomIdRef.current,
+    // });
 
     loadInitial();
     // eslint-disable-next-line react-hooks/exhaustive-deps
