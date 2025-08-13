@@ -82,80 +82,74 @@ function ChatUserItem({ user }: { user: ChatUser }) {
 
 function ChatUserList() {
   const participants = useParticipants();
-  let chatUsers = participants
+  const chatUsers = participants
     .map(mapParticipantToChatUser)
     .filter(Boolean) as ChatUser[];
 
   // 🧪 테스트용: 더미 사용자 추가 (개발 환경에서만)
-  if (import.meta.env.DEV && chatUsers.length < 6) {
-    const dummyUsers: ChatUser[] = [
-      {
-        uid: 9001,
-        nickname: '테스트1',
-        profileUrl: '/default.png',
-        sid: 'dummy1',
-        micOn: true,
-        camOn: false,
-        role: 'guest',
-        isSelf: false,
-      },
-      {
-        uid: 9002,
-        nickname: '테스트2',
-        profileUrl: '/default.png',
-        sid: 'dummy2',
-        micOn: false,
-        camOn: true,
-        role: 'guest',
-        isSelf: false,
-      },
-      {
-        uid: 9003,
-        nickname: '테스트3',
-        profileUrl: '/default.png',
-        sid: 'dummy3',
-        micOn: true,
-        camOn: true,
-        role: 'guest',
-        isSelf: false,
-      },
-      {
-        uid: 9004,
-        nickname: '테스트4',
-        profileUrl: '/default.png',
-        sid: 'dummy4',
-        micOn: false,
-        camOn: false,
-        role: 'guest',
-        isSelf: false,
-      },
-      {
-        uid: 9005,
-        nickname: '테스트5',
-        profileUrl: '/default.png',
-        sid: 'dummy5',
-        micOn: true,
-        camOn: true,
-        role: 'guest',
-        isSelf: false,
-      },
-    ];
-    chatUsers = [...chatUsers, ...dummyUsers.slice(0, 6 - chatUsers.length)];
-  }
+  // if (import.meta.env.DEV && chatUsers.length < 6) {
+  //   const dummyUsers: ChatUser[] = [
+  //     {
+  //       uid: 9001,
+  //       nickname: '테스트1',
+  //       profileUrl: '/default.png',
+  //       sid: 'dummy1',
+  //       micOn: true,
+  //       camOn: false,
+  //       role: 'guest',
+  //       isSelf: false,
+  //     },
+  // {
+  //   uid: 9002,
+  //   nickname: '테스트2',
+  //   profileUrl: '/default.png',
+  //   sid: 'dummy2',
+  //   micOn: false,
+  //   camOn: true,
+  //   role: 'guest',
+  //   isSelf: false,
+  // },
+  // {
+  //   uid: 9003,
+  //   nickname: '테스트3',
+  //   profileUrl: '/default.png',
+  //   sid: 'dummy3',
+  //   micOn: true,
+  //   camOn: true,
+  //   role: 'guest',
+  //   isSelf: false,
+  // },
+  // {
+  //   uid: 9004,
+  //   nickname: '테스트4',
+  //   profileUrl: '/default.png',
+  //   sid: 'dummy4',
+  //   micOn: false,
+  //   camOn: false,
+  //   role: 'guest',
+  //   isSelf: false,
+  // },
+  // {
+  //   uid: 9005,
+  //   nickname: '테스트5',
+  //   profileUrl: '/default.png',
+  //   sid: 'dummy5',
+  //   micOn: true,
+  //   camOn: true,
+  //   role: 'guest',
+  //   isSelf: false,
+  // },
+  //   ];
+  //   chatUsers = [...chatUsers, ...dummyUsers.slice(0, 6 - chatUsers.length)];
+  // }
 
   return (
     <div
-      className={`space-y-2 ${
-        chatUsers.length > 3 ? 'max-h-[172px] overflow-y-auto' : ''
-      }`}
-      style={
-        chatUsers.length > 3
-          ? {
-              scrollbarWidth: 'thin',
-              scrollbarColor: '#4b5563 #2A2F46',
-            }
-          : {}
-      }
+      className="h-[120px] overflow-y-auto space-y-2"
+      style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: '#4b5563 #2A2F46',
+      }}
     >
       {chatUsers.map((user) => (
         <ChatUserItem key={user.sid} user={user} />
