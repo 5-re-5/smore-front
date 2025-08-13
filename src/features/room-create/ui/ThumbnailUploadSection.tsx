@@ -192,16 +192,19 @@ export function ThumbnailUploadSection({
 
       <div className="flex gap-8">
         {/* 왼쪽: 썸네일 미리보기 */}
-        <div className="w-64 h-40 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
+        <div
+          onClick={handleButtonClick}
+          className="flex overflow-hidden justify-center items-center w-64 h-40 bg-gray-100 rounded-lg border-2 border-gray-300 border-dashed cursor-pointer"
+        >
           {previewUrl ? (
             <img
               src={previewUrl}
               alt="스터디룸 썸네일"
-              className="w-full h-full object-cover"
+              className="object-cover w-full h-full"
             />
           ) : (
             <div className="text-center">
-              <Image className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+              <Image className="mx-auto mb-2 w-12 h-12 text-gray-400" />
               <p className="text-sm text-gray-500">썸네일 이미지</p>
             </div>
           )}
@@ -215,16 +218,16 @@ export function ThumbnailUploadSection({
               파일 업로드 제한사항
             </h4>
             <div className="space-y-2 text-sm text-gray-600">
-              <div className="flex items-start gap-2">
-                <span className="text-blue-600 font-medium">1.</span>
+              <div className="flex gap-2 items-start">
+                <span className="font-medium text-blue-600">1.</span>
                 <span>지원 형식: JPG, JPEG, PNG, WebP</span>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-blue-600 font-medium">2.</span>
+              <div className="flex gap-2 items-start">
+                <span className="font-medium text-blue-600">2.</span>
                 <span>최대 파일 크기: 2MB</span>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-blue-600 font-medium">3.</span>
+              <div className="flex gap-2 items-start">
+                <span className="font-medium text-blue-600">3.</span>
                 <span>이미지는 250×160 크기로 자동 조정됩니다</span>
               </div>
             </div>
@@ -237,7 +240,7 @@ export function ThumbnailUploadSection({
                 type="button"
                 onClick={handleButtonClick}
                 disabled={isProcessing}
-                className="w-64 bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-64 text-white bg-blue-600 hover:bg-blue-700"
               >
                 {isProcessing ? '처리 중...' : '이미지 등록하기'}
               </Button>
@@ -247,7 +250,7 @@ export function ThumbnailUploadSection({
                   type="button"
                   onClick={handleButtonClick}
                   disabled={isProcessing}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  className="flex-1 text-white bg-blue-600 hover:bg-blue-700"
                 >
                   {isProcessing ? '처리 중...' : '변경하기'}
                 </Button>
