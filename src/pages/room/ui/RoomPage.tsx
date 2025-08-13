@@ -45,9 +45,9 @@ function RoomPage() {
   const resetStopwatch = useStopwatchStore((state) => state.resetStopwatch);
   const updateServerData = useStopwatchStore((state) => state.updateServerData);
   const { setOwner, setRoomSettings } = usePomodoroStore();
-  const { isIntentionalExit, clearIntentionalExit } = useRoomStateStore();
   const [retryCount, setRetryCount] = useState<number>(0);
 
+  const { isIntentionalExit, clearIntentionalExit } = useRoomStateStore();
   // 저장된 미디어 설정 로드
   const [mediaSettings] = useState(() => loadMediaSettings());
 
@@ -152,7 +152,6 @@ function RoomPage() {
           console.error('자동 재입장 실패:', error);
           setAutoRejoinStatus('failed');
           setErrorMessage('방에 재입장할 수 없습니다.');
-
           navigate({
             to: '/room/$roomId/prejoin',
             params: { roomId },
@@ -224,18 +223,13 @@ function RoomPage() {
 
     // 의도적 나가기인 경우 즉시 study-list로 이동
     if (isIntentionalExit(roomIdNumber)) {
-      clearIntentionalExit(roomIdNumber);
       navigate({ to: '/study-list' });
+      clearIntentionalExit(roomIdNumber);
       return;
     }
 
-    // 토큰이 없는 경우 자동 재입장 시도
-    if (
-      !token &&
-      autoRejoinStatus === 'idle' &&
-      userId &&
-      !isIntentionalExit(roomIdNumber)
-    ) {
+    // 토큰이 없는 경우 자동 재입장 시도 (의도적 나가기가 아닌 경우에만)
+    if (!token && autoRejoinStatus === 'idle' && userId) {
       attemptAutoRejoin();
       return;
     }

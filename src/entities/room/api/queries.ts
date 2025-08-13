@@ -6,6 +6,7 @@ import { leaveRoom } from './leaveRoom';
 import { deleteRoom } from './deleteRoom';
 import { useRoomTokenStore } from '../model/useRoomTokenStore';
 import { roomQueryKeys } from './queryKeys';
+import { useRoomStateStore } from '@/features/room';
 
 // Room 상세 조회
 export const useRoomInfoQuery = (roomId: number) => {
@@ -68,25 +69,29 @@ export const useRejoinRoomMutation = () => {
 
 export const useLeaveRoomMutation = () => {
   const { clearToken } = useRoomTokenStore();
+  const { setIntentionalExit } = useRoomStateStore();
 
   return useMutation({
     mutationFn: ({ roomId, userId }: { roomId: number; userId: number }) =>
       leaveRoom(roomId, userId),
     onSuccess: (_, variables) => {
-      // 방 나가기 성공 시 토큰 삭제
+      // 방 나가기 성공 시 토큰 삭제 및 의도적 나가기 플래그 설정
       clearToken(variables.roomId);
+      setIntentionalExit(variables.roomId, true);
     },
   });
 };
 
 export const useDeleteRoomMutation = () => {
   const { clearToken } = useRoomTokenStore();
+  const { setIntentionalExit } = useRoomStateStore();
 
   return useMutation({
     mutationFn: ({ roomId, userId }: { roomId: number; userId: number }) =>
       deleteRoom(roomId, userId),
     onSuccess: (_, variables) => {
       clearToken(variables.roomId);
+      setIntentionalExit(variables.roomId, true);
     },
   });
 };
