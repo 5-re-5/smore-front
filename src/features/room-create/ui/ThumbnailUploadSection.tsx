@@ -1,5 +1,5 @@
 import {
-  createResizedBlobWithDimensions,
+  createCroppedBlobWithDimensions,
   loadImageFromBlob,
 } from '@/features/focus-capture/model/imageResize';
 import { Button } from '@/shared/ui/button';
@@ -137,7 +137,7 @@ export function ThumbnailUploadSection({
       const image = await loadImageFromBlob(file);
 
       // 리사이징 및 webp 변환
-      const resizedBlob = await createResizedBlobWithDimensions(
+      const resizedBlob = await createCroppedBlobWithDimensions(
         image,
         THUMBNAIL_WIDTH,
         THUMBNAIL_HEIGHT,

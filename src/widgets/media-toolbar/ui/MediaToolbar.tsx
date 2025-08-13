@@ -1,34 +1,40 @@
-import { useState } from 'react';
-import { useParticipants } from '@livekit/components-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { Bot, BotOff, Users, MessageCircle } from 'lucide-react';
+import { Bot, BotOff, MessageCircle } from 'lucide-react';
 
-import { useLeaveRoomMutation } from '@/entities/room/api/queries';
+import {
+  useLeaveRoomMutation,
+  useDeleteRoomMutation,
+} from '@/entities/room/api/queries';
 import { useAuth } from '@/entities/user';
 import { useFaceDetectionStore } from '@/features/face-detection';
 import { useRoomStateStore } from '@/features/room';
 import { Button } from '@/shared/ui';
 import RoomMediaControls from './RoomMediaControls';
 import { getMediaButtonStyle } from './styles';
+import { useQueryClient } from '@tanstack/react-query';
 
 type MediaToolbarProps = {
   isChatOpen: boolean;
   onToggleChat: () => void;
+  isOwner: boolean;
 };
 
-function MediaToolbar({ isChatOpen, onToggleChat }: MediaToolbarProps) {
+function MediaToolbar({
+  isOwner,
+  isChatOpen,
+  onToggleChat,
+}: MediaToolbarProps) {
   const navigate = useNavigate();
   const { roomId } = useParams({ from: '/room/$roomId' });
   const { userId } = useAuth();
   const leaveRoomMutation = useLeaveRoomMutation();
+  const deleteRoomMutation = useDeleteRoomMutation();
+  const queryClient = useQueryClient();
 
-  const [showParticipants, setShowParticipants] = useState(false);
-  const participants = useParticipants();
   const { isFaceDetectionEnabled, setFaceDetectionEnabled } =
     useFaceDetectionStore();
   const { setIntentionalExit } = useRoomStateStore();
 
-  const participantCount = participants.length;
   const roomIdNumber = parseInt(roomId, 10);
 
   const handleLeaveRoom = () => {
@@ -36,8 +42,25 @@ function MediaToolbar({ isChatOpen, onToggleChat }: MediaToolbarProps) {
       alert('사용자 정보가 없습니다.');
       return;
     }
+    queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
 
     setIntentionalExit(roomIdNumber, true);
+    if (isOwner) {
+      deleteRoomMutation.mutate(
+        { roomId: roomIdNumber, userId },
+        {
+          onSuccess: () => {
+            navigate({ to: '/study-list' });
+          },
+          onError: (error) => {
+            console.error('방 삭제 실패:', error);
+            alert('방 삭제에 실패했습니다.');
+            setIntentionalExit(roomIdNumber, false);
+          },
+        },
+      );
+      return;
+    }
 
     leaveRoomMutation.mutate(
       { roomId: roomIdNumber, userId },
@@ -65,15 +88,17 @@ function MediaToolbar({ isChatOpen, onToggleChat }: MediaToolbarProps) {
           <div className="flex items-center">
             <Button
               onClick={handleLeaveRoom}
-              disabled={leaveRoomMutation.isPending}
+              disabled={
+                leaveRoomMutation.isPending || deleteRoomMutation.isPending
+              }
               className={`w-2.5rem h-2.5rem rounded-lg bg-[#FF4949] hover:bg-red-600 transition-colors flex items-center justify-center text-white font-bold ${
-                leaveRoomMutation.isPending
+                leaveRoomMutation.isPending || deleteRoomMutation.isPending
                   ? 'opacity-50 cursor-not-allowed'
                   : ''
               }`}
               aria-label="방 나가기"
             >
-              방 나가기
+              {isOwner ? '방 삭제' : '방 나가기'}
             </Button>
           </div>
 
@@ -109,51 +134,6 @@ function MediaToolbar({ isChatOpen, onToggleChat }: MediaToolbarProps) {
               <MessageCircle className="w-1.25rem h-1.25rem" />
               <span className="text-sm font-medium hidden sm:block">채팅</span>
             </Button>
-
-            {/* 참가자 목록 */}
-            <div className="relative">
-              <Button
-                onClick={() => setShowParticipants(!showParticipants)}
-                className="flex items-center space-x-2 px-0.75rem py-0.5rem rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
-                aria-label={`참가자 목록 ${showParticipants ? '숨기기' : '보기'}`}
-              >
-                <Users className="w-1.25rem h-1.25rem text-white" />
-                <span className="text-white text-sm font-medium hidden sm:block">
-                  {participantCount}
-                </span>
-              </Button>
-
-              {showParticipants && (
-                <div className="absolute bottom-full right-0 mb-0.5rem w-16rem bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
-                  <div className="p-0.75rem border-b border-gray-700">
-                    <h3 className="text-white font-medium text-sm">
-                      참가자 ({participantCount})
-                    </h3>
-                  </div>
-                  <div className="max-h-15rem overflow-y-auto">
-                    {participants.map((participant) => (
-                      <div
-                        key={participant.identity}
-                        className="flex items-center justify-between px-0.75rem py-0.5rem hover:bg-gray-700"
-                      >
-                        <span className="text-white text-sm">
-                          {participant.identity}
-                          {participant.isLocal && (
-                            <span className="text-gray-400 text-xs ml-1">
-                              (나)
-                            </span>
-                          )}
-                        </span>
-                        <div className="flex items-center space-x-0.25rem">
-                          <span className="text-green-400 text-xs">🎤</span>
-                          <span className="text-green-400 text-xs">📹</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>

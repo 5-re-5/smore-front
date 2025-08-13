@@ -36,7 +36,6 @@ export const setupAuthInterceptor = (axiosInstance: AxiosInstance) => {
         return Promise.reject(error);
       }
 
-      console.log(error);
       if (error.response?.status === 401 && !originalRequest._retry) {
         if (isRefreshing) {
           return new Promise((resolve, reject) => {

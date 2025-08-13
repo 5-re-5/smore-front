@@ -37,4 +37,6 @@ export {
 } from './select';
 export { SettingsIcon } from './icons/settings-icon';
 export { Slider } from './slider';
+export { SmoreLogoHeader } from './SmoreLogoHeader';
 export * from './icons';
+export { Toaster } from './sonner';

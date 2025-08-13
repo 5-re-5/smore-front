@@ -8,12 +8,12 @@ interface CategoryModalProps {
 }
 
 const categories = [
-  { id: 'job', name: '취업', icon: '💼' },
-  { id: 'certification', name: '자격증', icon: '📜' },
-  { id: 'language', name: '어학', icon: '🌐' },
-  { id: 'self-study', name: '자율', icon: '📚' },
-  { id: 'meeting', name: '회의', icon: '👥' },
-  { id: 'school', name: '학교공부', icon: '🏫' },
+  { id: 'EMPLOYMENT', name: '취업', icon: '💼' },
+  { id: 'CERTIFICATION', name: '자격증', icon: '📜' },
+  { id: 'LANGUAGE', name: '어학', icon: '🌐' },
+  { id: 'SELF_STUDY', name: '자율', icon: '📚' },
+  { id: 'MEETING', name: '회의', icon: '👥' },
+  { id: 'SCHOOL_STUDY', name: '학교공부', icon: '🏫' },
 ];
 
 export const CategoryModal = ({
@@ -53,14 +53,14 @@ export const CategoryModal = ({
         <div className="grid grid-cols-3 gap-4 mb-6">
           {categories.map((category) => (
             <button
-              key={category.name}
+              key={category.id}
               onClick={() =>
                 setTempCategory(
-                  tempCategory === category.name ? null : category.name,
+                  tempCategory === category.id ? null : category.id,
                 )
               }
               className={`cursor-pointer aspect-square p-4 rounded-lg flex flex-col items-center justify-center gap-2 transition-all border-2 ${
-                tempCategory === category.name
+                tempCategory === category.id
                   ? 'bg-gray-100 shadow-inner transform scale-95'
                   : 'bg-gray-100 hover:bg-gray-200 border-transparent shadow-md hover:shadow-lg'
               }`}

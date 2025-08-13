@@ -26,19 +26,26 @@ function LoginPage() {
   );
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8">
-      <div className="text-center space-y-6">
+    <div
+      className="flex flex-col items-center justify-center min-h-screen p-8"
+      style={{ backgroundColor: '#ECF0F3' }}
+    >
+      <div className="space-y-[50px]">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Smore에 로그인</h1>
-          <p className="text-gray-600">구글 계정으로 간편하게 시작하세요</p>
+          <span className="font-bold text-[45px] text-[#656769]">Sign In</span>
         </div>
 
         <Button
+          variant="ghost"
           onClick={handleLogin}
           disabled={isLoading}
-          className="px-8 py-3 text-lg min-w-[200px]"
+          className="w-[358px] h-[52px] hover:bg-gray-200 text-[#616161] border-0 relative flex items-center justify-center rounded-[23.5px] transition-colors"
+          style={{
+            boxShadow:
+              '-4.08px -4.08px 8.17px 0 #FFF, 4.08px 4.08px 8.17px 0 rgba(0, 0, 0, 0.08)',
+          }}
         >
-          {isLoading ? renderLoadingState() : '구글 로그인 하기'}
+          {isLoading ? renderLoadingState() : 'Log in with Google'}
         </Button>
       </div>
     </div>

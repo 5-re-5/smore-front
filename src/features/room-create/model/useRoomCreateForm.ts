@@ -6,6 +6,11 @@ import {
   createRoom,
   type CreateRoomFormData,
 } from '@/entities/room/api/createRoom';
+import { useJoinRoomMutation } from '@/entities/room/api/queries';
+import { useAuthStore } from '@/entities/user/model/useAuthStore';
+import { useRouter } from '@tanstack/react-router';
+import { toast } from 'sonner';
+import { useUserInfo } from '@/entities/user';
 
 const CATEGORY_MAP = {
   취업: 'EMPLOYMENT',
@@ -101,6 +106,12 @@ const roomCreateSchema = z.object({
 export type RoomCreateFormData = z.infer<typeof roomCreateSchema>;
 
 export const useRoomCreateForm = () => {
+  const router = useRouter();
+
+  const { getUserId } = useAuthStore();
+  const { data: userInfo } = useUserInfo();
+  const joinRoomMutation = useJoinRoomMutation();
+
   const form = useForm({
     resolver: zodResolver(roomCreateSchema),
     mode: 'onChange' as const,
@@ -108,11 +119,11 @@ export const useRoomCreateForm = () => {
       title: '',
       isPrivate: false,
       password: '',
-      maxParticipants: 2,
+      maxParticipants: 6,
       category: '',
-      isPomodoroEnabled: false,
-      focusTime: 25,
-      breakTime: 5,
+      isPomodoroEnabled: true,
+      focusTime: undefined,
+      breakTime: undefined,
       tags: [],
       description: '',
       thumbnailFile: undefined,
@@ -121,6 +132,11 @@ export const useRoomCreateForm = () => {
 
   const createRoomMutation = useMutation({
     mutationFn: (data: RoomCreateFormData) => {
+      const userId = getUserId();
+      if (!userId) {
+        throw new Error('로그인이 필요합니다.');
+      }
+
       const formData: CreateRoomFormData = {
         title: data.title,
         description: data.description || undefined,
@@ -128,26 +144,50 @@ export const useRoomCreateForm = () => {
         maxParticipants: data.maxParticipants,
         tag: data.tags.length > 0 ? data.tags.join(',') : undefined,
         category: CATEGORY_MAP[data.category as keyof typeof CATEGORY_MAP],
-        focusTime: data.isPomodoroEnabled ? data.focusTime : undefined,
-        breakTime: data.isPomodoroEnabled ? data.breakTime : undefined,
-        room_image: data.thumbnailFile,
+        focusTime: data.isPomodoroEnabled ? data.focusTime || 25 : undefined,
+        breakTime: data.isPomodoroEnabled ? data.breakTime || 5 : undefined,
+        roomImage: data.thumbnailFile,
       };
 
-      return createRoom(formData);
+      return createRoom(formData, userId);
     },
-    onSuccess: () => {
-      alert('스터디룸이 성공적으로 생성되었습니다!');
+    onSuccess: (data) => {
+      toast.success('스터디룸이 성공적으로 생성되었습니다!');
+
+      const userId = getUserId();
+      if (!userId || !userInfo?.nickname) {
+        toast.error('사용자 정보가 없습니다. 다시 로그인해주세요.');
+        return;
+      }
+
+      joinRoomMutation.mutate(
+        {
+          roomId: data.roomId,
+          userId,
+          identity: userInfo.nickname,
+        },
+        {
+          onSuccess: () => {
+            router.navigate({ to: `/room/${data.roomId}` });
+          },
+          onError: (error) => {
+            console.error('방 참가 실패:', error);
+            toast.error('방 참가에 실패했습니다. 다시 시도해주세요.');
+          },
+        },
+      );
+
       form.reset();
     },
     onError: (error) => {
       console.error('스터디룸 생성 실패:', error);
-      alert('스터디룸 생성에 실패했습니다. 다시 시도해주세요.');
+      toast.error('스터디룸 생성에 실패했습니다. 다시 시도해주세요.');
     },
   });
 
   return {
     form,
     createRoomMutation,
-    isSubmitting: createRoomMutation.isPending,
+    isSubmitting: createRoomMutation.isPending || joinRoomMutation.isPending,
   };
 };

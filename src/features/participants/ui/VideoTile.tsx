@@ -5,7 +5,7 @@ import { TrackMutedIndicator } from '@livekit/components-react';
 
 interface VideoTileProps {
   participant: Participant;
-  track: Track;
+  track: Track | null;
 }
 
 function VideoTile({ participant, track }: VideoTileProps) {
@@ -29,13 +29,13 @@ function VideoTile({ participant, track }: VideoTileProps) {
 
   return (
     <div
-      className={`w-80 h-60 relative rounded-xl border transition-all duration-300 ${
+      className={`relative rounded-xl border transition-all duration-300 w-full h-full ${
         participant.isSpeaking
           ? 'border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]'
           : 'border-zinc-300'
       }`}
     >
-      {isCamMuted ? (
+      {!track || isCamMuted ? (
         <div className="w-full h-full bg-black rounded-xl flex items-center justify-center">
           <span className="text-white text-xl font-semibold">
             {participant.identity}

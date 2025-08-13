@@ -73,7 +73,7 @@ export const UserProgressSection = ({
       {/* 하단 정보 섹션 */}
       <div className="flex flex-col gap-8">
         <div className="flex flex-row justify-between items-start">
-          <div className="flex flex-1 space-x-24 text-center">
+          <div className="flex flex-1 space-x-16 text-center">
             <div className="text-2xl font-semibold text-gray-700 mb-2">
               내 각오
             </div>
@@ -82,7 +82,7 @@ export const UserProgressSection = ({
             </div>
           </div>
 
-          <div className="flex flex-1 pl-20 space-x-24 text-center">
+          <div className="flex flex-1 pl-20 space-x-16 text-center">
             <div className="text-2xl font-semibold text-gray-700 mb-2">
               D-DAY
             </div>

@@ -1,7 +1,7 @@
 import { useRoomInfoQuery } from '@/entities/room/api/queries';
 import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 
-const DEFAULT_FOCUS_TIME = 25;
+const DEFAULT_FOCUS_TIME = 0;
 
 interface RoomInfoProps {
   roomId: number;
