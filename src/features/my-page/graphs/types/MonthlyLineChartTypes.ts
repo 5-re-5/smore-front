@@ -5,11 +5,11 @@ export type ApiDayData = {
 };
 
 export type MonthlyLineChartApiResponse = {
-  user_id: number;
-  total_attendance: number;
-  weekday_graph: number[];
-  weekly_graph: number[];
-  study_track: {
+  userId: number;
+  totalAttendance: number;
+  weekdayGGraph: number[];
+  weeklyGraph: number[];
+  studyTrack: {
     points: ApiDayData[];
   };
 };

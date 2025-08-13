@@ -23,7 +23,7 @@ export function useWeeklyAvgBarChart(userId: string) {
 
     fetchWeeklyAvgBarChart(userId)
       .then((data: WeeklyAvgBarChartApiResponse) => {
-        setWeeklyGraph(data.weekly_graph);
+        setWeeklyGraph(data.weeklyGraph);
       })
       .catch((e: Error) => {
         setError(e.message || '네트워크 오류');
