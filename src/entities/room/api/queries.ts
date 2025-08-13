@@ -72,6 +72,7 @@ export const useRejoinRoomMutation = () => {
 export const useLeaveRoomMutation = () => {
   const { clearToken } = useRoomTokenStore();
   const { setIntentionalExit } = useRoomStateStore();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ roomId, userId }: { roomId: number; userId: number }) =>
@@ -80,6 +81,9 @@ export const useLeaveRoomMutation = () => {
       // 방 나가기 성공 시 토큰 삭제 및 의도적 나가기 플래그 설정
       clearToken(variables.roomId);
       setIntentionalExit(variables.roomId, true);
+
+      queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+      queryClient.invalidateQueries({ queryKey: ['recentStudy'] });
     },
   });
 };
@@ -138,6 +142,7 @@ export const useDeleteRoomMutation = () => {
       setIntentionalExit(vars.roomId, true);
 
       queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+      queryClient.invalidateQueries({ queryKey: ['recentStudy'] });
     },
 
     // 실패 케이스 처리: 서버 삭제 실패 시에도 연결 끊기
