@@ -2,7 +2,7 @@ import { useAuth, useUserInfo } from '@/entities/user';
 import { userProfileQueryKeys } from '@/entities/user/api/queries/userQueries';
 import { updateUserProfile } from '@/entities/user/api/userApi';
 import {
-  createDirectCroppedBlob,
+  createCroppedBlobWithDimensions,
   loadImageFromBlob,
 } from '@/features/focus-capture/model/imageResize';
 import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
@@ -150,7 +150,7 @@ function EditPage() {
 
       const image = await loadImageFromBlob(file);
 
-      const resizedBlob = await createDirectCroppedBlob(
+      const resizedBlob = await createCroppedBlobWithDimensions(
         image,
         PROFILE_WIDTH,
         PROFILE_HEIGHT,
@@ -312,7 +312,7 @@ function EditPage() {
                 <img
                   src={previewUrl || DEFAULT_PROFILE_IMG}
                   alt="프로필 이미지"
-                  className="w-full h-full object-cover"
+                  className="object-cover w-full h-full"
                 />
               </div>
               <button
