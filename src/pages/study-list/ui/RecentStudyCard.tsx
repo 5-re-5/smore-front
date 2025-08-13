@@ -12,15 +12,26 @@ export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
   const navigate = useNavigate();
 
   const handleReJoin = (roomId: number) => {
-    navigate({
-      to: '/room/$roomId/prejoin',
-      params: { roomId: roomId.toString() },
-    });
+    if (!room.isDelete) {
+      navigate({
+        to: '/room/$roomId/prejoin',
+        params: { roomId: roomId.toString() },
+      });
+    }
   };
 
   return (
-    <div className="w-[22.19rem] h-[13.56rem] p-[0.75rem] study-card">
-      <div className="flex gap-[0.75rem] h-full">
+    <div className="relative w-[22.19rem] h-[13.56rem] p-[0.75rem] study-card">
+      {/* 블러 처리 레이어 */}
+      {room.isDelete && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 rounded-md">
+          <span className="text-white text-lg font-bold">종료된 방입니다</span>
+        </div>
+      )}
+
+      <div
+        className={`flex gap-[0.75rem] h-full ${room.isDelete ? 'blur-sm' : ''}`}
+      >
         {/* 썸네일 */}
         <div className="w-[9.75rem] h-[12.06rem] flex-shrink-0">
           <img
@@ -71,6 +82,7 @@ export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
             {/* 재입장하기 버튼 */}
             <Button
               variant="ghost"
+              disabled={room.isDelete}
               className="w-[9.21rem] h-[2.17rem] bg-study-bg hover:bg-gray-200 text-study-secondary font-medium border-0 relative flex items-center justify-center pr-10 flex-shrink-0 rounded-[1.08rem]"
               style={{
                 boxShadow:

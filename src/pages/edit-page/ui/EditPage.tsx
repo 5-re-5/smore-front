@@ -2,9 +2,10 @@ import { useAuth, useUserInfo } from '@/entities/user';
 import { userProfileQueryKeys } from '@/entities/user/api/queries/userQueries';
 import { updateUserProfile } from '@/entities/user/api/userApi';
 import {
-  createCroppedBlobWithDimensions,
+  createDirectCroppedBlob,
   loadImageFromBlob,
 } from '@/features/focus-capture/model/imageResize';
+import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Trash2 } from 'lucide-react';
@@ -51,7 +52,7 @@ function EditPage() {
         setPreviewUrl(userInfo.profileUrl);
       }
     }
-  }, [userInfo, previewUrl, nickname]);
+  }, [userInfo, previewUrl]);
 
   // 이미지 디코딩 검증 함수
   const canDecodeImageFromFile = async (file: File): Promise<boolean> => {
@@ -149,7 +150,7 @@ function EditPage() {
 
       const image = await loadImageFromBlob(file);
 
-      const resizedBlob = await createCroppedBlobWithDimensions(
+      const resizedBlob = await createDirectCroppedBlob(
         image,
         PROFILE_WIDTH,
         PROFILE_HEIGHT,
@@ -226,14 +227,24 @@ function EditPage() {
       return;
     }
 
+    // OREO로 시작하는 닉네임 검증
+    if (nickname.trim().toUpperCase().startsWith('OREO')) {
+      toast.error('OREO로 시작하는 닉네임은 사용할 수 없습니다');
+      return;
+    }
+
     if (!userId) {
       toast.error('사용자 정보를 불러올 수 없습니다');
       return;
     }
 
-    // 이름이 기존과 동일하면 무조건 에러
-    if (nickname.trim() === userInfo?.nickname) {
-      setNicknameError('기존 이름과 동일합니다. 다른 이름을 입력해주세요');
+    // 변경 사항 확인
+    const nicknameChanged = nickname.trim() !== userInfo?.nickname;
+    const imageChanged = profileImage !== null;
+
+    // 변경된 내용이 없는 경우
+    if (!nicknameChanged && !imageChanged) {
+      toast.info('변경된 내용이 없습니다');
       return;
     }
 
@@ -243,10 +254,21 @@ function EditPage() {
     setIsLoading(true);
 
     try {
-      await updateUserProfile(userId, {
-        nickname: nickname.trim(),
-        profileImage: profileImage || undefined,
-      });
+      // 변경된 필드만 포함하여 요청
+      const updateData: Partial<{
+        nickname: string;
+        profileImage: File;
+      }> = {};
+
+      if (nicknameChanged) {
+        updateData.nickname = nickname.trim();
+      }
+
+      if (imageChanged) {
+        updateData.profileImage = profileImage;
+      }
+
+      await updateUserProfile(userId, updateData);
 
       // 사용자 프로필 캐시 무효화
       queryClient.invalidateQueries({
@@ -254,10 +276,9 @@ function EditPage() {
       });
 
       toast.success('프로필이 성공적으로 업데이트되었습니다');
-      navigate({ to: '/my-page' });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('프로필 업데이트 실패:', error);
-      toast.error('프로필 업데이트에 실패했습니다');
+      toast.error('중복된 닉네임입니다.');
     } finally {
       setIsLoading(false);
     }
@@ -288,15 +309,11 @@ function EditPage() {
             {/* 왼쪽 그룹: 썸네일 + 사진 변경 버튼 */}
             <div className="flex items-center">
               <div className="w-[2.5rem] h-[2.5rem] bg-gray-300 rounded-full overflow-hidden">
-                {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt="프로필 이미지"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-300"></div>
-                )}
+                <img
+                  src={previewUrl || DEFAULT_PROFILE_IMG}
+                  alt="프로필 이미지"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <button
                 className="ml-[2.75rem] h-[3.125rem] px-6 text-[0.875rem] rounded-[2.625rem]"

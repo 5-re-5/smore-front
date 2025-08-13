@@ -160,11 +160,14 @@ export const useRoomCreateForm = () => {
         return;
       }
 
+      const formValues = form.getValues();
+
       joinRoomMutation.mutate(
         {
           roomId: data.roomId,
           userId,
           identity: userInfo.nickname,
+          password: formValues.isPrivate ? formValues.password : undefined,
         },
         {
           onSuccess: () => {

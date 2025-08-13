@@ -4,96 +4,127 @@ import { useWeeklyAvgBarChart } from '../model/useWeeklyAvgBarChart';
 type Props = { userId: string };
 
 const maxHours = 12;
-const maxBarHeight = 20 * 16; // px (20rem)
-const leftRems = [18.188, 27.313, 36.438, 45.563, 54.188];
+const maxBarHeight = 320; // 12시간일 때의 최대 높이(px)
+const leftRems = [10, 20, 30, 40, 50]; // 각 막대의 가로 위치(rem)
+const weekLabels = ['1주차', '2주차', '3주차', '4주차', '5주차'];
+
+const yLabels = [0, 2, 4, 6, 8, 10, 12];
+const yLabelTops = [27.188, 23.813, 20.438, 17.063, 13.688, 10.313, 6.938];
 
 const WeeklyAvgBarChart: FunctionComponent<Props> = ({ userId }) => {
-  const { weeklyGraph, loading, error } = useWeeklyAvgBarChart(userId);
+  const { weeklyGraph, error } = useWeeklyAvgBarChart(userId);
 
-  // 그래프 막대 (데이터 없거나 로딩/에러 시에는 플레이스홀더로 표시)
-  const bars = (weeklyGraph ?? Array(leftRems.length).fill(0)).map(
-    (hour, idx) => {
-      const height = loading
-        ? 24
-        : Math.max(8, (hour / maxHours) * maxBarHeight);
-      const left = leftRems[idx];
-      const barTitle = loading
-        ? '로딩 중'
-        : error
-          ? '데이터 없음'
-          : `${idx + 1}주차: ${hour}시간`;
+  const hasData =
+    Array.isArray(weeklyGraph) &&
+    weeklyGraph.length === 5 &&
+    weeklyGraph.some((v) => v > 0);
 
-      const barBg =
-        loading || error
-          ? 'bg-gray-200 opacity-40'
-          : 'bg-deepskyblue shadow-[0_4px_12px_rgba(52,179,241,0.15)]';
+  const verticalOffset = 3; // 가로 점선 전체 세로 이동(rem)
+  const yAxisOffset = 3; // Y축 텍스트 전체 세로 이동(rem, 음수면 위로)
 
-      return (
-        <div
-          key={idx}
-          className={`absolute w-[3.5rem] rounded-t-[9px] ${barBg}`}
-          style={{
-            left: `${left}rem`,
-            bottom: 0,
-            height: `${height}px`,
-            transition: 'height 0.3s',
-          }}
-          title={barTitle}
-        />
-      );
-    },
-  );
+  // 막대 그래프
+  const bars = hasData
+    ? weeklyGraph.map((hour, idx) => {
+        // 실제 시간 기반 높이 계산, 최대 12시간에 해당하는 높이로 제한
+        const height = Math.min(hour * (maxBarHeight / maxHours), maxBarHeight);
+
+        return (
+          <div
+            key={idx}
+            className="absolute w-[3.5rem] bg-[#34b3f1] rounded-t-[9px]
+                       shadow-[0_4px_12px_rgba(52,179,241,0.13)]"
+            style={{
+              left: `${leftRems[idx]}rem`,
+              bottom: '6.6rem',
+              height: `${height}px`,
+              transition: 'height 0.4s cubic-bezier(0.4,0,0.2,1)', // 애니메이션 효과 [속성명] [지속시간] [타이밍함수] [지연시간(optional)]
+            }}
+            title={`${idx + 1}주차: ${hour}시간`}
+          />
+        );
+      })
+    : [];
 
   return (
-    <div className="w-full relative rounded-[14px] h-[37.5rem] overflow-hidden text-center text-[1rem] text-black font-inter">
-      <div className="absolute top-[3.5rem] left-[4.938rem] w-[55.063rem] h-[28.688rem] text-left text-darkslategray font-poppins">
-        {/* y축 레이블 */}
-        <div className="absolute top-[27.188rem] left-[0.188rem]">0</div>
-        <div className="absolute top-[23.813rem] left-[0.188rem]">2</div>
-        <div className="absolute top-[20.438rem] left-[0.188rem]">4</div>
-        <div className="absolute top-[17.063rem] left-[0.188rem]">6</div>
-        <div className="absolute top-[13.688rem] left-[0.188rem]">8</div>
-        <div className="absolute top-[10.313rem] left-[0rem]">10</div>
-        <div className="absolute top-[6.938rem] left-[0.063rem]">12</div>
+    <div
+      className="
+        w-full max-w-[1047px] h-[600px] bg-white rounded-[25px]
+        shadow-[6px_6px_54px_rgba(0,0,0,0.05)]
+        mx-auto box-border relative
+        py-[3.125rem] px-[5.187rem]
+        font-poppins text-left text-[1rem] text-darkgray
+      "
+      style={{ minWidth: 320 }}
+    >
+      {/* Y축 시간 */}
+      {yLabels.map((label, idx) => (
+        <div
+          key={label}
+          className="absolute text-[1rem] text-darkslategray pointer-events-none select-none font-poppins"
+          style={{
+            top: `${yLabelTops[idx] + yAxisOffset}rem`,
+            left: '0.7rem',
+            width: '2.8rem',
+            textAlign: 'right',
+            zIndex: 2,
+          }}
+        >
+          {label}
+        </div>
+      ))}
 
-        {/* 기준선 */}
-        <div className="absolute top-[27.969rem] left-[2.281rem] border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem]" />
-        <div className="absolute top-[24.531rem] left-[2.281rem] border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem]" />
-        <div className="absolute top-[21.156rem] left-[2.281rem] border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem]" />
-        <div className="absolute top-[17.781rem] left-[2.281rem] border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem]" />
-        <div className="absolute top-[14.406rem] left-[2.281rem] border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem]" />
-        <div className="absolute top-[11.031rem] left-[2.281rem] border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem]" />
-        <div className="absolute top-[7.656rem] left-[2.281rem] border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem]" />
+      {/* Y축 점선 */}
+      {[27.969, 24.531, 21.156, 17.781, 14.406, 11.031, 7.656].map(
+        (top, idx) => (
+          <div
+            key={idx}
+            className="absolute border-lightgray border-dashed border-t-[1px]
+                       box-border w-[52.813rem] h-[0.063rem] z-0"
+            style={{
+              top: `${top + verticalOffset}rem`,
+              left: '6.5rem',
+            }}
+          />
+        ),
+      )}
 
-        {/* 주차 레이블 */}
-        <div className="absolute top-[34.5rem] left-[16.125rem] text-[1.25rem] inline-block w-[7.563rem] h-[1.438rem]">
-          1주차
-        </div>
-        <div className="absolute top-[34.5rem] left-[26.375rem] text-[1.25rem] inline-block w-[5.375rem] h-[1.938rem]">
-          2주차
-        </div>
-        <div className="absolute top-[34.5rem] left-[35.563rem] text-[1.25rem] inline-block w-[5.188rem] h-[2.813rem]">
-          3주차
-        </div>
-        <div className="absolute top-[34.5rem] left-[44.563rem] text-[1.25rem] inline-block w-[6.063rem] h-[2.375rem]">
-          4주차
-        </div>
-        <div className="absolute top-[34.5rem] left-[54.188rem] text-[1.25rem] inline-block w-[6.063rem] h-[2.375rem]">
-          5주차
-        </div>
+      {/* 막대 그래프 */}
+      <div className="absolute left-0 bottom-0 w-full h-[24.6rem]">{bars}</div>
 
-        {/* 그래프 막대 */}
-        <div className="absolute left-0 bottom-0 w-full h-[28.688rem]">
-          {bars}
+      {/* X축 레이블 */}
+      {weekLabels.map((label, idx) => (
+        <div
+          key={label}
+          className="absolute text-[1.15rem] font-inter text-black text-center
+                     user-select-none leading-normal"
+          style={{
+            bottom: '3rem',
+            left: `calc(${leftRems[idx]}rem - 1rem)`,
+            width: '5.5rem',
+            zIndex: 10,
+            letterSpacing: '-1px',
+          }}
+        >
+          {label}
         </div>
+      ))}
 
-        {/* 로딩/에러 메시지 (그래프 틀 아래쪽 혹은 원하는 위치에 추가 가능) */}
-        {(loading || error) && (
-          <div className="absolute bottom-[-2.5rem] left-0 w-full text-center text-red-600 text-sm">
-            {loading ? '로딩 중...' : `에러 발생: ${error}`}
+      {/* 데이터 없음 / 에러 메시지 */}
+      {(!hasData || error) && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2"
+          style={{ top: '17rem' }}
+        >
+          <div
+            className="bg-[rgba(255,255,255,0.87)] px-6 py-2 rounded-xl
+                          font-semibold text-[1.13rem] pointer-events-none
+                          z-20 shadow-lg border border-gray-200 text-gray-700
+                          text-center"
+          >
+            {error ? `에러: ${error}` : '데이터 없음'}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

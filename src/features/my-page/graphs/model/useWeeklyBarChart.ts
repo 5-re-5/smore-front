@@ -1,8 +1,9 @@
+// src/features/my-page/graphs/model/useWeeklyBarChart.ts
 import { useState, useEffect } from 'react';
 import { fetchWeeklyBarChart } from '../api/WeeklyBarChartApi';
 import type { WeeklyBarChartApiResponse } from '../types/WeeklyBarChartTypes';
 
-// 목데이터(에러/네트워크 장애 시 fallback)
+// API 실패 시 사용할 목데이터
 const mockWeekdayGraph = [6, 4, 2, 12, 4, 0, 3];
 
 export function useWeeklyBarChart(userId: string) {
@@ -11,15 +12,21 @@ export function useWeeklyBarChart(userId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!userId) {
+      setWeekdayGraph(mockWeekdayGraph);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     fetchWeeklyBarChart(userId)
-      // ✅ 여기서 WeeklyBarChartApiResponse 타입을 사용
-      .then((res: WeeklyBarChartApiResponse) => {
-        setWeekdayGraph(res.data.weekday_graph);
+      .then((data: WeeklyBarChartApiResponse) => {
+        setWeekdayGraph(data.weekdayGraph);
       })
       .catch((e: Error) => {
+        console.error('[WeeklyBarChart] API 실패 → mock데이터 사용', e);
         setError(e.message ?? '네트워크 오류');
         setWeekdayGraph(mockWeekdayGraph);
       })
