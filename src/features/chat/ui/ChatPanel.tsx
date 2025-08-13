@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams } from '@tanstack/react-router';
 import ChatUserList from '@/features/chat/ui/ChatUserList';
@@ -22,6 +23,11 @@ const isNumericString = (v: unknown): v is string =>
   typeof v === 'string' && /^\d+$/.test(v);
 
 export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
+  console.log('🎯 ChatPanel 컴포넌트 렌더링:', {
+    isOpen,
+    timestamp: new Date().toISOString(),
+  });
+
   const IS_TEST_MODE = import.meta.env.VITE_STOMP_TEST_MODE === 'true';
 
   // ✅ 라우트에서 스터디룸 ID를 직접 사용 (/room/$roomId)
@@ -30,16 +36,15 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   // ✅ 백엔드가 요구하는 "숫자 문자열"만 허용
   const studyRoomId = useMemo(
     () => (isNumericString(roomIdParam ?? '') ? roomIdParam! : ''),
-    [roomIdParam]
+    [roomIdParam],
   );
   const invalidRoomId = studyRoomId === '';
 
   const participants = useParticipants();
 
   // ✅ STOMP 연결은 여기서만 열고, ChatInput엔 함수/상태만 내려준다(중복 연결 방지)
-  const { sendGroupMessage, connectionStatus, reconnectAttempts } = useStompChat(
-    studyRoomId ? { roomIdOverride: studyRoomId } : {}
-  );
+  const { sendGroupMessage, connectionStatus, reconnectAttempts } =
+    useStompChat(studyRoomId ? { roomIdOverride: studyRoomId } : {});
   const status = connectionStatus;
 
   // ── 히스토리/동기화 훅 ──────────────────────────────────────────────
@@ -54,7 +59,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
     reset,
   } = useChatHistory(studyRoomId, {
     pageSize: 50,
-    autoInitial: !IS_TEST_MODE && !invalidRoomId,        // ✅ invalid면 자동 로드 X
+    autoInitial: !IS_TEST_MODE && !invalidRoomId, // ✅ invalid면 자동 로드 X
     autoSinceOnReconnect: !IS_TEST_MODE && !invalidRoomId,
   });
 
@@ -65,8 +70,45 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   // 화면엔 'CHAT' + 'SYSTEM'만 노출 (스토어에서 CHAT으로 저장되므로)
   const filteredMessages = useMemo(
     () => getFilteredMessages({ type: ['CHAT', 'SYSTEM'] }),
-    [getFilteredMessages, allMessages]
+    [getFilteredMessages],
   );
+
+  // 디버깅용: ChatPanel 마운트/언마운트 시 스토어 상태 출력
+  // useEffect(() => {
+  //   console.log('🟢 ChatPanel useEffect 실행 - 의존성 변화:', {
+  //     studyRoomId,
+  //     allMessagesLength: allMessages.length,
+  //     timestamp: new Date().toISOString()
+  //   });
+  //   console.log('🟢 ChatPanel 마운트 - 스토어 상태:', {
+  //     roomId: studyRoomId,
+  //     allMessagesCount: allMessages.length,
+  //     isHistoryLoaded: useChatMessageStore.getState().isHistoryLoaded,
+  //     isLoading: useChatMessageStore.getState().isLoading,
+  //     error: useChatMessageStore.getState().error,
+  //     firstMessage: allMessages[0] ? {
+  //       messageId: allMessages[0].messageId,
+  //       content: allMessages[0].content?.substring(0, 50) + '...',
+  //       createdAt: allMessages[0].createdAt
+  //     } : null,
+  //     lastMessage: allMessages[allMessages.length - 1] ? {
+  //       messageId: allMessages[allMessages.length - 1].messageId,
+  //       content: allMessages[allMessages.length - 1].content?.substring(0, 50) + '...',
+  //       createdAt: allMessages[allMessages.length - 1].createdAt
+  //     } : null
+  //   });
+
+  //   return () => {
+  //     console.log('🔴 ChatPanel cleanup 실행 - 스토어 상태:', {
+  //       roomId: studyRoomId,
+  //       allMessagesCount: useChatMessageStore.getState().allMessages.length,
+  //       isHistoryLoaded: useChatMessageStore.getState().isHistoryLoaded,
+  //       isLoading: useChatMessageStore.getState().isLoading,
+  //       error: useChatMessageStore.getState().error,
+  //       timestamp: new Date().toISOString()
+  //     });
+  //   };
+  // }, [studyRoomId, allMessages.length]);
 
   // ── 스크롤 상태 & 유틸 ─────────────────────────────────────────────
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -89,8 +131,30 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   const isNearBottom = useCallback(
     (el: HTMLElement, threshold = 100) =>
       el.scrollHeight - el.scrollTop - el.clientHeight <= threshold,
-    []
+    [],
   );
+
+  // 새로고침 완료 후에만 스크롤을 맨 아래로 (새 메시지 수신은 제외)
+  useEffect(() => {
+    // 오직 isInitialLoading이 true → false로 변할 때만 실행 (새로고침 완료)
+    if (
+      !isInitialLoading &&
+      filteredMessages.length > 0 &&
+      !isPaging &&
+      !isLoadingHistory
+    ) {
+      // 초기 로딩 완료 후 DOM 렌더링 완료를 보장하는 더 긴 지연
+      const timer = setTimeout(() => {
+        // 스크롤 컨테이너가 준비되었는지 확인
+        const el = scrollContainerRef.current;
+        if (el && el.scrollHeight > el.clientHeight) {
+          scrollToBottom(true);
+        }
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialLoading, scrollToBottom]); // filteredMessages.length 제거 - 새 메시지로 인한 재실행 방지
 
   // 새 메시지 감지 → 자동 스크롤 or 배지
   useEffect(() => {
@@ -98,10 +162,11 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
     if (!el || filteredMessages.length === 0) return;
     if (isPaging || isInitialLoading || isLoadingHistory) return;
 
-    const last: any = filteredMessages[filteredMessages.length - 1];
+    const last = filteredMessages[filteredMessages.length - 1] as any;
     const ts = last?.createdAt ?? last?.timestamp ?? '';
 
-    const isNewTail = ts !== lastMessageTimestamp && lastMessageTimestamp !== '';
+    const isNewTail =
+      ts !== lastMessageTimestamp && lastMessageTimestamp !== '';
     if (isNewTail) {
       if (isNearBottom(el)) scrollToBottom();
       else {
@@ -146,16 +211,21 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   const handleRefresh = async () => {
     if (IS_TEST_MODE || invalidRoomId) return;
     reset(); // reset()에서 이미 loadInitial()을 호출하므로 중복 호출 제거
-    setTimeout(() => scrollToBottom(true), 50);
+
+    // 추가 보장: 새로고침 완료 후 강제 스크롤
+    setTimeout(() => {
+      if (scrollContainerRef.current) {
+        scrollToBottom(true);
+      }
+    }, 500); // useEffect보다 더 늦게 실행되는 백업 스크롤
   };
 
   // RoomId가 잘못된 경우 사용자 안내
-  const invalidBanner =
-    invalidRoomId && (
-      <div className="bg-red-600/20 border border-red-600/50 text-red-200 p-2 mx-3 mt-2 rounded text-sm">
-        ⚠️ 잘못된 방 ID입니다. 숫자 형태의 studyRoomId가 필요합니다.
-      </div>
-    );
+  const invalidBanner = invalidRoomId && (
+    <div className="bg-red-600/20 border border-red-600/50 text-red-200 p-2 mx-3 mt-2 rounded text-sm">
+      ⚠️ 잘못된 방 ID입니다. 숫자 형태의 studyRoomId가 필요합니다.
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-[#2A2F46] text-white overflow-hidden pb-3 -mt-3">
@@ -194,11 +264,14 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
 
       {/* 에러/상태 배너 */}
       {invalidBanner}
-      {!IS_TEST_MODE && !invalidRoomId && historyError && historyError.trim() !== '' && (
-        <div className="bg-red-600/20 border border-red-600/50 text-red-200 p-2 mx-3 mt-2 rounded text-sm">
-          ⚠️ {historyError}
-        </div>
-      )}
+      {!IS_TEST_MODE &&
+        !invalidRoomId &&
+        historyError &&
+        historyError.trim() !== '' && (
+          <div className="bg-red-600/20 border border-red-600/50 text-red-200 p-2 mx-3 mt-2 rounded text-sm">
+            ⚠️ {historyError}
+          </div>
+        )}
       {status === 'disconnected' && (
         <div className="bg-red-600/20 border border-red-600/50 text-red-200 p-2 mx-3 mt-2 rounded text-sm">
           🔴 연결이 끊어졌습니다
@@ -247,16 +320,20 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
             📜 이전 메시지를 불러오는 중...
           </div>
         )}
-        {!IS_TEST_MODE && !invalidRoomId && hasNext && !isPaging && !isInitialLoading && (
-          <div className="text-center py-2">
-            <button
-              onClick={handleScrollTop}
-              className="text-gray-400 hover:text-gray-300 underline text-xs"
-            >
-              이전 메시지 더 보기
-            </button>
-          </div>
-        )}
+        {!IS_TEST_MODE &&
+          !invalidRoomId &&
+          hasNext &&
+          !isPaging &&
+          !isInitialLoading && (
+            <div className="text-center py-2">
+              <button
+                onClick={handleScrollTop}
+                className="text-gray-400 hover:text-gray-300 underline text-xs"
+              >
+                이전 메시지 더 보기
+              </button>
+            </div>
+          )}
         <ChatMessageList messages={filteredMessages} />
       </div>
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from 'react';
 import { useStompChat } from '../hooks/useStompChat';
 
@@ -7,7 +8,7 @@ interface ChatInputProps {
   /** 호환 유지용. 사용하지 않음 */
   preselectedReceiver?: string;
 
-  /** REST/브로드캐스트용 스터디룸 ID(예: "123"). 
+  /** REST/브로드캐스트용 스터디룸 ID(예: "123").
    * 부모가 onSend를 내려주지 않은 경우에만 훅에서 사용됨 */
   roomId?: string;
 
@@ -38,12 +39,8 @@ export default function ChatInput({
   const { sendGroupMessage: hookSend, connectionStatus: hookStatus } =
     useStompChat(useLocalHook && roomId ? { roomIdOverride: roomId } : {});
 
-  const effectiveSend = useMemo(
-    () => onSend ?? hookSend,
-    [onSend, hookSend]
-  );
-  const effectiveConnected =
-    isConnectedProp ?? (hookStatus === 'connected');
+  const effectiveSend = useMemo(() => onSend ?? hookSend, [onSend, hookSend]);
+  const effectiveConnected = isConnectedProp ?? hookStatus === 'connected';
 
   // 글자 수 제한 경고 자동 숨김
   useEffect(() => {
@@ -96,7 +93,8 @@ export default function ChatInput({
       {/* 안내 배너들 */}
       {showLimitWarning && (
         <div className="mb-2 text-red-400 text-xs bg-red-900/20 border border-red-600/30 rounded px-1 py-1">
-          ⚠️ 메시지는 {maxLength}자를 초과할 수 없습니다. (현재: {message.length}자)
+          ⚠️ 메시지는 {maxLength}자를 초과할 수 없습니다. (현재:{' '}
+          {message.length}자)
         </div>
       )}
       {sendError && (
@@ -131,7 +129,9 @@ export default function ChatInput({
           onClick={doSend}
           disabled={!message.trim() || isMessageTooLong || !effectiveConnected}
           className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-sm"
-          title={!effectiveConnected ? '채팅에 연결되지 않았습니다.' : undefined}
+          title={
+            !effectiveConnected ? '채팅에 연결되지 않았습니다.' : undefined
+          }
         >
           전송
         </button>

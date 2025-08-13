@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // features/chat/lib/ingest.ts
 import { useChatMessageStore } from '@/features/chat/model/useChatMessageStore';
 import type { ChatMessage } from '@/shared/types/chatMessage.interface';
@@ -6,14 +7,16 @@ import type {
   ChatSyncResponse,
   // ChatMessageDTO, // 현재 미사용으로 제거
 } from '@/shared/types/chat';
+import { normalizeHistoryArray } from './useChatHistory';
 
 /** 서버 원본 → 앱 공용 메시지로 매핑 (구/신 스키마 혼용 안전) */
 export const mapApiMessageToChat = (raw: any): ChatMessage => {
   const messageType =
     raw?.messageType ??
-    (raw?.type === 'GROUP' ? 'CHAT' : raw?.type ?? 'CHAT');
+    (raw?.type === 'GROUP' ? 'CHAT' : (raw?.type ?? 'CHAT'));
 
-  const createdAt = raw?.createdAt ?? raw?.timestamp ?? new Date().toISOString();
+  const createdAt =
+    raw?.createdAt ?? raw?.timestamp ?? new Date().toISOString();
 
   const user =
     raw?.user ??
@@ -75,36 +78,15 @@ export type RawSinceResponse =
  * - mode='newer'    : 최신 묶음 추가(append)
  * 반환: hasNext / nextCursor( null → undefined 정규화 ) / total
  */
-export const ingestHistoryResponse = (
-  resp: RawHistoryResponse,
-  mode: 'initial' | 'older' | 'newer' = 'older',
-) => {
-  const items = resp?.data?.content ?? [];
-  const mapped = items.map(mapApiMessageToChat);
+export function ingestHistoryResponse(res: ChatHistoryResponse) {
+  const content = res?.data?.content ?? [];
+  const items = normalizeHistoryArray(content); // ✅ 정규화 + 정렬
 
-  const store = useChatMessageStore.getState();
-  if (mode === 'initial') {
-    store.setAllMessages(mapped);
-  } else if (mode === 'older') {
-    store.addMessages(mapped, 'prepend');
-  } else {
-    store.addMessages(mapped, 'append');
-  }
+  const hasNext: boolean = !!res?.data?.hasNext;
+  const nextCursor = res?.data?.nextCursor ?? undefined; // { lastMessageId, lastCreatedAt } 또는 undefined
 
-  // nextCursor가 null인 케이스를 undefined로 정규화
-  const rawCursor =
-    (resp as any)?.data?.nextCursor as
-      | { lastMessageId: number; lastCreatedAt: string }
-      | null
-      | undefined;
-
-  return {
-    hasNext: !!resp?.data?.hasNext,
-    nextCursor: rawCursor ?? undefined,
-    total: (resp as any)?.data?.totalElements,
-  };
-};
-
+  return { items, hasNext, nextCursor };
+}
 /** since 동기화 응답 머지 (대개 최신들을 append) */
 export const ingestSinceResponse = (resp: RawSinceResponse) => {
   const items = resp?.data?.messages ?? [];

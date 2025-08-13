@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ChatMessage as ChatMessageType } from '@/shared/types/chatMessage.interface';
 
 interface ChatMessageProps {
@@ -14,8 +15,8 @@ const getTimestamp = (m: any): string =>
   m?.createdAt ?? m?.timestamp ?? new Date().toISOString();
 
 export default function ChatMessage({ message }: ChatMessageProps) {
-  const type = normalizeType(message);            // 'CHAT' | 'SYSTEM' | 'PRIVATE' | ...
-  const user = getUser(message);                  // { userId, nickname, profileUrl } | null
+  const type = normalizeType(message); // 'CHAT' | 'SYSTEM' | 'PRIVATE' | ...
+  const user = getUser(message); // { userId, nickname, profileUrl } | null
   const content = message?.content ?? '';
   const isEdited = Boolean((message as any)?.isEdited);
 
@@ -63,9 +64,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
               개인
             </span>
           )}
-          {isEdited && (
-            <span className="text-xs text-gray-400">(수정됨)</span>
-          )}
+          {isEdited && <span className="text-xs text-gray-400">(수정됨)</span>}
         </div>
 
         {/* 본문 */}

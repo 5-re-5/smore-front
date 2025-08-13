@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 //ChatMessageList
 import ChatMessage from './ChatMessage';
 import type { ChatMessage as ChatMessageType } from '@/shared/types/chatMessage.interface';
@@ -35,7 +36,9 @@ export default function ChatMessageList({
     <div className="flex flex-col gap-4">
       {/* 상단: 과거 로딩 상태(선택) */}
       {isLoadingHistory && (
-        <div className="text-center text-gray-400 text-xs py-1">📜 이전 메시지를 불러오는 중…</div>
+        <div className="text-center text-gray-400 text-xs py-1">
+          📜 이전 메시지를 불러오는 중…
+        </div>
       )}
 
       {/* ⚠️ 서버 정렬을 그대로 사용: 메시지 배열을 재정렬/리버스하지 마세요 */}

@@ -14,7 +14,7 @@ export class ApiError extends Error {
   constructor(
     code: ApiError['code'],
     message: string,
-    opts?: { status?: number; url?: string }
+    opts?: { status?: number; url?: string },
   ) {
     super(message);
     this.name = 'ApiError';
@@ -23,7 +23,6 @@ export class ApiError extends Error {
     this.url = opts?.url;
   }
 }
-
 
 /** 이력 페이지네이션 */
 export async function fetchHistory(params: {
@@ -34,12 +33,13 @@ export async function fetchHistory(params: {
   messageType?: ChatMessageType;
   signal?: AbortSignal;
 }): Promise<ChatHistoryResponse> {
-  const { roomId, size, lastMessageId, lastCreatedAt, messageType, signal } = params;
-  
+  const { roomId, size, lastMessageId, lastCreatedAt, messageType, signal } =
+    params;
+
   try {
     const response = await request<ChatHistoryResponse>({
       method: 'GET',
-      url: `/api/v1/study-rooms/${roomId}/messages`,
+      url: `api/v1/study-rooms/${roomId}/messages`,
       params: {
         size,
         lastMessageId,
@@ -49,11 +49,12 @@ export async function fetchHistory(params: {
       signal,
     });
     return response.data;
-  } catch (error: any) {
-    if (error.code === 401 || error.code === 403) {
-      throw new ApiError('AUTH', 'Unauthorized', { status: error.code });
+  } catch (error: unknown) {
+    const err = error as { code?: number; message?: string };
+    if (err.code === 401 || err.code === 403) {
+      throw new ApiError('AUTH', 'Unauthorized', { status: err.code });
     }
-    throw new ApiError('NETWORK', error.message || 'Network error');
+    throw new ApiError('NETWORK', err.message || 'Network error');
   }
 }
 
@@ -65,11 +66,11 @@ export async function fetchSince(params: {
   signal?: AbortSignal;
 }): Promise<ChatSyncResponse> {
   const { roomId, since, limit, signal } = params;
-  
+
   try {
     const response = await request<ChatSyncResponse>({
       method: 'GET',
-      url: `/api/v1/study-rooms/${roomId}/sync`,
+      url: `/study-rooms/${roomId}/sync`,
       params: {
         since,
         limit,
@@ -77,10 +78,11 @@ export async function fetchSince(params: {
       signal,
     });
     return response.data;
-  } catch (error: any) {
-    if (error.code === 401 || error.code === 403) {
-      throw new ApiError('AUTH', 'Unauthorized', { status: error.code });
+  } catch (error: unknown) {
+    const err = error as { code?: number; message?: string };
+    if (err.code === 401 || err.code === 403) {
+      throw new ApiError('AUTH', 'Unauthorized', { status: err.code });
     }
-    throw new ApiError('NETWORK', error.message || 'Network error');
+    throw new ApiError('NETWORK', err.message || 'Network error');
   }
 }

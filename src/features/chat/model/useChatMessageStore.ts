@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // features/chat/model/useChatMessageStore.ts
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
@@ -14,8 +15,8 @@ import type { ChatMessage } from '@/shared/types/chatMessage.interface';
  * - RESPECT_SERVER_ORDER: true 이면 정렬을 절대 수행하지 않음 (서버 순서 그대로)
  * - SERVER_ORDER_ASC: 서버가 오래된→최신(오름차순)으로 내려주면 true, 최신→오래된이면 false
  */
-const RESPECT_SERVER_ORDER = true;  // 서버 정렬을 그대로 사용 (정렬 로직 OFF)
-const SERVER_ORDER_ASC = true;      // 서버 정렬이 오름차순이면 true, 내림차순이면 false
+const RESPECT_SERVER_ORDER = true; // 서버 정렬을 그대로 사용 (정렬 로직 OFF)
+const SERVER_ORDER_ASC = true; // 서버 정렬이 오름차순이면 true, 내림차순이면 false
 
 /* ------------------------------ 유틸 ------------------------------ */
 
@@ -30,7 +31,9 @@ const normalizeType = (msg: any): 'CHAT' | 'SYSTEM' | 'PRIVATE' | string => {
 
 /** 보낸 사람 userId 통일 */
 const getUserIdFrom = (msg: any): string | number | undefined => {
-  return msg?.user?.userId ?? msg?.sender?.userId ?? msg?.senderId ?? msg?.authorId;
+  return (
+    msg?.user?.userId ?? msg?.sender?.userId ?? msg?.senderId ?? msg?.authorId
+  );
 };
 
 /** createdAt(신) 또는 timestamp(구) → ms */
@@ -53,7 +56,8 @@ const compareAsc = (a: any, b: any) => {
   const ta = toTime(a);
   const tb = toTime(b);
   if (ta !== tb) return ta - tb;
-  const am = a?.messageId, bm = b?.messageId;
+  const am = a?.messageId,
+    bm = b?.messageId;
   if (typeof am === 'number' && typeof bm === 'number') return am - bm;
   return String(am ?? '').localeCompare(String(bm ?? ''));
 };
@@ -61,7 +65,7 @@ const compareAsc = (a: any, b: any) => {
 /* ---------------------------- 스토어 타입 ---------------------------- */
 
 interface ChatMessageState {
-  allMessages: ChatMessage[];   // 서버 정렬을 그대로 유지
+  allMessages: ChatMessage[]; // 서버 정렬을 그대로 유지
   isLoading: boolean;
   error: string | null;
   isHistoryLoaded: boolean;
@@ -70,8 +74,14 @@ interface ChatMessageState {
   addMessage: (message: ChatMessage) => void;
   setAllMessages: (messages: ChatMessage[]) => void;
   setMessages: (messages: ChatMessage[]) => void; // 별칭(호환)
-  addMessages: (messages: ChatMessage[], position?: 'prepend' | 'append') => void;
-  updateMessage: (messageId: string | number, updates: Partial<ChatMessage>) => void;
+  addMessages: (
+    messages: ChatMessage[],
+    position?: 'prepend' | 'append',
+  ) => void;
+  updateMessage: (
+    messageId: string | number,
+    updates: Partial<ChatMessage>,
+  ) => void;
   removeMessage: (messageId: string | number) => void;
   clearMessages: () => void;
 
@@ -111,7 +121,11 @@ export const useChatMessageStore = create<ChatMessageState>()(
           } else {
             // 서버 정렬을 존중: 오름차순이면 뒤에, 내림차순이면 앞에 붙인다
             if (RESPECT_SERVER_ORDER) {
-              SERVER_ORDER_ASC ? next.push(incoming) : next.unshift(incoming);
+              if (SERVER_ORDER_ASC) {
+                next.push(incoming);
+              } else {
+                next.unshift(incoming);
+              }
             } else {
               next.push(incoming);
               next.sort(compareAsc);
@@ -124,6 +138,10 @@ export const useChatMessageStore = create<ChatMessageState>()(
 
       /* -------------------------- 전체 설정(초기 이력) -------------------------- */
       setAllMessages: (messages: ChatMessage[]) => {
+        console.log('📝 setAllMessages 호출됨:', {
+          messagesCount: messages.length,
+          messages: messages.slice(0, 2),
+        });
         set(() => {
           // 중복 병합(순서 보존): 먼저 들어온 항목의 "자리"를 유지하면서 데이터는 최신으로 합쳐짐
           const dedup = new Map<string, ChatMessage>();
@@ -134,6 +152,10 @@ export const useChatMessageStore = create<ChatMessageState>()(
           }
           const arr = [...dedup.values()];
           if (!RESPECT_SERVER_ORDER) arr.sort(compareAsc);
+          console.log('📝 setAllMessages 완료:', {
+            resultCount: arr.length,
+            isHistoryLoaded: true,
+          });
           return { allMessages: arr, isHistoryLoaded: true };
         });
       },
@@ -144,12 +166,16 @@ export const useChatMessageStore = create<ChatMessageState>()(
       },
 
       /* ------------------------ 다건 추가(히스토리 페이지) ------------------------ */
-      addMessages: (newMessages: ChatMessage[], position: 'prepend' | 'append' = 'append') => {
+      addMessages: (
+        newMessages: ChatMessage[],
+        position: 'prepend' | 'append' = 'append',
+      ) => {
         set((state) => {
           // position 힌트에 따라 앞/뒤로 합치되, 최종 순서는 서버가 내려준 순서를 존중
-          const merged = position === 'prepend'
-            ? [...newMessages, ...state.allMessages]
-            : [...state.allMessages, ...newMessages];
+          const merged =
+            position === 'prepend'
+              ? [...newMessages, ...state.allMessages]
+              : [...state.allMessages, ...newMessages];
 
           const dedup = new Map<string, ChatMessage>();
           for (const m of merged) {
@@ -164,11 +190,17 @@ export const useChatMessageStore = create<ChatMessageState>()(
       },
 
       /* ------------------------------ 업데이트 ------------------------------ */
-      updateMessage: (messageId: string | number, updates: Partial<ChatMessage>) => {
+      updateMessage: (
+        messageId: string | number,
+        updates: Partial<ChatMessage>,
+      ) => {
         set((state) => {
           const next = state.allMessages.map((m: any) => {
             const mid = m?.messageId != null ? String(m.messageId) : undefined;
-            const cid = m?.clientMessageId != null ? String(m.clientMessageId) : undefined;
+            const cid =
+              m?.clientMessageId != null
+                ? String(m.clientMessageId)
+                : undefined;
             const cmp = String(messageId);
             if (mid === cmp || cid === cmp) return { ...m, ...updates };
             return m;
@@ -184,7 +216,10 @@ export const useChatMessageStore = create<ChatMessageState>()(
           const cmp = String(messageId);
           const filtered = state.allMessages.filter((m: any) => {
             const mid = m?.messageId != null ? String(m.messageId) : undefined;
-            const cid = m?.clientMessageId != null ? String(m.clientMessageId) : undefined;
+            const cid =
+              m?.clientMessageId != null
+                ? String(m.clientMessageId)
+                : undefined;
             if (mid && mid === cmp) return false;
             if (cid && cid === cmp) return false;
             return true;
@@ -195,19 +230,23 @@ export const useChatMessageStore = create<ChatMessageState>()(
 
       /* ------------------------------ 초기화 ------------------------------ */
       clearMessages: () => {
+        console.log('🗑️ clearMessages 호출됨 - 스토어 초기화');
         set(() => ({ allMessages: [], isHistoryLoaded: false }));
       },
 
       /* ------------------------------ 상태 ------------------------------ */
       setLoading: (loading: boolean) => set(() => ({ isLoading: loading })),
       setError: (error: string | null) => set(() => ({ error })),
-      setHistoryLoaded: (loaded: boolean) => set(() => ({ isHistoryLoaded: loaded })),
+      setHistoryLoaded: (loaded: boolean) =>
+        set(() => ({ isHistoryLoaded: loaded })),
 
       /* ----------------------------- 필터/조회 ----------------------------- */
       getFilteredMessages: (filter) => {
         const state = get();
         const types = filter.type
-          ? (Array.isArray(filter.type) ? filter.type : [filter.type])
+          ? Array.isArray(filter.type)
+            ? filter.type
+            : [filter.type]
           : undefined;
 
         return state.allMessages.filter((msg: any) => {
@@ -222,15 +261,19 @@ export const useChatMessageStore = create<ChatMessageState>()(
           }
 
           // PRIVATE 쿼리(레거시 호환): sender/receiver 기준
-          if (filter.userId && filter.currentUserId && normalizeType(msg) === 'PRIVATE') {
+          if (
+            filter.userId &&
+            filter.currentUserId &&
+            normalizeType(msg) === 'PRIVATE'
+          ) {
             const from = String(getUserIdFrom(msg) ?? '');
-            const to   = String(msg?.receiver ?? msg?.to ?? '');
-            const sel  = String(filter.userId);
-            const me   = String(filter.currentUserId);
+            const to = String(msg?.receiver ?? msg?.to ?? '');
+            const sel = String(filter.userId);
+            const me = String(filter.currentUserId);
             const isFromSelected = from === sel;
-            const isToSelected   = to === sel;
-            const isFromMe       = from === me;
-            const isToMe         = to === me;
+            const isToSelected = to === sel;
+            const isFromMe = from === me;
+            const isToMe = to === me;
             return (isFromSelected && isToMe) || (isFromMe && isToSelected);
           }
 
@@ -243,7 +286,8 @@ export const useChatMessageStore = create<ChatMessageState>()(
         const cmp = String(messageId);
         return state.allMessages.find((m: any) => {
           const mid = m?.messageId != null ? String(m.messageId) : undefined;
-          const cid = m?.clientMessageId != null ? String(m.clientMessageId) : undefined;
+          const cid =
+            m?.clientMessageId != null ? String(m.clientMessageId) : undefined;
           return mid === cmp || cid === cmp;
         });
       },
@@ -251,7 +295,9 @@ export const useChatMessageStore = create<ChatMessageState>()(
       getMessagesCount: (type?: any) => {
         const state = get();
         if (!type) return state.allMessages.length;
-        return state.allMessages.filter((m) => normalizeType(m) === (type === 'GROUP' ? 'CHAT' : type)).length;
+        return state.allMessages.filter(
+          (m) => normalizeType(m) === (type === 'GROUP' ? 'CHAT' : type),
+        ).length;
       },
     }),
     { name: 'chat-message-store' },
@@ -260,14 +306,11 @@ export const useChatMessageStore = create<ChatMessageState>()(
 
 /* ------------------------------ 선택자 훅 ------------------------------ */
 // 전체
-export const useAllMessages = () =>
-  useChatMessageStore((s) => s.allMessages);
+export const useAllMessages = () => useChatMessageStore((s) => s.allMessages);
 
 // 로딩/에러
-export const useChatLoading = () =>
-  useChatMessageStore((s) => s.isLoading);
-export const useChatError = () =>
-  useChatMessageStore((s) => s.error);
+export const useChatLoading = () => useChatMessageStore((s) => s.isLoading);
+export const useChatError = () => useChatMessageStore((s) => s.error);
 
 // 히스토리 로드 여부
 export const useHistoryLoaded = () =>
@@ -283,7 +326,10 @@ export const useGroupMessages = () =>
 export const usePrivateMessages = () =>
   useChatMessageStore((s) => s.getFilteredMessages({ type: 'PRIVATE' }));
 
-export const usePrivateMessagesWithUser = (userId: string, currentUserId: string) =>
+export const usePrivateMessagesWithUser = (
+  userId: string,
+  currentUserId: string,
+) =>
   useChatMessageStore((s) =>
     s.getFilteredMessages({ type: 'PRIVATE', userId, currentUserId }),
   );
