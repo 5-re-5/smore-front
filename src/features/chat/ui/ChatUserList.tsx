@@ -5,7 +5,7 @@ import type { Participant } from 'livekit-client';
 // Participant → ChatUser로 변환하는 헬퍼 함수
 function mapParticipantToChatUser(participant: Participant): ChatUser | null {
   try {
-    console.log("여기 참가자"+participant);
+    console.log('여기 참가자' + participant);
     // 로그인 코드 완성한 후 metadata를 통해 user 구분하고 필드 채울 예정
     const data = JSON.parse(participant.metadata || '{}');
     return {
@@ -63,7 +63,13 @@ function ChatUserList() {
     .filter(Boolean) as ChatUser[];
 
   return (
-    <div className="space-y-2">
+    <div
+      className={`space-y-2 ${
+        chatUsers.length > 3
+          ? 'max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'
+          : ''
+      }`}
+    >
       {chatUsers.map((user) => (
         <ChatUserItem key={user.sid} user={user} />
       ))}

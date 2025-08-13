@@ -56,7 +56,7 @@ function RoomLayout({
           {/* absolute 박스: 상단 고정, 하단은 툴바 높이만큼 띄움 */}
           <div
             className="absolute inset-x-0 top-3"
-            style={{ bottom: 'var(--toolbar-h, 64px)' }}
+            style={{ bottom: 'var(--toolbar-h, 49px)' }}
           >
             <ChatPanel isOpen={isChatOpen} />
           </div>
