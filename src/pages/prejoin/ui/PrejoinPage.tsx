@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const RoomNotFoundAlert = ({
   open,
@@ -70,6 +70,7 @@ function PrejoinPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showRoomNotFoundAlert, setShowRoomNotFoundAlert] = useState(false);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
   // 사용자 정보
   const { getUserId } = useAuth();
@@ -106,19 +107,6 @@ function PrejoinPage() {
     return true;
   };
 
-  const getErrorMessage = (apiError: ApiError): string => {
-    switch (apiError.code) {
-      case 401:
-        return '비밀번호가 올바르지 않습니다.';
-      case 404:
-        return '존재하지 않는 방입니다.';
-      case 409:
-        return '방이 가득 찼습니다. 나중에 다시 시도해주세요.';
-      default:
-        return '방 입장에 실패했습니다. 다시 시도해주세요.';
-    }
-  };
-
   const navigateToRoom = (): void => {
     navigate({
       to: '/room/$roomId',
@@ -130,6 +118,14 @@ function PrejoinPage() {
     navigate({
       to: '/study-list',
     });
+  };
+
+  const focusPasswordInput = (): void => {
+    passwordInputRef.current?.focus();
+  };
+
+  const showErrorMessage = (message: string): void => {
+    setError(message);
   };
 
   const handleJoinRoom = async (): Promise<void> => {
@@ -150,14 +146,41 @@ function PrejoinPage() {
       });
       navigateToRoom();
     } catch (error) {
+      console.error('API 호출 에러:', error);
+
       const apiError = error as ApiError;
 
-      if (apiError.code === 400) {
-        setShowRoomNotFoundAlert(true);
-        return;
-      }
+      if (apiError.code) {
+        switch (apiError.code) {
+          case 403:
+            showErrorMessage('비밀번호가 틀렸습니다. 다시 입력해주세요');
+            focusPasswordInput();
+            break;
 
-      setError(getErrorMessage(apiError));
+          case 404:
+            setShowRoomNotFoundAlert(true);
+            break;
+
+          case 409:
+            showErrorMessage('방이 가득 찼습니다. 나중에 다시 시도해주세요');
+            break;
+
+          case 422:
+            showErrorMessage('참가 처리 중 오류가 발생했습니다');
+            break;
+
+          case 500:
+          default:
+            showErrorMessage(
+              '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요',
+            );
+            break;
+        }
+      } else {
+        // 네트워크 오류 또는 응답이 없는 경우
+        console.error('네트워크 오류:', error);
+        showErrorMessage('네트워크 연결을 확인해주세요');
+      }
     }
   };
 
@@ -235,6 +258,7 @@ function PrejoinPage() {
                   <div className="space-y-4">
                     <div>
                       <input
+                        ref={passwordInputRef}
                         type="password"
                         placeholder="비밀번호를 입력하세요"
                         value={password}
@@ -256,8 +280,6 @@ function PrejoinPage() {
                   </div>
                 </div>
               )}
-
-              {/* AI 설정 */}
 
               {/* 입장하기 버튼 */}
               <button
