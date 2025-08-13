@@ -2,6 +2,7 @@ import { Participant, Track } from 'livekit-client';
 import { useRef } from 'react';
 import { useAttachVideoTrack } from '../model/useAttachVideoTrack';
 import { TrackMutedIndicator } from '@livekit/components-react';
+import { getParticipantColor, getTextColorForBackground } from '@/shared/utils';
 
 interface VideoTileProps {
   participant: Participant;
@@ -11,6 +12,9 @@ interface VideoTileProps {
 function VideoTile({ participant, track }: VideoTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   useAttachVideoTrack(videoRef, track);
+
+  const participantColor = getParticipantColor(participant.identity);
+  const textColor = getTextColorForBackground();
 
   const micPub = participant.getTrackPublication(Track.Source.Microphone);
   const camPub = participant.getTrackPublication(Track.Source.Camera);
@@ -51,7 +55,13 @@ function VideoTile({ participant, track }: VideoTileProps) {
           style={{ transform: 'scaleX(-1)' }}
         />
       )}
-      <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-1 rounded">
+      <div
+        className="absolute bottom-2 left-2 text-sm px-2 py-1 rounded-3xl"
+        style={{
+          backgroundColor: participantColor,
+          color: textColor,
+        }}
+      >
         {participant.identity}
       </div>
       <div className="absolute top-2 right-2 flex gap-2">

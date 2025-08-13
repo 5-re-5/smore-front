@@ -83,7 +83,7 @@ export function LocalVideoTile() {
           얼굴 감지 불가능
         </div>
       )}
-      <div className="absolute bottom-2 left-2 text-black text-sm bg-[#AEA7D9] px-2 py-1 rounded">
+      <div className="absolute bottom-2 left-2 text-black text-sm bg-[#AEA7D9] px-2 py-1 rounded-3xl">
         me
       </div>
       <div className="flex absolute top-2 right-2 gap-2">
