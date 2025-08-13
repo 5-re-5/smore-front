@@ -12,7 +12,7 @@ const yLabels = [0, 2, 4, 6, 8, 10, 12];
 const yLabelTops = [27.188, 23.813, 20.438, 17.063, 13.688, 10.313, 6.938];
 
 const WeeklyAvgBarChart: FunctionComponent<Props> = ({ userId }) => {
-  const { weeklyGraph, loading, error } = useWeeklyAvgBarChart(userId);
+  const { weeklyGraph, error } = useWeeklyAvgBarChart(userId);
 
   const hasData =
     Array.isArray(weeklyGraph) &&

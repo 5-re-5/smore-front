@@ -14,7 +14,7 @@ const yLabels = [0, 2, 4, 6, 8, 10, 12];
 const yLabelTops = [26.813, 23.438, 20.063, 16.688, 13.313, 9.938, 6.563];
 
 const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
-  const { weekdayGraph, loading, error } = useWeeklyBarChart(userId);
+  const { weekdayGraph, error } = useWeeklyBarChart(userId);
 
   const hasData =
     Array.isArray(weekdayGraph) && weekdayGraph.some((v) => v > 0);

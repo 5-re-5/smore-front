@@ -1,6 +1,4 @@
 import React from 'react';
-import type { AiInsights } from '../types/AiFocusLineChartTypes';
-
 interface StatPanelProps {
   bestFocusTime: { start: string; end: string };
   worstFocusTime: { start: string; end: string };
