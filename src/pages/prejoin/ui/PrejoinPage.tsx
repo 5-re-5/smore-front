@@ -11,8 +11,6 @@ import { useMediaControlStore } from '@/features/prejoin/model/useMediaControlSt
 import { CameraPreview } from '@/features/prejoin/ui/CameraPreview';
 import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
 import type { ApiError } from '@/shared/api/request';
-import { Button } from '@/shared/ui/button';
-import { ArrowIcon } from '@/shared/ui/icons';
 import { SmoreLogoHeader } from '@/shared/ui';
 import {
   AlertDialog,
@@ -23,6 +21,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
+import { Button } from '@/shared/ui/button';
+import { ArrowIcon } from '@/shared/ui/icons';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 
@@ -186,8 +186,8 @@ function PrejoinPage() {
 
   if (isNaN(roomIdNumber)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-2">
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="space-y-2 text-center">
           <h1 className="text-2xl font-bold text-red-600">잘못된 방 번호</h1>
           <p className="text-gray-600">유효한 방 번호를 입력해주세요.</p>
           <Button onClick={handleGoBack}> 목록으로 이동</Button>
@@ -198,8 +198,8 @@ function PrejoinPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-4">
+      <div className="container px-4 py-8 mx-auto">
+        <div className="flex justify-between items-center mb-4">
           <Button
             variant="ghost"
             size="icon"
@@ -213,7 +213,7 @@ function PrejoinPage() {
           <div className="w-9" /> {/* 균형을 위한 spacer */}
         </div>
         <div className="h-full w-full bg-[#202020] rounded-lg shadow-lg p-14 px-10">
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid gap-8 lg:grid-cols-2">
             {/* 왼쪽: 카메라 미리보기 */}
             <section className="flex items-start space-x-4">
               <PrejoinMicWaveform stream={audioState.stream || null} />
@@ -225,10 +225,10 @@ function PrejoinPage() {
             {/* 오른쪽: 방 정보 및 입장 설정 */}
             <section className="space-y-6">
               <RoomInfo roomId={roomIdNumber} />
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">AI 설정</h3>
+              <div className="p-6 bg-white rounded-lg shadow-lg">
+                <h3 className="mb-4 text-lg font-semibold">AI 설정</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between items-center">
                     <div>
                       <label className="text-sm font-medium text-gray-900">
                         얼굴 감지 AI
@@ -237,7 +237,7 @@ function PrejoinPage() {
                         얼굴 감지를 통해 집중도를 측정합니다
                       </p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <label className="inline-flex relative items-center cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isFaceDetectionEnabled}
@@ -253,8 +253,8 @@ function PrejoinPage() {
               </div>
               {/* 비밀번호 입력 - 비밀번호가 필요한 방만 표시 */}
               {room?.hasPassword && (
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4">방 비밀번호</h3>
+                <div className="p-6 bg-white rounded-lg shadow-lg">
+                  <h3 className="mb-4 text-lg font-semibold">방 비밀번호</h3>
                   <div className="space-y-4">
                     <div>
                       <input
@@ -264,7 +264,7 @@ function PrejoinPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         maxLength={8}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        className="px-4 py-3 w-full rounded-lg border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !isJoining) {
                             handleJoinRoom();
@@ -272,12 +272,12 @@ function PrejoinPage() {
                         }}
                       />
                     </div>
-                    {error && (
-                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-red-600 text-sm">{error}</p>
-                      </div>
-                    )}
                   </div>
+                </div>
+              )}
+              {error && (
+                <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                  <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
 
@@ -289,12 +289,12 @@ function PrejoinPage() {
                   roomLoading ||
                   (room?.hasPassword && !password.trim())
                 }
-                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="flex justify-center items-center px-6 py-3 w-full font-semibold text-white bg-blue-600 rounded-lg transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isJoining ? (
                   <>
                     <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      className="mr-3 -ml-1 w-5 h-5 text-white animate-spin"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
