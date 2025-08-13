@@ -2,7 +2,7 @@ import { useAuth, useUserInfo } from '@/entities/user';
 import { userProfileQueryKeys } from '@/entities/user/api/queries/userQueries';
 import { updateUserProfile } from '@/entities/user/api/userApi';
 import {
-  createCroppedBlobWithDimensions,
+  createDirectCroppedBlob,
   loadImageFromBlob,
 } from '@/features/focus-capture/model/imageResize';
 import { useQueryClient } from '@tanstack/react-query';
@@ -151,7 +151,7 @@ function EditPage() {
 
       const image = await loadImageFromBlob(file);
 
-      const resizedBlob = await createCroppedBlobWithDimensions(
+      const resizedBlob = await createDirectCroppedBlob(
         image,
         PROFILE_WIDTH,
         PROFILE_HEIGHT,
