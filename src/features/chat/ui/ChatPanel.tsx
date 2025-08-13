@@ -22,6 +22,14 @@ interface ChatPanelProps {
 const isNumericString = (v: unknown): v is string =>
   typeof v === 'string' && /^\d+$/.test(v);
 
+// 메세지 개수 1000개 넘어가면 999+ 형식으로 나타내기
+const formatMessageCount = (count: number): string => {
+  if (count >= 1000) {
+    return '999+';
+  }
+  return count.toString();
+};
+
 export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   // console.log('🎯 ChatPanel 컴포넌트 렌더링:', {
   //   isOpen,
@@ -240,7 +248,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   );
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-[#2A2F46] text-white overflow-hidden pb-3 -mt-3">
+    <div className="flex flex-col h-full min-h-0 bg-[#2A2F46] text-white overflow-hidden -mt-3">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         <div className="flex items-center gap-2">
@@ -249,7 +257,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
           </span>
           {allMessages.length > 0 && (
             <span className="text-xs text-gray-400">
-              • 전체 {allMessages.length}개 | 현재 {filteredMessages.length}개
+              • 전체 {formatMessageCount(allMessages.length)}개
             </span>
           )}
         </div>
@@ -367,7 +375,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
       )}
 
       {/* 입력창: 전송/연결상태를 내려줌(중복 연결 방지) */}
-      <div className="border-t border-gray-700">
+      <div className="border-t py-1 border-gray-700">
         <ChatInput
           tab="GROUP"
           preselectedReceiver=""
