@@ -1,3 +1,4 @@
+//AiFocusLineChartTypes.ts
 export type FocusTrack = {
   labels: string[]; // ["00", "01", ..., "23"]
   scores: number[]; // 0~100 범위

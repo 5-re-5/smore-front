@@ -2,7 +2,6 @@ import type { FC } from 'react';
 
 import ProfileCard from '@/features/profile-card/ui/ProfileCard';
 import AiFocusLineChart from '@/features/my-page/graphs/ui/AiFocusLineChart';
-import StatPanel from '@/features/my-page/graphs/ui/StatPanel';
 import MonthlyLineChart from '@/features/my-page/graphs/ui/MonthlyLineChart';
 import WeeklyBarChartToggle from '@/features/my-page/graphs/ui/WeeklyBarChartToggle';
 
@@ -46,7 +45,6 @@ const MyPage: FC = () => {
       {/* 메인 콘텐츠 */}
       <section className="w-full max-w-[1200px] mx-auto px-2 flex flex-col gap-40 mt-14 pb-48 min-h-[900px]">
         <AiFocusLineChart userId={userId} />
-        <StatPanel userId={userId} />
         <WeeklyBarChartToggle userId={userId} />
         <MonthlyLineChart userId={userId} />
       </section>
