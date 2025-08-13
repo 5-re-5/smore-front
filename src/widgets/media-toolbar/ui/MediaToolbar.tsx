@@ -51,7 +51,7 @@ function MediaToolbar({
           },
           onError: (error) => {
             console.error('방 삭제 실패:', error);
-            alert('방 삭제에 실패했습니다.');
+            navigate({ to: '/study-list' });
           },
         },
       );
@@ -66,7 +66,7 @@ function MediaToolbar({
         },
         onError: (error) => {
           console.error('방 나가기 실패:', error);
-          alert('방 나가기에 실패했습니다.');
+          navigate({ to: '/study-list' });
         },
       },
     );
