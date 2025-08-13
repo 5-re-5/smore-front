@@ -68,10 +68,22 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   const allMessages = useAllMessages();
 
   // 화면엔 'CHAT' + 'SYSTEM'만 노출 (스토어에서 CHAT으로 저장되므로)
-  const filteredMessages = useMemo(
-    () => getFilteredMessages({ type: ['CHAT', 'SYSTEM'] }),
-    [getFilteredMessages],
-  );
+  const filteredMessages = useMemo(() => {
+    const filtered = getFilteredMessages({ type: ['CHAT', 'SYSTEM'] });
+    if (import.meta.env.DEV) {
+      console.log('[ChatPanel] 필터링 결과:', {
+        allMessagesCount: allMessages.length,
+        filteredCount: filtered.length,
+        allMessages: allMessages
+          .slice(0, 3)
+          .map((m) => ({ type: m.type, content: m.content?.substring(0, 20) })),
+        filtered: filtered
+          .slice(0, 3)
+          .map((m) => ({ type: m.type, content: m.content?.substring(0, 20) })),
+      });
+    }
+    return filtered;
+  }, [getFilteredMessages, allMessages]);
 
   // 디버깅용: ChatPanel 마운트/언마운트 시 스토어 상태 출력
   // useEffect(() => {

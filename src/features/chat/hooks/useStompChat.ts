@@ -5,7 +5,13 @@ import { useChatMessageStore } from '../model/useChatMessageStore';
 import type { IMessage, StompSubscription } from '@stomp/stompjs';
 import type { ChatMessage } from '@/shared/types/chatMessage.interface';
 
-type ConnStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'failed' | 'error';
+type ConnStatus =
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'disconnected'
+  | 'failed'
+  | 'error';
 
 type UseStompChatOptions = {
   /** 라우터에서 받은 스터디룸 ID(문자열). 반드시 "숫자 문자열"만 전달 권장(예: "123") */
@@ -19,13 +25,15 @@ const CHAT_TOPIC = (roomId: string) => `/topic/study-rooms/${roomId}/chat`;
 const SEND_DEST = `/app/chat/send`;
 
 /** 숫자 판정 유틸 */
-const isNumericString = (v: unknown): v is string => typeof v === 'string' && /^\d+$/.test(v);
+const isNumericString = (v: unknown): v is string =>
+  typeof v === 'string' && /^\d+$/.test(v);
 
 /** 백엔드 → UI 스키마 정규화 */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeIncoming(raw: any): ChatMessage {
   // 서버: messageType = 'CHAT' | 'USER_JOIN' | ... → UI: 'GROUP' | 'SYSTEM'
-  const type: ChatMessage['type'] = raw?.messageType === 'CHAT' ? 'CHAT' : 'SYSTEM';
+  const type: ChatMessage['type'] =
+    raw?.messageType === 'CHAT' ? 'CHAT' : 'SYSTEM';
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toNumber = (x: any, fb = 0) => {
@@ -38,8 +46,11 @@ function normalizeIncoming(raw: any): ChatMessage {
     raw?.userId != null
       ? {
           userId: toNumber(raw.userId, 0), // ✅ 최상위 userId 사용
-          nickname: raw.nickname ?? '알 수 없음', // ✅ 최상위 nickname 사용  
-          profileUrl: raw.profileUrl || raw.metadata?.user?.profileUrl || '/default-avatar.png', // ✅ metadata에서 profileUrl 가져오기
+          nickname: raw.nickname ?? '알 수 없음', // ✅ 최상위 nickname 사용
+          profileUrl:
+            raw.profileUrl ||
+            raw.metadata?.user?.profileUrl ||
+            '/default-avatar.png', // ✅ metadata에서 profileUrl 가져오기
         }
       : {
           userId: 0,
@@ -48,10 +59,22 @@ function normalizeIncoming(raw: any): ChatMessage {
         };
 
   return {
-    type,                                 // 'GROUP' | 'SYSTEM'
-    sender,                               // { userId: number, ... }
+    type, // 'CHAT' | 'SYSTEM' (구 스키마)
+    messageType: type, // 'CHAT' | 'SYSTEM' (신 스키마)
+    sender, // { userId: number, ... } (구 스키마)
+    user:
+      raw?.userId != null
+        ? {
+            // (신 스키마)
+            userId: toNumber(raw.userId, 0),
+            nickname: raw.nickname ?? '알 수 없음',
+            profileUrl:
+              raw.profileUrl || raw.metadata?.user?.profileUrl || null,
+          }
+        : null,
     content: String(raw?.content ?? ''),
-    timestamp: raw?.createdAt ?? new Date().toISOString(),
+    timestamp: raw?.createdAt ?? new Date().toISOString(), // 구 스키마
+    createdAt: raw?.createdAt ?? new Date().toISOString(), // 신 스키마
   };
 }
 
@@ -71,7 +94,8 @@ export const useStompChat = (opts: UseStompChatOptions = {}) => {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const connectFnRef = useRef<() => void>(() => {});
 
-  const [connectionStatus, setConnectionStatus] = useState<ConnStatus>('connecting');
+  const [connectionStatus, setConnectionStatus] =
+    useState<ConnStatus>('connecting');
 
   const clearReconnectTimer = () => {
     if (reconnectTimerRef.current) {
@@ -94,7 +118,9 @@ export const useStompChat = (opts: UseStompChatOptions = {}) => {
       setConnectionStatus('failed');
       return;
     }
-    const delay = Math.min(1000 * 2 ** (attemptsRef.current - 1), 15000) + Math.floor(Math.random() * 500);
+    const delay =
+      Math.min(1000 * 2 ** (attemptsRef.current - 1), 15000) +
+      Math.floor(Math.random() * 500);
     setConnectionStatus('reconnecting');
     clearReconnectTimer();
     reconnectTimerRef.current = setTimeout(() => {
@@ -115,8 +141,22 @@ export const useStompChat = (opts: UseStompChatOptions = {}) => {
       if (import.meta.env.DEV) {
         console.log('[STOMP] 정규화된 메시지:', normalized);
         console.log('[STOMP] sender 정보:', normalized.sender);
+        console.log(
+          '[STOMP] addMessage 호출 전 스토어 상태:',
+          useChatMessageStore.getState().allMessages.length,
+        );
       }
       addMessage(normalized);
+      if (import.meta.env.DEV) {
+        console.log(
+          '[STOMP] addMessage 호출 후 스토어 상태:',
+          useChatMessageStore.getState().allMessages.length,
+        );
+        console.log(
+          '[STOMP] 전체 메시지:',
+          useChatMessageStore.getState().allMessages,
+        );
+      }
     } catch (e) {
       console.error('메시지 파싱 실패:', e);
     }
@@ -248,7 +288,10 @@ export const useStompChat = (opts: UseStompChatOptions = {}) => {
 
   /** 개인 메시지 전송 (현재 미구현) */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sendPrivateMessage = async (_receiverId: string, _content: string): Promise<boolean> => {
+  const sendPrivateMessage = async (
+    _receiverId: string,
+    _content: string,
+  ): Promise<boolean> => {
     // TODO: 개인 메시지 기능 구현 필요
     console.warn('Private message not implemented yet');
     return false;
