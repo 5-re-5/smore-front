@@ -53,7 +53,7 @@ function EditPage() {
         setPreviewUrl(userInfo.profileUrl);
       }
     }
-  }, [userInfo, previewUrl, nickname]);
+  }, [userInfo, previewUrl]);
 
   // 이미지 디코딩 검증 함수
   const canDecodeImageFromFile = async (file: File): Promise<boolean> => {
