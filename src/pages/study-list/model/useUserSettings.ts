@@ -75,10 +75,10 @@ export const useUserSettings = ({ userProfile }: UseUserSettingsProps) => {
   const convertToApiData = () => {
     const totalStudyTime = parseInt(targetHour) * 60 + parseInt(targetMinute);
     return {
-      goalStudyTime: totalStudyTime ?? null,
-      determination: determination.trim() ?? null,
-      targetDate: formatDateForServer(selectedDate!) ?? null,
-      targetDateTitle: targetDateTitle.trim() ?? null,
+      goalStudyTime: totalStudyTime,
+      determination: determination.trim() || undefined,
+      targetDate: selectedDate ? formatDateForServer(selectedDate) : undefined,
+      targetDateTitle: targetDateTitle.trim() || undefined,
     };
   };
 
