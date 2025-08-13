@@ -1,11 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FunctionComponent } from 'react';
-import MarshmallowHeatmap from './MarshmallowHeatmap';
+import MarshmallowHeatmap, { type StudyPoint } from './MarshmallowHeatmap';
+import { useUserInfo } from '@/entities/user/model/useUserInfo';
+import { request } from '@/shared/api/request';
 
 const DEFAULT_PROFILE_IMG = '/images/profile_apple.jpg';
 
 // 스낵 타입 정의
 type SnackType = 'O' | 'RE';
+
+interface ProfileCardProps {
+  userId: string;
+}
+
+// 경험치 퍼센트 계산 함수
+const getExpPercentage = (current: number) => {
+  return Math.min((current / 100) * 100, 100);
+};
 
 /**
  * grade 문자열을 스캔해서 ["O","RE",...] 형태로 파싱하고,
@@ -27,7 +38,7 @@ function parseSnackTypes(grade: string): SnackType[] {
   return types;
 }
 
-const getSnackIcons = (grade: string) => {
+const getSnackIcons = (grade: string = '') => {
   const types = parseSnackTypes(grade);
   return types.map((type, idx) => {
     const src = type === 'O' ? '/images/OREO_O.webp' : '/images/OREO_RE.webp';
@@ -68,18 +79,235 @@ const ProfileImage: FunctionComponent<{ src?: string; alt: string }> = ({
   );
 };
 
-const dummyUser = {
-  name: '김종운',
-  streak: 25,
-  goal: '토익 스피킹 IH 취득',
-  grade: 'OREREOREO',
-  profileImg: '',
+// ──────────────────────────────────────────────────────────────
+// 슬롯(룰렛) 모달 컴포넌트
+// - spinning: true면 빠르게 아이템을 순환
+// - result가 주어지면 약간 delay 후 해당 심볼에서 정지
+// - onClose: 완료 후 닫기
+// ──────────────────────────────────────────────────────────────
+const RouletteModal: React.FC<{
+  open: boolean;
+  result?: SnackType | null;
+  onClose: () => void;
+}> = ({ open, result, onClose }) => {
+  const items: SnackType[] = ['O', 'RE'];
+  const [index, setIndex] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const [settled, setSettled] = useState<SnackType | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    // 시작 시 스핀
+    setSettled(null);
+    setSpinning(true);
+    const interval = setInterval(() => {
+      setIndex((i) => (i + 1) % items.length);
+    }, 80);
+
+    // result가 도착하면 천천히 감속 후 result에 정렬
+    if (result) {
+      // 약간의 연출 딜레이
+      const stopTimer = setTimeout(() => {
+        // 감속 효과
+        let step = 0;
+        const slow = setInterval(() => {
+          setIndex((i) => (i + 1) % items.length);
+          step++;
+          if (step > 10) {
+            clearInterval(slow);
+            setSpinning(false);
+            setSettled(result);
+          }
+        }, 120);
+        clearInterval(interval);
+      }, 600);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(stopTimer);
+      };
+    }
+
+    return () => clearInterval(interval);
+  }, [open, result]);
+
+  if (!open) return null;
+
+  const current: SnackType = settled ?? items[index];
+  const imgSrc =
+    current === 'O' ? '/images/OREO_O.webp' : '/images/OREO_RE.webp';
+
+  return (
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center">
+      {/* 배경 */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+      {/* 카드 */}
+      <div className="relative w-[360px] max-w-[90vw] rounded-2xl bg-[#EBF3FF] px-6 py-6 border border-[#E2E7FA] shadow-[10px_10px_24px_rgba(0,0,0,0.15),-10px_-10px_24px_#FFF]">
+        <h4 className="text-center text-[18px] font-semibold text-[#2B5E85] mb-3">
+          오레오 룰렛
+        </h4>
+
+        {/* 슬롯 창 */}
+        <div className="mx-auto mb-4 h-[140px] w-[200px] overflow-hidden rounded-xl border border-[#D7E3F3] bg-white shadow-[inset_0_4px_10px_rgba(0,0,0,0.06)] flex items-center justify-center">
+          <img
+            key={current} // 변경 시 부드러운 scale 연출
+            src={imgSrc}
+            alt={current}
+            className={`h-[120px] w-auto transition-transform duration-150 ${
+              spinning ? 'scale-100' : 'scale-105'
+            }`}
+            draggable={false}
+          />
+        </div>
+
+        {/* 상태 텍스트 */}
+        <div className="text-center text-sm text-[#597997] min-h-[22px] mb-2">
+          {spinning && !result && '돌리는 중...'}
+          {spinning && result && '감속 중...'}
+          {!spinning && settled && (settled === 'RE' ? 'RE 당첨!' : 'O 당첨!')}
+        </div>
+
+        {/* 버튼 */}
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 h-[40px] rounded-[12px] bg-[#EBF3FF] border border-[#E2E7FA] text-[#2B5E85] font-semibold text-[14px] shadow-[6px_6px_14px_#DBE4F0,-6px_-6px_14px_#FFFFFF] hover:translate-y-[-1px] transition-all"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-const ProfileCard: FunctionComponent = () => {
+const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
   const handleEditProfile = () => {
     window.location.href = '/profile-edit';
   };
+
+  const { data: userInfo } = useUserInfo();
+
+  // 서버 값들 상태
+  const [point, setPoint] = useState(0);
+  const [grade, setGrade] = useState<string>(userInfo?.level ?? '');
+
+  // 룰렛 모달 상태
+  const [rouletteOpen, setRouletteOpen] = useState(false);
+  const [rouletteResult, setRouletteResult] = useState<SnackType | null>(null);
+  const [drawing, setDrawing] = useState(false);
+
+  // 컴포넌트 상태 추가
+  const [streak, setStreak] = useState(0);
+  const [studyPoints, setStudyPoints] = useState<StudyPoint[]>([]);
+
+  // userInfo.grade 변경 시 grade 초기화
+  useEffect(() => {
+    if (userInfo?.level) setGrade(userInfo.level);
+  }, [userInfo?.level]);
+
+  // 포인트 가져오기
+  useEffect(() => {
+    const fetchPoints = async () => {
+      try {
+        const res = await request<{ totalPoints: number }>({
+          method: 'get',
+          url: `/api/v1/points/${userId}`,
+        });
+        setPoint(res.data.totalPoints);
+      } catch (err) {
+        console.error('포인트 조회 실패:', err);
+      }
+    };
+
+    if (userId) {
+      fetchPoints();
+    }
+  }, [userId]);
+
+  // 뽑기 실행
+  const handleDraw = async () => {
+    if (point < 100 || drawing) return; // 100P 미만, 중복 클릭 방지
+    try {
+      setDrawing(true);
+      setRouletteResult(null);
+      setRouletteOpen(true); // 애니메이션 먼저 시작
+
+      const res = await request<{
+        result: SnackType;
+        updatedLevel: string;
+        updatedPoints: number;
+      }>({
+        method: 'post',
+        url: `/api/v1/points/${userId}`,
+      });
+
+      // 애니메이션에 결과 전달 → 감속 후 정지
+      setRouletteResult(res.data.result);
+
+      // 살짝 지연 후 상태 반영(연출 자연스럽게)
+      setTimeout(() => {
+        setPoint(res.data.updatedPoints);
+        setGrade(res.data.updatedLevel);
+      }, 900);
+    } catch (err) {
+      console.error('뽑기 실패:', err);
+      // 실패 시 모달 닫기
+      setRouletteOpen(false);
+    } finally {
+      // 버튼 비활성화 해제는 모달 닫을 때 함께
+      setTimeout(() => setDrawing(false), 1200);
+    }
+  };
+
+  // 통계 조회 useEffect 추가
+  useEffect(() => {
+    type StatsResponse = {
+      userId: number;
+      totalAttendance: number;
+      weekdayGraph: number[];
+      weeklyGraph: number[];
+      studyTrack: { points: { date: string; minutes: number }[] };
+    };
+
+    const fetchStats = async () => {
+      try {
+        const res = await request<StatsResponse>({
+          method: 'get',
+          url: `/api/v1/study-times/statistics/${userId}`,
+        });
+
+        // 연속 출석
+        setStreak(res.data.totalAttendance);
+        setStudyPoints(res.data.studyTrack.points);
+      } catch (err) {
+        console.error('공부 통계 조회 실패:', err);
+      }
+    };
+
+    if (userId) fetchStats();
+  }, [userId]);
+
+  const dummyUser = {
+    name: userInfo?.nickname,
+    streak: 25,
+    goal: userInfo?.targetDateTitle,
+    grade: grade,
+    profileImg: userInfo?.profileUrl || ' ',
+  };
+
+  // ── 포인트 100 초과 시 색상 전환 ───────────────────────────────
+  const isOver100 = point >= 100;
+
+  const fillCls = isOver100
+    ? 'bg-gradient-to-t from-[#22C55E] to-[#16A34A] shadow-[1px_1px_4px_rgba(22,163,74,0.4)]'
+    : 'bg-gradient-to-t from-[#357ABD] to-[#4A90E2] shadow-[1px_1px_4px_rgba(74,144,226,0.4)]';
+
+  const highlightCls = isOver100
+    ? 'bg-gradient-to-t from-[#86EFAC] to-[#22C55E]'
+    : 'bg-gradient-to-t from-[#6BA6F0] to-[#4A90E2]';
+  // ──────────────────────────────────────────────────────────────
 
   return (
     <div
@@ -90,9 +318,16 @@ const ProfileCard: FunctionComponent = () => {
         flex flex-col
         py-[65px] px-[56px]
         gap-[16px] lg:gap-[38px]
-        relative box-content
+        relative
       "
     >
+      <RouletteModal
+        open={rouletteOpen}
+        result={rouletteResult}
+        onClose={() => {
+          setRouletteOpen(false);
+        }}
+      />
       {/* 상단 정보 영역 */}
       <div className="w-full flex justify-between items-center h-[192px]">
         {/* 프로필 + 수정 버튼 */}
@@ -102,7 +337,7 @@ const ProfileCard: FunctionComponent = () => {
             <button
               onClick={handleEditProfile}
               title="프로필 수정"
-              className="w-[50px] h-[50px] absolute right-[-10px] bottom-[-10px]"
+              className="cursor-pointer w-[50px] h-[50px] absolute right-[-10px] bottom-[-10px]"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -212,7 +447,7 @@ const ProfileCard: FunctionComponent = () => {
                           not-italic
             "
             >
-              {`연속 ${dummyUser.streak}일 출석!`}
+              {`연속 ${streak}일 출석!`}
             </div>
             <div className="text-[32px] font-bold text-[#154559]">
               {dummyUser.name}
@@ -236,9 +471,10 @@ const ProfileCard: FunctionComponent = () => {
             mr-[6px] relative
           "
         >
+          {/* 오레오 등급 이름 */}
           <div
             className="
-              w-[150px] h-[45px]
+              w-[250px] h-[45px]
               [grid-row:0/span_1] [grid-column:0/span_1]
               bg-[#EBF3FF] rounded-[141px] z-[99999]
               filter
@@ -252,9 +488,73 @@ const ProfileCard: FunctionComponent = () => {
           >
             {dummyUser.grade}
           </div>
+          {/* 오레오 등급 이미지 */}
           <div className="flex -space-x-[10px] justify-center items-end">
             {getSnackIcons(dummyUser.grade)}
           </div>
+
+          {/* 경험치 바 섹션 */}
+          <div className="flex flex-col items-end h-4/6 absolute right-0 pr-4">
+            {/* 경험치 텍스트 */}
+            <div className="flex justify-between items-center mb-[8px]">
+              <span className="text-[13px] font-semibold text-[#666] tracking-[0.01em]">
+                {point} / 100P
+              </span>
+            </div>
+
+            {/* 경험치 바 배경 */}
+            <div
+              className="
+                relative w-[14px] h-full 
+                bg-[#EBF3FF] rounded-[7px]
+                shadow-[inset_2px_2px_6px_#D5E2F0,inset_-2px_-2px_6px_#FFFFFF]
+                border-[1px] border-[#E2E7FA]
+                overflow-hidden
+              "
+            >
+              {/* 경험치 바 진행률 */}
+              <div
+                className={`
+                  absolute bottom-0 left-0 w-full
+                  transition-all duration-700 ease-out
+                  ${fillCls}
+                `}
+                style={{
+                  height: `${getExpPercentage(point)}%`,
+                  // height: `${Math.min(getExpPercentage(point), 100)}%`, // 캡을 더 확실히 하고 싶다면 사용
+                }}
+              >
+                {/* 하이라이트 */}
+                <div
+                  className={`
+                    absolute top-0 left-0 w-full h-[6px]
+                    opacity-60
+                    ${highlightCls}
+                  `}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 뽑기 버튼 */}
+          {isOver100 && (
+            <button
+              type="button"
+              title="뽑기"
+              aria-label="뽑기"
+              onClick={handleDraw}
+              disabled={drawing}
+              className={`
+                cursor-pointer absolute left-3 bottom-3 h-[42px] px-[18px]
+                rounded-[14px] border border-[#E2E7FA] text-[#2B5E85] font-semibold text-[14px] tracking-[0.02em]
+                shadow-[6px_6px_14px_#DBE4F0,-6px_-6px_14px_#FFFFFF] transition-all duration-150
+                hover:translate-y-[-1px] active:shadow-[inset_3px_3px_8px_#D9E4EE,inset_-3px_-3px_8px_#FFFFFF] active:translate-y-0
+                ${drawing ? 'opacity-60 pointer-events-none' : 'bg-[#EBF3FF]'}
+              `}
+            >
+              🎁 뽑기
+            </button>
+          )}
         </div>
       </div>
 
@@ -273,7 +573,7 @@ const ProfileCard: FunctionComponent = () => {
             마시멜로 굽기
           </h3>
         </div>
-        <MarshmallowHeatmap />
+        <MarshmallowHeatmap points={studyPoints} />
       </div>
     </div>
   );

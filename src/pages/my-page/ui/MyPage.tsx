@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-import ProfileCard from '@/features/my-page/graphs/ui/ProfileCard';
+import ProfileCard from '@/features/profile-card/ui/ProfileCard';
 import AiFocusLineChart from '@/features/my-page/graphs/ui/AiFocusLineChart';
 import StatPanel from '@/features/my-page/graphs/ui/StatPanel';
 import MonthlyLineChart from '@/features/my-page/graphs/ui/MonthlyLineChart';
