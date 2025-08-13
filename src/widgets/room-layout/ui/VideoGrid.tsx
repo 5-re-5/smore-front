@@ -19,7 +19,7 @@ function VideoGrid() {
 
     return (
       <div
-        className={`h-full grid ${getGridCols(totalParticipants)} gap-2 p-4 auto-rows-fr`}
+        className={`grid gap-1 place-content-center p-4 h-full ${getGridCols(totalParticipants)} auto-rows-max-content`}
       >
         <div className="aspect-video">
           <LocalVideoTile />
@@ -36,61 +36,59 @@ function VideoGrid() {
     );
   }
 
-  // 6명 이하일 때는 고정 자리 시스템
-  const renderFixedPositions = () => {
-    const positions = [
-      {
-        id: 1,
-        component: (
-          <div key="local" className="w-[424px] h-[236px]">
-            <LocalVideoTile />
-          </div>
-        ),
-      }, // 항상 1번 자리
-      ...remoteParticipantTracks.slice(0, 5).map((pt, index) => ({
-        id: index + 2,
-        component: (
-          <div
-            key={pt.track?.sid || pt.participant.identity}
-            className="w-[424px] h-[236px]"
-          >
-            <VideoTile participant={pt.participant} track={pt.track} />
-          </div>
-        ),
-      })),
-    ];
-
-    // 빈 자리 채우기 (6자리까지)
-    while (positions.length < 6) {
-      positions.push({
-        id: positions.length + 1,
-        component: (
-          <div
-            key={`empty-${positions.length + 1}`}
-            className="w-[424px] h-[236px]"
-          />
-        ),
-      });
+  // 6명 이하일 때는 동적 레이아웃 시스템
+  const getLayoutConfig = (participantCount: number) => {
+    if (participantCount <= 2) {
+      // 1-2명: 가로 일렬 - 고정 크기
+      return {
+        containerClass:
+          'h-full flex flex-row justify-center items-center gap-10 p-4',
+        videoClass: 'w-[40rem] h-[24rem] flex-shrink-0',
+        maxWidth: '',
+        maxHeight: '',
+      };
     }
-
-    return positions;
+    if (participantCount <= 4) {
+      // 3-4명: 2x2 그리드
+      return {
+        containerClass:
+          'h-full max-w-4xl mx-auto grid grid-cols-2 gap-2 justify-center content-center place-items-center',
+        videoClass: 'w-full aspect-video',
+        maxWidth: 'max-w-[29vw]',
+        maxHeight: 'max-h-[35vh]',
+      };
+    }
+    // 5-6명: 2x3 그리드
+    return {
+      containerClass:
+        'h-full grid grid-cols-3 gap-1 p-4 place-content-center place-items-center',
+      videoClass: 'w-full aspect-video',
+      maxWidth: 'max-w-[25vw]',
+      maxHeight: 'max-h-[25vh]',
+    };
   };
 
-  const positions = renderFixedPositions();
+  const layout = getLayoutConfig(totalParticipants);
 
-  return (
-    <div className="h-full flex flex-col items-center justify-center gap-4 p-4">
-      {/* 첫 번째 줄: 1, 2, 3번 자리 */}
-      <div className="flex gap-4">
-        {positions.slice(0, 3).map((pos) => pos.component)}
+  // 모든 참가자 컴포넌트 배열 생성
+  const allParticipants = [
+    <div
+      key="local"
+      className={`${layout.videoClass} ${layout.maxWidth} ${layout.maxHeight}`}
+    >
+      <LocalVideoTile />
+    </div>,
+    ...remoteParticipantTracks.map((pt) => (
+      <div
+        key={pt.track?.sid || pt.participant.identity}
+        className={`${layout.videoClass} ${layout.maxWidth} ${layout.maxHeight}`}
+      >
+        <VideoTile participant={pt.participant} track={pt.track} />
       </div>
+    )),
+  ];
 
-      {/* 두 번째 줄: 4, 5, 6번 자리 */}
-      <div className="flex gap-4">
-        {positions.slice(3, 6).map((pos) => pos.component)}
-      </div>
-    </div>
-  );
+  return <div className={layout.containerClass}>{allParticipants}</div>;
 }
 
 export default VideoGrid;

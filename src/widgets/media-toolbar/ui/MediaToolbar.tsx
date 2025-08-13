@@ -76,8 +76,8 @@ function MediaToolbar({
   return (
     <>
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-[#292D32] backdrop-blur-sm border-t border-gray-700 h-16"
-        style={{ '--toolbar-h': '64px' } as React.CSSProperties}
+        className="relative bg-[#292D32] backdrop-blur-sm border-t border-gray-700 h-16"
+        style={{ '--toolbar-h': '4rem' } as React.CSSProperties}
       >
         <div className="flex justify-between items-center px-4 py-3 mx-2 w-full sm:px-6">
           {/* 왼쪽: 나가기 버튼 */}

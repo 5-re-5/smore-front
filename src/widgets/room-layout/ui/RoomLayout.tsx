@@ -1,11 +1,11 @@
 import ChatPanel from '@/features/chat/ui/ChatPanel';
 import { FocusGauge } from '@/features/focus-gauge';
 import { PomodoroSection } from '@/features/pomodoro';
+import { useOwnerExitListener } from '@/features/room';
 import { StopwatchController } from '@/features/stopwatch';
 import { MediaToolbar } from '@/widgets/media-toolbar';
 import { useState } from 'react';
 import VideoGrid from './VideoGrid';
-import { useOwnerExitListener } from '@/features/room';
 
 interface RoomLayoutProps {
   roomIdNumber: number;
@@ -24,27 +24,27 @@ function RoomLayout({
   useOwnerExitListener(roomIdNumber);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col h-screen">
       {/* 헤더 */}
-      <div className="bg-[#292D32] px-4 py-3">
+      <div className="bg-[#292D32] px-4 py-3 flex-shrink-0">
         <h1 className="text-lg font-semibold text-white">{roomTitle}</h1>
       </div>
 
       {/* 중간 영역: 도구들 + 카메라 + 채팅 */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 min-h-0">
         {/* 중앙: Video + Tools */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex flex-col flex-1 min-h-0">
           {/* Tools: Pomodoro + Stopwatch */}
-          <div className="flex justify-center items-center py-4">
-            <div className="flex items-center gap-8">
+          <div className="flex flex-shrink-0 justify-center items-center py-4">
+            <div className="flex gap-8 items-center">
               <FocusGauge />
               {isPomodoro ? <PomodoroSection /> : null}
               <StopwatchController />
             </div>
           </div>
 
-          {/* Video Grid */}
-          <div className="flex-1 min-h-0 overflow-auto">
+          {/* Video Grid - 스크롤 없이 남은 공간 활용 */}
+          <div className="flex-1 min-h-0">
             <VideoGrid />
           </div>
         </div>
@@ -62,12 +62,15 @@ function RoomLayout({
           </div>
         </div>
       </div>
+
       {/* 하단: Toolbar (토글만 담당) */}
-      <MediaToolbar
-        isChatOpen={isChatOpen}
-        onToggleChat={() => setIsChatOpen((v) => !v)}
-        isOwner={isOwner}
-      />
+      <div className="flex-shrink-0">
+        <MediaToolbar
+          isChatOpen={isChatOpen}
+          onToggleChat={() => setIsChatOpen((v) => !v)}
+          isOwner={isOwner}
+        />
+      </div>
     </div>
   );
 }
