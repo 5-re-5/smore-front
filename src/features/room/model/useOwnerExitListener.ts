@@ -7,10 +7,14 @@ import {
   DataPacket_Kind,
 } from 'livekit-client';
 import { useRoomStateStore } from '@/features/room';
+import { useQueryClient } from '@tanstack/react-query';
+import { cleanupLocalTracks } from '@/shared/utils/trackCleanup';
+import { toast } from 'sonner';
 
 export function useOwnerExitListener(roomId: number) {
   const room = useRoomContext();
   const { setIntentionalExit } = useRoomStateStore();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // handler 시그니처는 LiveKit 타입에 맞추기 (payload, participant, kind, topic)
@@ -23,9 +27,13 @@ export function useOwnerExitListener(roomId: number) {
       try {
         const msg = JSON.parse(new TextDecoder().decode(payload));
         if (msg?.type === 'OWNER_EXIT' && msg.roomId === roomId) {
-          setIntentionalExit(roomId, true);
-          room.disconnect(true);
-          alert('방장 나감');
+          // 강제 나가기 전에 local tracks 정리 (카메라/마이크 끄기)
+          cleanupLocalTracks(room).then(() => {
+            queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+            setIntentionalExit(roomId, true);
+            room.disconnect(true);
+            toast.error('방장이 퇴장했습니다.');
+          });
         }
       } catch {
         // ignore
