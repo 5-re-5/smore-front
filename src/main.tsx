@@ -1,3 +1,5 @@
+import '@/app/styles.css';
+
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
 // import { StrictMode } from 'react'; // 현재 미사용

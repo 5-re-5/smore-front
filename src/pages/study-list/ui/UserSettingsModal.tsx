@@ -163,23 +163,34 @@ export const UserSettingsModal = ({ userProfile }: UserSettingsModalProps) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-auto p-1"
+                className="w-[320px] min-w-[320px] max-w-[320px] p-1"
                 align="start"
                 side="top"
                 avoidCollisions={false}
               >
-                <Calendar
-                  mode="single"
-                  selected={userSettings.selectedDate}
-                  onSelect={userSettings.setSelectedDate}
-                  captionLayout={'dropdown'}
-                  startMonth={minDate}
-                  endMonth={maxDate}
-                  disabled={(date) =>
-                    date < new Date() ||
-                    date.getFullYear() > new Date().getFullYear() + 5
-                  }
-                />
+                <div className="w-[308px] overflow-hidden">
+                  <Calendar
+                    mode="single"
+                    selected={userSettings.selectedDate}
+                    onSelect={userSettings.setSelectedDate}
+                    captionLayout={'dropdown'}
+                    startMonth={minDate}
+                    endMonth={maxDate}
+                    disabled={(date) =>
+                      date < new Date() ||
+                      date.getFullYear() > new Date().getFullYear() + 5
+                    }
+                    className="w-full"
+                    classNames={{
+                      dropdowns:
+                        'w-full flex items-center text-sm font-medium justify-center h-8 gap-1.5 flex-row-reverse',
+                      dropdown_root:
+                        'relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md min-w-[80px]',
+                      caption_label:
+                        'rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 min-w-[80px] justify-center',
+                    }}
+                  />
+                </div>
               </PopoverContent>
             </Popover>
           </div>
