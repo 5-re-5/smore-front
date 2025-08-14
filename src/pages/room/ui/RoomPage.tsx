@@ -390,6 +390,7 @@ function RoomPage() {
         onDisconnected={(reason?: DisconnectReason) => {
           queryClient.invalidateQueries({ queryKey: ['recentStudy'] });
           queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+          queryClient.invalidateQueries({ queryKey: ['room'] });
           toast.error('룸 연결이 해제되었습니다.');
           navigate({ to: '/study-list' });
           if (reason && reason !== DisconnectReason.CLIENT_INITIATED) {

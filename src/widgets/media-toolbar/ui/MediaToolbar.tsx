@@ -42,6 +42,7 @@ function MediaToolbar({
     }
     queryClient.invalidateQueries({ queryKey: ['recentStudy'] });
     queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+    queryClient.invalidateQueries({ queryKey: ['room'] });
 
     if (isOwner) {
       deleteRoomMutation.mutate(
