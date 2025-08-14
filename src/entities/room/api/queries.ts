@@ -83,6 +83,7 @@ export const useLeaveRoomMutation = () => {
       setIntentionalExit(variables.roomId, true);
 
       queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+      queryClient.invalidateQueries({ queryKey: ['room'] });
       queryClient.invalidateQueries({ queryKey: ['recentStudy'] });
     },
   });
@@ -143,6 +144,7 @@ export const useDeleteRoomMutation = () => {
 
       queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
       queryClient.invalidateQueries({ queryKey: ['recentStudy'] });
+      queryClient.invalidateQueries({ queryKey: ['room'] });
     },
 
     // 실패 케이스 처리: 서버 삭제 실패 시에도 연결 끊기
