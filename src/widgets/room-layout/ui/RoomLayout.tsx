@@ -24,14 +24,14 @@ function RoomLayout({
   useOwnerExitListener(roomIdNumber);
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen overflow-x-hidden  overflow-y-hidden">
       {/* 헤더 */}
       <div className="bg-[#292D32] px-4 py-3 flex-shrink-0">
         <h1 className="text-lg font-semibold text-white">{roomTitle}</h1>
       </div>
 
       {/* 중간 영역: 도구들 + 카메라 + 채팅 */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 overflow-x-hidden  overflow-y-hidden">
         {/* 중앙: Video + Tools */}
         <div className="flex flex-col flex-1 min-h-0">
           {/* Tools: Pomodoro + Stopwatch */}
@@ -55,7 +55,7 @@ function RoomLayout({
         >
           {/* absolute 박스: 상단 고정, 하단은 툴바 높이만큼 띄움 */}
           <div
-            className="absolute inset-x-0 top-3"
+            className="absolute inset-x-0 top-3 h-full"
             style={{ bottom: 'var(--toolbar-h, 49px)' }}
           >
             <ChatPanel isOpen={isChatOpen} />
