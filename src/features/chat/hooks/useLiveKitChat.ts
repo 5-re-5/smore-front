@@ -10,7 +10,7 @@ export const useLiveKitChat = () => {
   // 그룹 채팅 전송 (LiveKit 데이터 채널)
   const sendGroupMessage = async (content: string) => {
     const message: ChatMessage = {
-      type: 'GROUP',
+      type: 'CHAT',
       sender: {
         userId: 1, // 임시로 숫자 1 사용 (실제로는 로그인한 사용자 ID)
         nickname: localParticipant.name || localParticipant.identity,

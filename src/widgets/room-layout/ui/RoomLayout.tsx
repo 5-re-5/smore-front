@@ -50,17 +50,17 @@ function RoomLayout({
         </div>
 
         {/* Chat Panel - 오른쪽에 위치 */}
-        {isChatOpen && (
-          <div className="relative h-full w-[360px] shrink-0 border-l border-gray-700 bg-[#1e2230] transition-all duration-200">
-            {/* absolute 박스: 상단 고정, 하단은 툴바 높이만큼 띄움 */}
-            <div
-              className="absolute inset-x-0 top-3"
-              style={{ bottom: 'var(--toolbar-h, 64px)' }}
-            >
-              <ChatPanel isOpen />
-            </div>
+        <div
+          className={`relative h-full w-[360px] shrink-0 border-l border-gray-700 bg-[#1e2230] transition-all duration-200 ${isChatOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        >
+          {/* absolute 박스: 상단 고정, 하단은 툴바 높이만큼 띄움 */}
+          <div
+            className="absolute inset-x-0 top-3"
+            style={{ bottom: 'var(--toolbar-h, 49px)' }}
+          >
+            <ChatPanel isOpen={isChatOpen} />
           </div>
-        )}
+        </div>
       </div>
       {/* 하단: Toolbar (토글만 담당) */}
       <MediaToolbar
