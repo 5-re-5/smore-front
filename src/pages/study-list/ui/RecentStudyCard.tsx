@@ -22,7 +22,15 @@ export const RecentStudyCard = ({ room }: RecentStudyCardProps) => {
 
   return (
     <div className="relative w-[22.19rem] h-[13.56rem] p-[0.75rem] study-card">
-      <div className="flex gap-[0.75rem] h-full select-none">
+      {/* 블러 처리 레이어 */}
+      {room.isDelete && (
+        <div className=" select-none absolute inset-0 z-10 flex items-center justify-center bg-black/50 rounded-md">
+          <span className="text-white text-lg font-bold">종료된 방입니다</span>
+        </div>
+      )}
+      <div
+        className={`flex gap-[0.75rem] h-full select-none ${room.isDelete ? 'blur-sm' : ''}`}
+      >
         {/* 썸네일 */}
         <div className="w-[9.75rem] h-[12.06rem] flex-shrink-0">
           <img
