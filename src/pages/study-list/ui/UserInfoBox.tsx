@@ -32,10 +32,10 @@ export const UserInfoBox = ({ userProfile }: UserInfoBoxProps) => {
       }}
     >
       {/* 상단 헤더 - 오늘 공부한 시간 */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
-          <div className="text-2xl font-bold text-study-text mb-2">
-            오늘 공부한 시간 / 목표 시간
+          <div className="mb-2 text-study-muted font-medium">
+            오늘의 공부 시간 · 목표 시간
           </div>
           <div className="text-3xl font-bold">
             <span className="text-study-primary">
@@ -47,9 +47,9 @@ export const UserInfoBox = ({ userProfile }: UserInfoBoxProps) => {
             </span>
           </div>
         </div>
-        <div className="flex space-x-4 items-center self-start">
+        <div className="flex space-x-4 items-center">
           <p className="text-study-muted font-medium">
-            목표 시간/각오/디데이를 설정해 보세요
+            목표 시간 · 각오 · 디데이를 설정해 보세요
           </p>
           <UserSettingsModal userProfile={userProfile} />
         </div>
