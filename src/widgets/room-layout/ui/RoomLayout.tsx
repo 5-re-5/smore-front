@@ -35,7 +35,7 @@ function RoomLayout({
         {/* 중앙: Video + Tools */}
         <div className="flex flex-col flex-1 min-h-0">
           {/* Tools: Pomodoro + Stopwatch */}
-          <div className="flex flex-shrink-0 justify-center items-center py-4">
+          <div className="flex flex-shrink-0 justify-center items-center pt-4">
             <div className="flex gap-8 items-center">
               <FocusGauge />
               {isPomodoro ? <PomodoroSection /> : null}
