@@ -134,7 +134,6 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [lastMessageTimestamp, setLastMessageTimestamp] = useState('');
-  const [newMessageCount, setNewMessageCount] = useState(0);
   const [showNewMessageButton, setShowNewMessageButton] = useState(false);
 
   const scrollToBottom = useCallback((smooth = true) => {
@@ -190,7 +189,6 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
     if (isNewTail) {
       if (isNearBottom(el)) scrollToBottom();
       else {
-        setNewMessageCount((v) => v + 1);
         setShowNewMessageButton(true);
       }
     }
@@ -331,7 +329,6 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
           if (!el || isLoadingHistory) return;
           if (isNearBottom(el) && showNewMessageButton) {
             setShowNewMessageButton(false);
-            setNewMessageCount(0);
           }
         }}
       >
@@ -364,7 +361,6 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
             onClick={() => {
               scrollToBottom();
               setShowNewMessageButton(false);
-              setNewMessageCount(0);
             }}
             className="w-full bg-[#161929] hover:bg-gray-500 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer"
           >
