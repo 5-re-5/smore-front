@@ -368,7 +368,7 @@ export default function ChatPanel({ isOpen }: ChatPanelProps = {}) {
             }}
             className="w-full bg-[#161929] hover:bg-gray-500 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer"
           >
-            <span>새 메시지 {newMessageCount}개 보기</span>
+            <span>새 메시지 보기</span>
             <span className="text-lg">↓</span>
           </button>
         </div>
