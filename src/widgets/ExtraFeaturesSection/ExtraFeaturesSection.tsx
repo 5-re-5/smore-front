@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ExtraFeaturesSection = () => {
   return (
     <section className="relative w-full h-[730px] bg-white font-black-han-sans overflow-hidden">

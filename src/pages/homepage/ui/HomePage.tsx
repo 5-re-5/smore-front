@@ -1,5 +1,3 @@
-import { Link } from '@tanstack/react-router';
-
 import HeroSection from '@/widgets/HeroSection/HeroSection';
 import AnalysisSection from '@/widgets/AnalysisSection/AnalysisSection';
 import SolutionSection from '@/widgets/SolutionSection/SolutionSection';

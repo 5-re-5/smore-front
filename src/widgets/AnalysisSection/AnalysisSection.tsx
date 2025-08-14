@@ -1,5 +1,3 @@
-import React from 'react';
-
 const AnalysisSection = () => {
   return (
     <section className="relative w-full max-w-[1440px] h-[900px] mx-auto bg-white overflow-hidden px-10 pt-24 font-sans">

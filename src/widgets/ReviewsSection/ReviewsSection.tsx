@@ -1,5 +1,3 @@
-import React from 'react';
-
 const ReviewsSection = () => {
   return (
     <section className="relative w-full py-20 bg-white font-rubik">

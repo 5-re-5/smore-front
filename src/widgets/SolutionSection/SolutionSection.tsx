@@ -1,5 +1,3 @@
-import React from 'react';
-
 const SolutionSection = () => {
   return (
     <section className="relative w-full max-w-[1440px] h-auto lg:h-[678px] mx-auto bg-white overflow-hidden font-noto-sans px-4 lg:px-0 py-12 lg:py-0">
