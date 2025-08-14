@@ -34,12 +34,13 @@ export const Header = () => {
   }
 
   return (
-    <header className="flex items-center justify-between px-8 gap-6 h-[5.625rem] bg-header-bg">
+    <header className="relative flex items-center justify-between px-8 gap-6 h-[5.625rem] bg-header-bg">
       <Link to="/study-list" onClick={clear}>
         <Logo />
       </Link>
 
-      <div className="flex-1 flex justify-center">
+      {/* 전체 화면 가로 길이에서 가운데 위치 */}
+      <div className="absolute left-1/2 transform -translate-x-1/2">
         <SearchBar />
       </div>
 
