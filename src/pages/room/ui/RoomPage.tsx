@@ -3,6 +3,7 @@ import {
   useRoomInfoQuery,
   useRoomToken,
 } from '@/entities/room/api/queries';
+import type { ApiError } from '@/shared/api/request';
 import { adaptRoomFromApi } from '@/entities/room/model/adapters';
 import { useAuth } from '@/entities/user';
 import { useRoomParticipantQuery } from '@/entities/user/api/queries/userQueries';
@@ -156,6 +157,14 @@ function RoomPage() {
         onError: (error) => {
           console.error('자동 재입장 실패:', error);
           setAutoRejoinStatus('failed');
+
+          // 406 에러인 경우 방이 삭제된 것으로 처리
+          if ((error as ApiError).code === 406) {
+            toast.error('방이 삭제되었습니다.');
+            navigate({ to: '/study-list' });
+            return;
+          }
+
           setErrorMessage('방에 재입장할 수 없습니다.');
           navigate({
             to: '/room/$roomId/prejoin',
