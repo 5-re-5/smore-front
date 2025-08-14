@@ -153,8 +153,12 @@ function PrejoinPage() {
       if (apiError.code) {
         switch (apiError.code) {
           case 403:
-            showErrorMessage('비밀번호가 틀렸습니다. 다시 입력해주세요');
-            focusPasswordInput();
+            if (room?.hasPassword === false) {
+              setShowRoomNotFoundAlert(true);
+            } else {
+              showErrorMessage('비밀번호가 틀렸습니다. 다시 입력해주세요');
+              focusPasswordInput();
+            }
             break;
 
           case 404:
