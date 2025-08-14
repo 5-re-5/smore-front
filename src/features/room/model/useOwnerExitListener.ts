@@ -30,6 +30,8 @@ export function useOwnerExitListener(roomId: number) {
           // 강제 나가기 전에 local tracks 정리 (카메라/마이크 끄기)
           cleanupLocalTracks(room).then(() => {
             queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+            queryClient.invalidateQueries({ queryKey: ['recentStudy'] });
+            queryClient.invalidateQueries({ queryKey: ['room'] });
             setIntentionalExit(roomId, true);
             room.disconnect(true);
             toast.error('방장이 퇴장했습니다.');

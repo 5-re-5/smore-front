@@ -1,83 +1,107 @@
+// simple-stomp-server.js (교체 버전)
 import { WebSocketServer } from 'ws';
-
 const wss = new WebSocketServer({ port: 61613 });
-
 console.log('🚀 Simple STOMP Broker started on ws://localhost:61613');
 
-// 연결된 클라이언트들을 저장
 const clients = new Set();
+/** 각 클라이언트의 구독: Map<ws, Map<subscriptionId, destination>> */
+const subs = new Map();
 
-wss.on('connection', function connection(ws) {
+/** STOMP 프레임 파서(매우 단순) */
+function parseFrame(text) {
+  // heart-beat LF만 오는 경우
+  if (text === '\n') return { command: 'HEARTBEAT' };
+  // \0 제거
+  const raw = text.endsWith('\0') ? text.slice(0, -1) : text;
+  const [headerPart, ...bodyParts] = raw.split('\n\n');
+  const lines = headerPart.split('\n');
+  const command = lines.shift();
+  const headers = {};
+  for (const line of lines) {
+    const i = line.indexOf(':');
+    if (i > -1) headers[line.slice(0, i)] = line.slice(i + 1);
+  }
+  const body = bodyParts.join('\n\n') ?? '';
+  return { command, headers, body };
+}
+
+/** MESSAGE 프레임 만들기 */
+function buildMessage({ destination, subscription, body }) {
+  const msgId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const bytes = Buffer.byteLength(body, 'utf8');
+  return (
+    `MESSAGE\n` +
+    `destination:${destination}\n` +
+    (subscription ? `subscription:${subscription}\n` : '') +
+    `message-id:${msgId}\n` +
+    `content-length:${bytes}\n\n` +
+    body +
+    `\0`
+  );
+}
+
+wss.on('connection', (ws) => {
   console.log('✅ Client connected');
   clients.add(ws);
+  subs.set(ws, new Map());
 
   ws.on('error', console.error);
 
-  ws.on('message', function message(data) {
-    const message = data.toString();
-    console.log('📨 Received:', message);
+  ws.on('message', (data) => {
+    const frame = parseFrame(data.toString());
+    const { command, headers, body } = frame;
+    // console.log('📨', command, headers);
 
-    // STOMP CONNECT 프레임에 대한 응답
-    if (message.startsWith('CONNECT')) {
-      const response = `CONNECTED
-version:1.2
-heart-beat:0,0
-
-\0`;
-      ws.send(response);
-      console.log('✅ CONNECTED frame sent');
-
-      // 하트비트 흉내: 3초마다 LF 전송(선택)
-      const hb = setInterval(() => {
-        if (ws.readyState === ws.OPEN) ws.send('\n');
-      }, 3000);
-
-      ws.on('close', () => clearInterval(hb));
+    if (command === 'CONNECT') {
+      const resp =
+        `CONNECTED\nversion:1.2\nheart-beat:0,0\n\n\0`;
+      ws.send(resp);
       return;
     }
 
-    // STOMP SUBSCRIBE 프레임 처리
-    if (message.startsWith('SUBSCRIBE')) {
-      console.log('📧 Client subscribed to topic');
+    if (command === 'SUBSCRIBE') {
+      const id = headers['id'];
+      const destination = headers['destination'] || '/topic/test';
+      if (id) subs.get(ws)?.set(id, destination);
+      console.log(`📧 SUBSCRIBE id=${id} dest=${destination}`);
       return;
     }
 
-    // STOMP SEND 프레임 처리 - 모든 클라이언트에게 브로드캐스트
-    if (message.startsWith('SEND')) {
-      console.log('📢 Broadcasting message to all clients');
+    if (command === 'UNSUBSCRIBE') {
+      const id = headers['id'];
+      subs.get(ws)?.delete(id);
+      console.log(`📭 UNSUBSCRIBE id=${id}`);
+      return;
+    }
 
-      // 메시지 내용 추출
-      const lines = message.split('\n');
-      const destination = lines
-        .find((line) => line.startsWith('destination:'))
-        ?.split(':')[1];
-      const contentLength = lines
-        .find((line) => line.startsWith('content-length:'))
-        ?.split(':')[1];
-      const messageBody = lines[lines.length - 1].replace('\0', '');
+    if (command === 'DISCONNECT') {
+      ws.close();
+      return;
+    }
 
-      // MESSAGE 프레임 생성
-      const messageFrame = `MESSAGE
-destination:${destination || '/topic/test'}
-message-id:${Date.now()}
-content-length:${messageBody.length}
-
-${messageBody}\0`;
-
-      // 모든 연결된 클라이언트에게 전송
-      clients.forEach((client) => {
-        if (client !== ws && client.readyState === client.OPEN) {
-          client.send(messageFrame);
+    if (command === 'SEND') {
+      const dest = headers['destination'] || '/topic/test';
+      // 구독자에게만 라우팅하면서 subscription 헤더를 채워서 보냄
+      for (const [client, map] of subs.entries()) {
+        if (client.readyState !== client.OPEN) continue;
+        for (const [subId, subDest] of map.entries()) {
+          if (subDest === dest) {
+            const msgFrame = buildMessage({
+              destination: dest,
+              subscription: subId,
+              body,
+            });
+            client.send(msgFrame);
+          }
         }
-      });
+      }
+      return;
     }
   });
 
-  ws.on('close', function close() {
+  ws.on('close', () => {
     console.log('❌ Client disconnected');
     clients.delete(ws);
+    subs.delete(ws);
   });
-
-  // 초기 연결 확인용 핑
-  ws.ping();
 });

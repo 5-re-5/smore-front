@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
 import type { StudyRoom } from '@/entities/study';
-import { UserIcon, LockIcon, ClockIcon } from '@/shared/ui/icons';
-import { Button } from '@/shared/ui';
-import { StudyModal } from './StudyModal';
 import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
+import { Button } from '@/shared/ui';
+import { ClockIcon, LockIcon, UserIcon } from '@/shared/ui/icons';
+import React, { useState } from 'react';
+import { StudyModal } from './StudyModal';
 
 interface StudyCardProps {
   room: StudyRoom;
@@ -32,7 +32,7 @@ export function StudyCard({ room }: StudyCardProps) {
           {/* 뽀모도로 표시 */}
           {room.isPomodoro && (
             <div
-              className="absolute top-3 left-3 w-8 h-8 bg-study-bg text-study-text rounded-full flex items-center justify-center"
+              className="flex absolute top-3 left-3 justify-center items-center w-8 h-8 rounded-full bg-study-bg text-study-text"
               style={{ boxShadow: 'inset 2px 2px 4px rgba(0, 0, 0, 0.1)' }}
             >
               <ClockIcon className="w-5 h-5" />
@@ -45,11 +45,11 @@ export function StudyCard({ room }: StudyCardProps) {
           {/* 상단 콘텐츠 (제목, 참여자, 태그) */}
           <div className="space-y-[20px] mb-[27px]">
             {/* 스터디 제목과 참여자 수 */}
-            <div className="flex items-start justify-between">
-              <h3 className="text-study-text text-lg font-bold leading-tight flex-1 h-[43px] overflow-hidden line-clamp-2">
+            <div className="flex justify-between items-start">
+              <h3 className="text-study-text text-lg font-bold leading-tight flex-1 h-[43px] overflow-hidden line-clamp-2 break-all">
                 {room.title}
               </h3>
-              <div className="flex items-center gap-1 text-study-text text-sm ml-2">
+              <div className="flex gap-1 items-center ml-2 text-sm text-study-text">
                 <UserIcon className="w-4 h-4 text-study-primary" />
                 <span>
                   {room.currentParticipants}/{room.maxParticipants}
@@ -58,17 +58,17 @@ export function StudyCard({ room }: StudyCardProps) {
             </div>
 
             {/* 태그 */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 h-[15px] overflow-hidden">
               {room.tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}
-                  className="text-study-secondary text-xs font-bold"
+                  className="text-xs font-bold text-study-secondary"
                 >
                   #{tag}
                 </span>
               ))}
               {room.tags.length > 3 && (
-                <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 font-medium">
+                <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-200">
                   +{room.tags.length - 3}
                 </span>
               )}

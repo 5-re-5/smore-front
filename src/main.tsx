@@ -2,7 +2,7 @@ import '@/app/styles.css';
 
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from '@tanstack/react-router';
-import { StrictMode } from 'react';
+// import { StrictMode } from 'react'; // 현재 미사용
 import ReactDOM from 'react-dom/client';
 
 import { Chart, registerables } from 'chart.js';
@@ -48,13 +48,13 @@ if (rootElement && !rootElement.innerHTML) {
   enableMocking().then(() => {
     const root = ReactDOM.createRoot(rootElement);
     root.render(
-      <StrictMode>
-        <QueryProvider>
-          <RouterProvider router={router} />
-          <Toaster />
-          {showDevtools && <ReactQueryDevtools buttonPosition="bottom-right" />}
-        </QueryProvider>
-      </StrictMode>,
+      // <StrictMode>
+      <QueryProvider>
+        <RouterProvider router={router} />
+        <Toaster />
+        {showDevtools && <ReactQueryDevtools buttonPosition="bottom-right" />}
+      </QueryProvider>,
+      // </StrictMode>,
     );
   });
 }

@@ -1,34 +1,40 @@
+// shared/lib/stompClient.ts
 import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 
-export const createStompClient = (useTestBroker = false) => {
-  // 테스트 브로커 주소(없으면 기본값)
+// 네이티브 WebSocket 전용 STOMP 클라이언트
+export const createStompClient = (useTestBroker = false): Client => {
+  // 로컬 테스트 브로커(선택)
   const TEST_BROKER_URL =
-    import.meta.env.VITE_TEST_BROKER_URL ?? 'ws://localhost:61613';
+    import.meta.env.VITE_TEST_BROKER_URL ?? 'ws://127.0.0.1:61613';
 
-  // SockJS 엔드포인트(HTTP/HTTPS). 우선순위: VITE_WS_URL > VITE_BACK_URL + '/ws' > '/ws'
-  const sockjsUrl = (() => {
-    const explicit = import.meta.env.VITE_WS_URL; // ex) https://api.example.com/ws  또는  /ws
-    if (explicit) return explicit;
-    const back = import.meta.env.VITE_BACK_URL; // ex) https://api.example.com  또는  /api
-    if (back) return `${back.replace(/\/+$/, '')}/ws`;
-    return '/ws';
+  // 네이티브 WS 엔드포인트(실서버)
+  const explicit = import.meta.env.VITE_WS_URL as string | undefined;
+  const back = import.meta.env.VITE_BACK_URL as string | undefined;
+
+  // wss://.../ws 를 유도
+  const nativeWsUrl = (() => {
+    if (explicit) return explicit; // wss://.../ws 를 권장
+    if (back?.startsWith('https://'))
+      return `${back.replace(/\/+$/, '')}/ws`.replace(/^https:/, 'wss:');
+    if (back?.startsWith('http://'))
+      return `${back.replace(/\/+$/, '')}/ws`.replace(/^http:/, 'ws:');
+    // 상대경로 폴백: 현재 페이지 스킴 따라감
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${location.host}/ws`;
   })();
 
   return new Client({
-    webSocketFactory: () =>
-      useTestBroker ? new WebSocket(TEST_BROKER_URL) : new SockJS(sockjsUrl),
-
-    // 재연결은 useStompChat에서 수동 관리
-    reconnectDelay: 0,
-
-    // heartbeat(서버와 합의 필요). 테스트 브로커면 보통 끔
-    heartbeatIncoming: useTestBroker ? 0 : 10000,
-    heartbeatOutgoing: useTestBroker ? 0 : 10000,
-
-    // 개발일 때만 로그
-    debug: (msg) => {
-      if (import.meta.env.DEV) console.log('[STOMP]', msg);
+    webSocketFactory: () => {
+      if (useTestBroker) {
+        console.log('[STOMP] TEST broker:', TEST_BROKER_URL);
+        return new WebSocket(TEST_BROKER_URL);
+      }
+      console.log('[STOMP] Native WS endpoint:', nativeWsUrl);
+      return new WebSocket(nativeWsUrl);
     },
+    reconnectDelay: 0,
+    heartbeatIncoming: 10000,
+    heartbeatOutgoing: 10000,
+    debug: (msg) => import.meta.env.DEV && console.log('[STOMP]', msg),
   });
 };

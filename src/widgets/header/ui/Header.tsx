@@ -34,16 +34,14 @@ export const Header = () => {
   }
 
   return (
-    <header className="flex items-center justify-between px-8 gap-6 h-[5.625rem] bg-header-bg">
+    <header className="relative flex items-center justify-between px-8 gap-6 h-[5.625rem] bg-header-bg">
       <Link to="/study-list" onClick={clear}>
         <Logo />
       </Link>
 
-      <div className="flex-1 flex justify-center">
+      {/* SearchBar와 스터디 만들기 버튼을 전체 가로 길이에서 가운데 정렬 */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-6">
         <SearchBar />
-      </div>
-
-      <div className="flex items-center gap-4">
         <Link to="/room-create">
           <Button
             variant="ghost"
@@ -54,6 +52,9 @@ export const Header = () => {
             스터디 만들기
           </Button>
         </Link>
+      </div>
+
+      <div className="flex items-center gap-4">
         <HeaderUserProfile
           nickname={userInfo.nickname}
           profileUrl={userInfo.profileUrl || DEFAULT_PROFILE_IMG}

@@ -4,12 +4,12 @@ interface CircularProgressProps {
 }
 
 export const CircularProgress = ({ progress }: CircularProgressProps) => {
-  // 184.32px = 11.52rem (outer container size)
-  const OUTER_SIZE = 11.52;
-  // 38.88px = 2.43rem (stroke width)
-  const STROKE_WIDTH = 2.6;
-  // 67.68px = 4.23rem (button outer container)
-  const BUTTON_OUTER_SIZE = 3.1;
+  // 147.456px = 9.216rem (outer container size)
+  const OUTER_SIZE = 9.216;
+  // 33.28px = 2.08rem (stroke width)
+  const STROKE_WIDTH = 2.08;
+  // 54.144px = 3.384rem (button outer container)
+  const BUTTON_OUTER_SIZE = 2.48;
 
   const center = (OUTER_SIZE * 16) / 2; // Convert rem to px for SVG
   // Position the progress circle just outside the button container

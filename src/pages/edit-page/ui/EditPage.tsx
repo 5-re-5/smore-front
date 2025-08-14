@@ -2,7 +2,7 @@ import { useAuth, useUserInfo } from '@/entities/user';
 import { userProfileQueryKeys } from '@/entities/user/api/queries/userQueries';
 import { updateUserProfile } from '@/entities/user/api/userApi';
 import {
-  createDirectCroppedBlob,
+  createCroppedBlobWithDimensions,
   loadImageFromBlob,
 } from '@/features/focus-capture/model/imageResize';
 import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
@@ -43,16 +43,21 @@ function EditPage() {
   // 사용자 정보가 로드되면 초기값 설정
   useEffect(() => {
     if (userInfo) {
-      // 닉네임은 비어있을 때만 설정 (사용자가 변경한 값 보호)
       if (!nickname) {
         setNickname(userInfo.nickname || '');
       }
-      // 새로 업로드한 이미지가 없고 기존 프로필 이미지가 있으면 설정
-      if (!previewUrl && userInfo.profileUrl) {
-        setPreviewUrl(userInfo.profileUrl);
+    }
+  }, [userInfo]);
+
+  // 서버 프로필 이미지 변경사항을 로컬 previewUrl에 동기화
+  useEffect(() => {
+    if (userInfo) {
+      // 새로 업로드한 이미지(profileImage)가 없을 때만 서버 데이터와 동기화
+      if (!profileImage) {
+        setPreviewUrl(userInfo.profileUrl || null);
       }
     }
-  }, [userInfo, previewUrl]);
+  }, [userInfo, profileImage]);
 
   // 이미지 디코딩 검증 함수
   const canDecodeImageFromFile = async (file: File): Promise<boolean> => {
@@ -150,7 +155,7 @@ function EditPage() {
 
       const image = await loadImageFromBlob(file);
 
-      const resizedBlob = await createDirectCroppedBlob(
+      const resizedBlob = await createCroppedBlobWithDimensions(
         image,
         PROFILE_WIDTH,
         PROFILE_HEIGHT,
@@ -312,7 +317,7 @@ function EditPage() {
                 <img
                   src={previewUrl || DEFAULT_PROFILE_IMG}
                   alt="프로필 이미지"
-                  className="w-full h-full object-cover"
+                  className="object-cover w-full h-full"
                 />
               </div>
               <button

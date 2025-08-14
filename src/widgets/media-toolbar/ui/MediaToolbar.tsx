@@ -2,15 +2,15 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { Bot, BotOff, MessageCircle } from 'lucide-react';
 
 import {
-  useLeaveRoomMutation,
   useDeleteRoomMutation,
+  useLeaveRoomMutation,
 } from '@/entities/room/api/queries';
 import { useAuth } from '@/entities/user';
 import { useFaceDetectionStore } from '@/features/face-detection';
 import { Button } from '@/shared/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import RoomMediaControls from './RoomMediaControls';
 import { getMediaButtonStyle } from './styles';
-import { useQueryClient } from '@tanstack/react-query';
 
 type MediaToolbarProps = {
   isChatOpen: boolean;
@@ -40,7 +40,9 @@ function MediaToolbar({
       alert('사용자 정보가 없습니다.');
       return;
     }
+    queryClient.invalidateQueries({ queryKey: ['recentStudy'] });
     queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+    queryClient.invalidateQueries({ queryKey: ['room'] });
 
     if (isOwner) {
       deleteRoomMutation.mutate(
@@ -51,7 +53,7 @@ function MediaToolbar({
           },
           onError: (error) => {
             console.error('방 삭제 실패:', error);
-            alert('방 삭제에 실패했습니다.');
+            navigate({ to: '/study-list' });
           },
         },
       );
@@ -66,7 +68,7 @@ function MediaToolbar({
         },
         onError: (error) => {
           console.error('방 나가기 실패:', error);
-          alert('방 나가기에 실패했습니다.');
+          navigate({ to: '/study-list' });
         },
       },
     );
@@ -75,10 +77,10 @@ function MediaToolbar({
   return (
     <>
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-[#292D32] backdrop-blur-sm border-t border-gray-700 h-16"
-        style={{ '--toolbar-h': '64px' } as React.CSSProperties}
+        className="relative bg-[#292D32] backdrop-blur-sm border-t border-gray-700 h-16"
+        style={{ '--toolbar-h': '4rem' } as React.CSSProperties}
       >
-        <div className="flex items-center justify-between w-full px-4 py-3 mx-2 sm:px-6">
+        <div className="flex justify-between items-center px-4 py-3 mx-2 w-full sm:px-6">
           {/* 왼쪽: 나가기 버튼 */}
           <div className="flex items-center">
             <Button
@@ -111,7 +113,7 @@ function MediaToolbar({
                 ) : (
                   <BotOff className="w-1.25rem h-1.25rem " />
                 )}
-                <span className=" pl-2 text-sm font-medium hidden sm:block">
+                <span className="hidden pl-2 text-sm font-medium  sm:block">
                   얼굴 감지
                 </span>
               </Button>
@@ -127,7 +129,7 @@ function MediaToolbar({
               aria-label={`채팅 ${isChatOpen ? '닫기' : '열기'}`}
             >
               <MessageCircle className="w-1.25rem h-1.25rem" />
-              <span className="text-sm font-medium hidden sm:block">채팅</span>
+              <span className="hidden text-sm font-medium sm:block">채팅</span>
             </Button>
           </div>
         </div>

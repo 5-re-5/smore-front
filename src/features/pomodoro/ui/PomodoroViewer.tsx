@@ -27,12 +27,12 @@ export const PomodoroViewer = () => {
   return (
     <div className="flex flex-col items-center">
       <div className="relative">
-        {/* Outer white neumorphism container - 184.32px = 11.52rem */}
+        {/* Outer white neumorphism container - 147.456px = 9.216rem */}
         <div
-          className="relative flex items-center justify-center"
+          className="flex relative justify-center items-center"
           style={{
-            width: '11.52rem',
-            height: '11.52rem',
+            width: '9.216rem',
+            height: '9.216rem',
             borderRadius: '9rem',
             border: '0.045rem solid #D6E3F3',
             background: '#E3EDF7',
@@ -48,10 +48,10 @@ export const PomodoroViewer = () => {
 
           {/* Status display container - same size as button container */}
           <div
-            className="relative flex items-center justify-center z-10"
+            className="flex relative z-10 justify-center items-center"
             style={{
-              width: '4.23rem',
-              height: '4.23rem',
+              width: '3.384rem',
+              height: '3.384rem',
               borderRadius: '9rem',
               border: '0.045rem solid #D6E3F3',
               background: '#E3EDF7',
@@ -64,10 +64,10 @@ export const PomodoroViewer = () => {
           >
             {/* Status text display - same size as actual button */}
             <div
-              className="flex items-center justify-center text-xs font-medium text-gray-700"
+              className="flex justify-center items-center text-xs font-medium text-gray-700"
               style={{
-                width: '3.33rem',
-                height: '3.33rem',
+                width: '2.664rem',
+                height: '2.664rem',
                 borderRadius: '9rem',
                 border: '0.045rem solid #D6E3F3',
                 background: '#E3EDF7',
@@ -84,8 +84,8 @@ export const PomodoroViewer = () => {
         </div>
 
         {/* Time display positioned outside the circle - white text only */}
-        <div className="absolute bottom-7 left-1/2 transform -translate-x-1/2">
-          <div className="text-md font-bold text-white">
+        <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2">
+          <div className="font-bold text-white text-md">
             {formatTime(remainingTime)}
           </div>
         </div>
