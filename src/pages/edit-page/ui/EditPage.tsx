@@ -47,7 +47,7 @@ function EditPage() {
         setNickname(userInfo.nickname || '');
       }
     }
-  }, [userInfo, nickname]);
+  }, [userInfo]);
 
   // 서버 프로필 이미지 변경사항을 로컬 previewUrl에 동기화
   useEffect(() => {
