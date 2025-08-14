@@ -1,3 +1,6 @@
+/* 전역 스타일 로드 */
+@import url('@/styles/global.css');
+
 @import 'tailwindcss';
 
 @plugin "tailwindcss-animate";
