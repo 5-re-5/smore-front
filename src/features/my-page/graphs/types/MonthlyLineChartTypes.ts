@@ -7,7 +7,7 @@ export type ApiDayData = {
 export type MonthlyLineChartApiResponse = {
   userId: number;
   totalAttendance: number;
-  weekdayGGraph: number[];
+  weekdayGraph: number[];
   weeklyGraph: number[];
   studyTrack: {
     points: ApiDayData[];

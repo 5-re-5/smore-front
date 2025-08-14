@@ -132,7 +132,7 @@ const RouletteModal: React.FC<{
         </div>
         <div className="text-center text-sm text-[#597997] min-h-[22px] mb-2">
           {spinning && !result && '돌리는 중...'}
-          {spinning && result && '감속 중...'}
+          {spinning && result && '뽑기 중...'}
           {!spinning && settled && (settled === 'RE' ? 'RE 당첨!' : 'O 당첨!')}
         </div>
         <div className="flex justify-center">
