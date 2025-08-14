@@ -1,0 +1,44 @@
+import { createRouter } from '@tanstack/react-router';
+import { indexRoute } from '@/pages/homepage/route';
+import { getContext } from '@/shared/lib/reactQuery/context';
+import { rootRoute } from '../__root';
+import { roomRoute } from '@/pages/room/route';
+import { prejoinRoute } from '@/pages/prejoin/route';
+import { loginRoute } from '@/pages/login/route';
+import {
+  studyListRoute,
+  studyListRedirectRoute,
+} from '@/pages/study-list/route';
+import { roomCreateRoute } from '@/pages/room-create/route';
+import { myPageRoute } from '@/pages/my-page/route';
+import { editPageRoute } from '@/pages/edit-page/route';
+import { searchDetailRoute } from '@/pages/search-detail-page/route';
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  roomRoute,
+  prejoinRoute,
+  loginRoute,
+  studyListRoute,
+  studyListRedirectRoute,
+  roomCreateRoute,
+  myPageRoute,
+  editPageRoute,
+  searchDetailRoute,
+  // 여기에 다른 route 추가 가능
+]);
+
+export const router = createRouter({
+  routeTree,
+  context: getContext(),
+  defaultPreload: 'intent',
+  scrollRestoration: true,
+  defaultStructuralSharing: true,
+  defaultPreloadStaleTime: 0,
+});
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
