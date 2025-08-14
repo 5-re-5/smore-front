@@ -58,7 +58,7 @@ export function StudyCard({ room }: StudyCardProps) {
             </div>
 
             {/* 태그 */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 h-[15px] overflow-hidden">
               {room.tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}
