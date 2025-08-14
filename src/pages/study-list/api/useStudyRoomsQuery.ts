@@ -78,7 +78,6 @@ export const useInfiniteStudyRoomsQuery = (params: StudyRoomsParams) => {
     initialPageParam: undefined as number | undefined,
     getNextPageParam: (lastPage) =>
       lastPage.hasNext && lastPage.nextCursor ? lastPage.nextCursor : undefined,
-    staleTime: 30000, // 30초간 캐시 유지
     select: (data) => ({
       pages: data.pages.map((page) => ({
         ...page,

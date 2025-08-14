@@ -32,9 +32,14 @@ export const FocusGauge = () => {
   // 카메라가 꺼져있거나 얼굴 인식이 비활성화된 경우
   if (!isCameraEnabled || !isFaceDetectionEnabled) {
     return (
-      <div className="flex items-center justify-center w-[25rem] h-[3rem] border border-red-500 rounded-lg bg-red-50">
-        <span className="text-red-600 text-sm font-medium">
-          집중도 체크 불가
+      <div className="flex flex-col gap-2 items-center">
+        <div className="flex items-center justify-center w-[25rem] h-[3rem] border border-red-500 rounded-lg bg-red-50">
+          <span className="text-sm font-medium text-red-600">
+            집중도 체크 불가
+          </span>
+        </div>
+        <span className="font-bold text-white text-md">
+          얼굴 감지를 활성화 하세요
         </span>
       </div>
     );
@@ -43,9 +48,14 @@ export const FocusGauge = () => {
   // 아직 집중도 데이터가 없는 경우
   if (!currentFocus) {
     return (
-      <div className="flex items-center justify-center w-[25rem] h-[3rem] border border-gray-300 rounded-lg bg-gray-50">
-        <span className="text-gray-600 text-sm font-medium">
-          집중도 측정 중...
+      <div className="flex flex-col gap-2 items-center">
+        <div className="flex items-center justify-center w-[25rem] h-[3rem] border border-gray-300 rounded-lg bg-gray-50">
+          <span className="text-sm font-medium text-gray-600">
+            집중도 측정 대기중...
+          </span>
+        </div>
+        <span className="font-bold text-white text-md">
+          스톱워치를 시작하세요
         </span>
       </div>
     );
@@ -56,7 +66,7 @@ export const FocusGauge = () => {
   const focusLabel = getFocusLabel(status);
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col gap-2 items-center">
       {/* 게이지 컨테이너 */}
       <div className="relative w-[25rem] h-[3rem] border-2 border-gray-300 rounded-lg bg-white overflow-hidden">
         {/* 게이지 바 */}
@@ -69,7 +79,7 @@ export const FocusGauge = () => {
         />
 
         {/* 퍼센트 텍스트 */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="flex absolute inset-0 justify-center items-center">
           <span className="text-sm font-semibold text-gray-800 drop-shadow-sm">
             {Math.round(status)}%
           </span>
@@ -77,7 +87,7 @@ export const FocusGauge = () => {
       </div>
 
       {/* 라벨 */}
-      <span className="text-md font-bold" style={{ color: focusColor }}>
+      <span className="font-bold text-md" style={{ color: focusColor }}>
         {focusLabel}
       </span>
     </div>

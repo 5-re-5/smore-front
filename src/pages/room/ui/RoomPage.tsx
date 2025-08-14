@@ -27,9 +27,11 @@ import {
   RoomAudioRenderer,
   StartAudio,
 } from '@livekit/components-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { DisconnectReason } from 'livekit-client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 function RoomPage() {
   const { roomId } = useParams({ from: '/room/$roomId' });
@@ -44,6 +46,7 @@ function RoomPage() {
     'idle' | 'attempting' | 'success' | 'failed'
   >('idle');
   const resetStopwatch = useStopwatchStore((state) => state.resetStopwatch);
+  const resetTimer = usePomodoroStore((state) => state.resetTimer);
   const updateServerData = useStopwatchStore((state) => state.updateServerData);
   const { setOwner, setRoomSettings } = usePomodoroStore();
   const [retryCount, setRetryCount] = useState<number>(0);
@@ -64,6 +67,7 @@ function RoomPage() {
 
   // roomId 유효성 검사
   const roomIdNumber = parseInt(roomId, 10);
+  const queryClient = useQueryClient();
 
   const handleRetryConnection = () => {
     const newRetryCount = retryCount + 1;
@@ -274,6 +278,10 @@ function RoomPage() {
     return () => resetStopwatch();
   }, [resetStopwatch]);
 
+  useEffect(() => {
+    return () => resetTimer();
+  }, [resetTimer]);
+
   // 브라우저 종료 시에만 track 정리 (탭 전환 시에는 정리하지 않음)
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -294,7 +302,7 @@ function RoomPage() {
       <div className="fixed inset-0 bg-[#101214] bg-opacity-95 flex flex-col items-center justify-center z-51 min-h-screen gap-6">
         <SmoreLogoHeader />
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 w-8 h-8 rounded-full border-b-2 border-blue-600 animate-spin"></div>
           <p className="text-lg text-white">
             {autoRejoinStatus === 'attempting'
               ? '방에 재입장 중'
@@ -308,14 +316,14 @@ function RoomPage() {
   // 연결 오류 상태 표시
   if (connectionStatus === 'error') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="text-center max-w-md">
-          <h2 className="text-xl font-semibold text-red-600 mb-4">연결 실패</h2>
-          <p className="text-gray-600 mb-4">
+      <div className="flex flex-col justify-center items-center p-4 min-h-screen">
+        <div className="max-w-md text-center">
+          <h2 className="mb-4 text-xl font-semibold text-red-600">연결 실패</h2>
+          <p className="mb-4 text-gray-600">
             화상회의 서버에 연결할 수 없습니다.
           </p>
           {errorMessage && (
-            <p className="text-sm text-gray-500 mb-4">오류: {errorMessage}</p>
+            <p className="mb-4 text-sm text-gray-500">오류: {errorMessage}</p>
           )}
           <div className="space-y-2">
             <Button onClick={handleRetryConnection} className="w-full">
@@ -335,7 +343,6 @@ function RoomPage() {
   }
 
   return (
-    // <div className="h-screen flex flex-col">
     <div className="h-screen flex flex-col bg-[#101214]">
       {permissionStatus && (
         <PermissionBanner
@@ -351,10 +358,10 @@ function RoomPage() {
         <div className="fixed inset-0 bg-[#101214] bg-opacity-95 flex flex-col items-center justify-center z-51 min-h-screen gap-6">
           <SmoreLogoHeader />
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="mx-auto mb-4 w-8 h-8 rounded-full border-b-2 border-blue-600 animate-spin"></div>
             <p className="text-lg text-white">화상 회의에 연결중</p>
             {retryCount > 0 && (
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="mt-2 text-sm text-gray-500">
                 재시도 {retryCount}회
               </p>
             )}
@@ -381,10 +388,13 @@ function RoomPage() {
           clearIntentionalExit(roomIdNumber); // 의도적 나가기 플래그 리셋
         }}
         onDisconnected={(reason?: DisconnectReason) => {
+          queryClient.invalidateQueries({ queryKey: ['recentStudy'] });
+          queryClient.invalidateQueries({ queryKey: ['study-rooms'] });
+          toast.error('룸 연결이 해제되었습니다.');
+          navigate({ to: '/study-list' });
           if (reason && reason !== DisconnectReason.CLIENT_INITIATED) {
             setConnectionStatus('disconnected');
             setErrorMessage(`연결이 해제되었습니다: ${reason}`);
-            console.log('연결이 해제되었습니다.');
           }
         }}
         onError={(error) => {

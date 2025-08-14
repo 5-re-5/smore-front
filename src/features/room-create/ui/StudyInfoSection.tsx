@@ -111,11 +111,20 @@ export function StudyInfoSection({
                   id="password"
                   type="text"
                   placeholder={
-                    isPrivate ? '비밀번호 입력 (최대 8자)' : '비공개 시 필요'
+                    isPrivate ? '영어, 숫자, 특수문자만 입력' : '비공개 시 필요'
                   }
                   maxLength={8}
                   className="w-[12rem]"
                   disabled={!isPrivate}
+                  onInput={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    const value = target.value.replace(
+                      /[ㄱ-ㅎㅏ-ㅣ가-힣]/g,
+                      '',
+                    );
+                    target.value = value;
+                    field.onChange(value);
+                  }}
                 />
               )}
             />

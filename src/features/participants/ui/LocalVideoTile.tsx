@@ -1,14 +1,14 @@
 import { useFaceDetection } from '@/features/face-detection/model/useFaceDetection';
 import { useFaceDetectionStore } from '@/features/face-detection/model/useFaceDetectionStore';
 import { useAutoCaptureScheduler } from '@/features/focus-capture';
+import { useMediaStreamAnalyser } from '@/features/prejoin';
 import {
   TrackMutedIndicator,
   useLocalParticipant,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
-import { useRef, useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useAttachLocalCameraTrack } from '../model/useAttachLocalCameraTrack';
-import { useMediaStreamAnalyser } from '@/features/prejoin';
 
 export function LocalVideoTile() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -65,8 +65,8 @@ export function LocalVideoTile() {
       }`}
     >
       {isCamMuted ? (
-        <div className="w-full h-full bg-black rounded-xl flex items-center justify-center">
-          <span className="text-white text-xl font-semibold">me</span>
+        <div className="flex justify-center items-center w-full h-full bg-black rounded-xl">
+          <span className="text-xl font-semibold text-white">me</span>
         </div>
       ) : (
         <video
@@ -74,29 +74,29 @@ export function LocalVideoTile() {
           autoPlay
           muted
           playsInline
-          className="w-full h-full object-cover rounded-xl"
+          className="object-cover w-full h-full rounded-xl"
           style={{ transform: 'scaleX(-1)' }}
         />
       )}
       {!faceDetected && (
-        <div className="absolute top-0 left-0 w-full text-center text-red-600 font-bold bg-black/50 px-2 py-1 rounded-b">
+        <div className="absolute top-0 left-0 px-2 py-1 w-full font-bold text-center text-red-600 rounded-b bg-black/50">
           얼굴 감지 불가능
         </div>
       )}
-      <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-1 rounded">
+      <div className="absolute bottom-2 left-2 text-black text-sm bg-[#AEA7D9] px-2 py-1 rounded-3xl">
         me
       </div>
-      <div className="absolute top-2 right-2 flex gap-2">
+      <div className="flex absolute top-2 right-2 gap-2">
         {isMicMuted && (
           <TrackMutedIndicator
             trackRef={trackRefs.mic}
-            className=" bg-white rounded-2xl p-1"
+            className="p-1 bg-white rounded-2xl"
           />
         )}
         {isCamMuted && (
           <TrackMutedIndicator
             trackRef={trackRefs.camera}
-            className=" bg-white rounded-2xl p-1"
+            className="p-1 bg-white rounded-2xl"
           />
         )}
       </div>
