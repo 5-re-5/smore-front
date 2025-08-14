@@ -238,7 +238,6 @@ function RoomPage() {
     // 의도적 나가기인 경우 즉시 study-list로 이동
     if (isIntentionalExit(roomIdNumber)) {
       navigate({ to: '/study-list' });
-      clearIntentionalExit(roomIdNumber);
       return;
     }
 

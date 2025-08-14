@@ -10,6 +10,7 @@ import { PrejoinMicWaveform, useAudioState } from '@/features/prejoin';
 import { useMediaControlStore } from '@/features/prejoin/model/useMediaControlStore';
 import { CameraPreview } from '@/features/prejoin/ui/CameraPreview';
 import { RoomInfo } from '@/features/prejoin/ui/RoomInfo';
+import { useRoomStateStore } from '@/features/room';
 import type { ApiError } from '@/shared/api/request';
 import { SmoreLogoHeader } from '@/shared/ui';
 import {
@@ -72,6 +73,8 @@ function PrejoinPage() {
   const [showRoomNotFoundAlert, setShowRoomNotFoundAlert] = useState(false);
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
+  const { clearIntentionalExit } = useRoomStateStore();
+
   // 사용자 정보
   const { getUserId } = useAuth();
   const userId = getUserId();
@@ -98,6 +101,10 @@ function PrejoinPage() {
       stopAllMedia();
     };
   }, [stopAllMedia]);
+
+  useEffect(() => {
+    clearIntentionalExit(roomIdNumber);
+  }, []);
 
   const validatePassword = (): boolean => {
     if (room?.hasPassword && !password.trim()) {
