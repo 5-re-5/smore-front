@@ -33,7 +33,9 @@ function RoomLayout({
       {/* 중간 영역: 도구들 + 카메라 + 채팅 */}
       <div className="flex flex-1 min-h-0 overflow-x-hidden  overflow-y-hidden">
         {/* 중앙: Video + Tools */}
-        <div className="flex flex-col flex-1 min-h-0">
+        <div
+          className={`flex flex-col flex-1 min-h-0 ${isChatOpen ? 'translate-x-0' : 'translate-x-45'}`}
+        >
           {/* Tools: Pomodoro + Stopwatch */}
           <div className="flex flex-shrink-0 justify-center items-center pt-4">
             <div className="flex gap-8 items-center">
