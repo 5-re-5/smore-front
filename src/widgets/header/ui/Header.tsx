@@ -39,12 +39,9 @@ export const Header = () => {
         <Logo />
       </Link>
 
-      {/* 전체 화면 가로 길이에서 가운데 위치 */}
-      <div className="absolute left-1/2 transform -translate-x-1/2">
+      {/* SearchBar와 스터디 만들기 버튼을 전체 가로 길이에서 가운데 정렬 */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-6">
         <SearchBar />
-      </div>
-
-      <div className="flex items-center gap-4">
         <Link to="/room-create">
           <Button
             variant="ghost"
@@ -55,6 +52,9 @@ export const Header = () => {
             스터디 만들기
           </Button>
         </Link>
+      </div>
+
+      <div className="flex items-center gap-4">
         <HeaderUserProfile
           nickname={userInfo.nickname}
           profileUrl={userInfo.profileUrl || DEFAULT_PROFILE_IMG}
