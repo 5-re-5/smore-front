@@ -61,13 +61,13 @@ const roomCreateSchema = z
 
     focusTime: z
       .number()
-      .min(1, '공부 시간은 1분 이상이어야 합니다')
+      .min(25, '공부 시간은 25분 이상이어야 합니다')
       .max(100, '공부 시간은 100분 이하로 설정해주세요')
       .optional(),
 
     breakTime: z
       .number()
-      .min(1, '휴식 시간은 1분 이상이어야 합니다')
+      .min(5, '휴식 시간은 5분 이상이어야 합니다')
       .max(20, '휴식 시간은 20분 이하로 설정해주세요')
       .optional(),
 
@@ -106,10 +106,28 @@ const roomCreateSchema = z
   .superRefine((data, ctx) => {
     if (data.isPrivate && (!data.password || data.password.length === 0)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['password'],
         message: '최소 1자, 최대 8자를 입력해주세요',
       });
+    }
+
+    if (data.isPomodoroEnabled) {
+      if (!data.focusTime) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['focusTime'],
+          message: '공부 시간을 입력해주세요',
+        });
+      }
+
+      if (!data.breakTime) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['breakTime'],
+          message: '휴식 시간을 입력해주세요',
+        });
+      }
     }
   });
 
