@@ -1,9 +1,9 @@
-import { useState, useEffect, type FunctionComponent } from 'react';
-import MarshmallowHeatmap, { type StudyPoint } from './MarshmallowHeatmap';
 import { useUserInfo } from '@/entities/user/model/useUserInfo';
 import { request } from '@/shared/api/request';
-import { useRouter } from '@tanstack/react-router';
 import { DEFAULT_PROFILE_IMG } from '@/shared/constants';
+import { useRouter } from '@tanstack/react-router';
+import { useEffect, useState, type FunctionComponent } from 'react';
+import MarshmallowHeatmap, { type StudyPoint } from './MarshmallowHeatmap';
 
 // 스낵 타입 정의
 type SnackType = 'O' | 'RE';
@@ -51,17 +51,15 @@ const getSnackIcons = (grade: string = '') => {
 };
 
 // 프로필 이미지
-const ProfileImage: FunctionComponent<{ src?: string; alt: string }> = ({
+const ProfileImage: FunctionComponent<{ src: string; alt: string }> = ({
   src,
   alt,
 }) => {
-  const [imgSrc, setImgSrc] = useState(src || DEFAULT_PROFILE_IMG);
   return (
     <img
       className="w-[180px] h-[180px] object-cover rounded-[20px] lg:rounded-[32px] border-2 border-[#e6edf7] bg-white shadow-[0_4px_16px_rgba(229,244,255,0.17)]"
-      src={imgSrc}
+      src={src}
       alt={alt}
-      onError={() => setImgSrc(DEFAULT_PROFILE_IMG)}
       draggable={false}
     />
   );
@@ -240,7 +238,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
     streak: 25,
     goal: userInfo?.targetDateTitle,
     grade: grade,
-    profileImg: userInfo?.profileUrl || ' ',
+    profileImg: userInfo?.profileUrl || DEFAULT_PROFILE_IMG,
   };
 
   const isOver100 = point >= 100;
@@ -383,7 +381,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
             {getSnackIcons(dummyUser.grade)}
           </div>
           {/* 경험치 바 */}
-          <div className="flex flex-col items-end h-4/6 absolute right-0 pr-4">
+          <div className="flex absolute right-0 flex-col items-end pr-4 h-4/6">
             <div className="flex justify-between items-center mb-[8px]">
               <span className="text-[13px] font-semibold text-[#666] tracking-[0.01em]">
                 {point} / 100P
@@ -395,7 +393,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ userId }) => {
                 style={{ height: `${getExpPercentage(point)}%` }}
               >
                 <div
-                  className={`absolute top-0 left-0 w-full h-[6px] opacity-60 ${highlightCls}`}
+                  className={`absolute top-0 left-0 w-full opacity-60 h-[6px] ${highlightCls}`}
                 />
               </div>
             </div>
