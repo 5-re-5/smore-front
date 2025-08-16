@@ -16,8 +16,19 @@ const HeroSection = () => {
 
       {/* 콘텐츠 */}
       <div className="absolute inset-0 flex flex-col justify-center items-center z-10 text-center px-4">
-        <h1 className="text-[8rem] font-black-han-sans text-royalblue leading-none mb-8">
-          S’m<span className="text-orangered">o</span>re
+        <h1
+          className="text-[8rem] leading-none mb-8 flex select-none"
+          style={{ fontFamily: '"Black Han Sans", sans-serif' }}
+        >
+          <span className="font-black-han-sans" style={{ color: '#0063E5' }}>
+            S’m
+          </span>
+          <span className="font-black-han-sans" style={{ color: '#F75804' }}>
+            o
+          </span>
+          <span className="font-black-han-sans" style={{ color: '#0063E5' }}>
+            re
+          </span>
         </h1>
         <p className="font-manrope text-white text-2xl mb-12 opacity-90 whitespace-nowrap">
           AI 집중도 분석과 타이머 기능으로 효율적인 온라인 학습 환경을

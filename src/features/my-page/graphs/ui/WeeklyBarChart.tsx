@@ -51,12 +51,23 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
     return (
       <div
         key={idx}
-        className="absolute w-[3.5rem] bg-[#34b3f1] rounded-t-[5px] transition-all"
+        className={`
+          absolute
+          w-[3.5rem]
+          rounded-t-[16px]          // 디자인: 상단 둥글게
+          transition-all
+          shadow-lg                 // 디자인: 그림자로 입체감
+          bg-gradient-to-t from-[#38bdf8] via-[#60a5fa] to-[#6366f1]   // 디자인: 세련된 그라데이션
+          hover:brightness-105      // 디자인: hover 밝기 살짝 증가
+          hover:scale-105           // 디자인: hover 확대
+        `}
         style={{
-          left: `${barLefts[idx] + barOffset}rem`, // 기존 위치 + 오프셋 (barOffset 값을 조절하면 모든 막대 위치 변경)
-          bottom: '6.6rem', // 막대 바닥으로부터 세로 위치, 막대 전체 상하 이동 조절 포인트
+          left: `${barLefts[idx] + barOffset}rem`, // 기존 위치 + 오프셋
+          bottom: '6.6rem', // 막대 바닥으로부터 세로 위치
           height: `${height}px`, // 막대 높이
-          transition: 'height 0.4s cubic-bezier(0.4,0,0.2,1)', // 높이 변경 애니메이션
+          // 애니메이션 개선
+          transition:
+            'height 0.6s cubic-bezier(0.4,0,0.2,1), filter 0.2s, transform 0.2s',
         }}
         title={`${dayLabels[idx]}: ${hours}시간`}
       />
@@ -99,7 +110,7 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
             className="absolute border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem] z-0"
             style={{
               top: `${top + verticalOffset}rem`, // 전체 오프셋 포함 점선 세로 위치
-              left: '2.8rem', // 점선 가로 위치
+              left: '2.8rem',
             }}
           />
         ),
@@ -114,8 +125,8 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
           key={label}
           className="absolute text-[1.25rem] font-inter text-black text-center"
           style={{
-            top: '33rem', // X축 텍스트 수직 위치 조절
-            left: `calc(${barLefts[idx]}rem + ${barWidthRem / 2}rem - 2rem)`, // 막대 중앙 기준 위치 + 미세 조정 (-2rem)
+            top: '33rem',
+            left: `calc(${barLefts[idx]}rem + ${barWidthRem / 2}rem - 2rem)`,
             width: '4rem',
             zIndex: 2,
             userSelect: 'none',
@@ -130,7 +141,7 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
-            top: `${yLabelTops[3] + 0.1}rem`, // 메시지 위치 조정 가능
+            top: `${yLabelTops[3] + 0.1}rem`,
           }}
         >
           <div className="text-gray bg-[rgba(255,255,255,0.87)] px-6 py-2 rounded-xl font-semibold text-[1.13rem] pointer-events-none z-20 shadow-lg border border-gray-200">
