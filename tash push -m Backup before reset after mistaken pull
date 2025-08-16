@@ -1,0 +1,44 @@
+[33mbf13fdb[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeat/Homepage_ui[m[33m)[m HEAD@{0}: pull origin dev: Merge made by the 'ort' strategy.
+[33m6d0c1c9[m HEAD@{1}: commit: Homepage_ui_edit
+[33mb8a8496[m[33m ([m[1;32mdev[m[33m)[m HEAD@{2}: checkout: moving from dev to feat/Homepage_ui
+[33mb8a8496[m[33m ([m[1;32mdev[m[33m)[m HEAD@{3}: pull origin dev: Fast-forward
+[33m04a8be0[m HEAD@{4}: checkout: moving from feat/Homepage to dev
+[33mbe8eb9b[m[33m ([m[1;31morigin/feat/Homepage[m[33m)[m HEAD@{5}: checkout: moving from dev to feat/Homepage
+[33m04a8be0[m HEAD@{6}: checkout: moving from feat/Homepage to dev
+[33mbe8eb9b[m[33m ([m[1;31morigin/feat/Homepage[m[33m)[m HEAD@{7}: pull origin dev: Merge made by the 'ort' strategy.
+[33m49e88ac[m HEAD@{8}: checkout: moving from dev to feat/Homepage
+[33m04a8be0[m HEAD@{9}: pull origin dev: Fast-forward
+[33mc80db3a[m HEAD@{10}: checkout: moving from feat/Homepage to dev
+[33m49e88ac[m HEAD@{11}: commit: 그래프최댓값지정
+[33mc80db3a[m HEAD@{12}: checkout: moving from dev to feat/Homepage
+[33mc80db3a[m HEAD@{13}: pull origin dev: Fast-forward
+[33m3f8795d[m HEAD@{14}: checkout: moving from feat/weekly to dev
+[33mf51551c[m[33m ([m[1;31morigin/feat/weekly[m[33m)[m HEAD@{15}: commit: 빌드에러처리완료
+[33m331bdc9[m HEAD@{16}: pull origin dev: Merge made by the 'ort' strategy.
+[33m643a497[m HEAD@{17}: checkout: moving from dev to feat/weekly
+[33m3f8795d[m HEAD@{18}: pull origin dev: Fast-forward
+[33md815a34[m HEAD@{19}: checkout: moving from feat/weekly to dev
+[33m643a497[m HEAD@{20}: commit: api 오류 수정
+[33md815a34[m HEAD@{21}: checkout: moving from dev to feat/weekly
+[33md815a34[m HEAD@{22}: checkout: moving from weekly to dev
+[33md815a34[m HEAD@{23}: checkout: moving from dev to weekly
+[33md815a34[m HEAD@{24}: pull origin dev: Fast-forward
+[33m7ceda4e[m HEAD@{25}: checkout: moving from feat/panel-graph to dev
+[33m170256b[m[33m ([m[1;31morigin/feat/panel-graph[m[33m)[m HEAD@{26}: pull origin dev: Merge made by the 'ort' strategy.
+[33m84c6043[m HEAD@{27}: checkout: moving from dev to feat/panel-graph
+[33m7ceda4e[m HEAD@{28}: checkout: moving from feat/panel-graph to dev
+[33m84c6043[m HEAD@{29}: commit: statpanel_edit
+[33m7ceda4e[m HEAD@{30}: checkout: moving from dev to feat/panel-graph
+[33m7ceda4e[m HEAD@{31}: pull origin dev: Fast-forward
+[33mef50d7b[m HEAD@{32}: checkout: moving from feat/graphs to dev
+[33m5d6cb34[m[33m ([m[1;31morigin/feat/graphs[m[33m)[m HEAD@{33}: pull origin dev: Merge made by the 'ort' strategy.
+[33me6bbf0e[m HEAD@{34}: checkout: moving from dev to feat/graphs
+[33mef50d7b[m HEAD@{35}: checkout: moving from feat/graphs to dev
+[33me6bbf0e[m HEAD@{36}: checkout: moving from dev to feat/graphs
+[33mef50d7b[m HEAD@{37}: pull origin dev: Fast-forward
+[33m24f2415[m HEAD@{38}: checkout: moving from feat/graphs to dev
+[33me6bbf0e[m HEAD@{39}: commit: ai-graph-api-해결
+[33m24f2415[m HEAD@{40}: checkout: moving from dev to feat/graphs
+[33m24f2415[m HEAD@{41}: pull origin dev: Fast-forward
+[33m139b77d[m HEAD@{42}: checkout: moving from main to dev
+[33m7c01939[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{43}: clone: from https://github.com/5-re-5/smore-front.git

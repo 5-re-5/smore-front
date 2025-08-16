@@ -1,89 +1,149 @@
+import { useState, useEffect, useRef } from 'react';
+
 const SolutionSection = () => {
+  // 화면에 보이는지 상태 관리
+  const [visible1, setVisible1] = useState(false);
+  const [visible2, setVisible2] = useState(false);
+  const [visible3, setVisible3] = useState(false);
+
+  const ref1 = useRef(null);
+  const ref2 = useRef(null);
+  const ref3 = useRef(null);
+
+  useEffect(() => {
+    const observer1 = new IntersectionObserver(
+      ([entry]) => setVisible1(entry.isIntersecting),
+      { threshold: 0.5 },
+    );
+    const observer2 = new IntersectionObserver(
+      ([entry]) => setVisible2(entry.isIntersecting),
+      { threshold: 0.5 },
+    );
+    const observer3 = new IntersectionObserver(
+      ([entry]) => setVisible3(entry.isIntersecting),
+      { threshold: 0.5 },
+    );
+
+    if (ref1.current) observer1.observe(ref1.current);
+    if (ref2.current) observer2.observe(ref2.current);
+    if (ref3.current) observer3.observe(ref3.current);
+
+    return () => {
+      if (ref1.current) observer1.unobserve(ref1.current);
+      if (ref2.current) observer2.unobserve(ref2.current);
+      if (ref3.current) observer3.unobserve(ref3.current);
+    };
+  }, []);
+
   return (
     <section className="relative w-full max-w-[1440px] h-auto lg:h-[678px] mx-auto bg-white overflow-hidden font-noto-sans px-4 lg:px-0 py-12 lg:py-0">
-      {/* PNG 이미지들 절대 위치로 배치, 원하는 크기와 위치로 조절 */}
+      {/* WEBP 이미지들 절대 위치, 크기 조절 가능 */}
       <img
-        src="/images/whitebox.png"
+        src="/images/whitebox.webp"
         alt="Whitebox"
-        className="absolute top-[5px] left-[900px] w-[250px] h-auto"
+        className="absolute top-[-50px] left-[900px] w-[250px] h-auto z-30"
       />
       <img
-        src="/images/whitebox.png"
+        src="/images/whitebox.webp"
         alt="Whitebox"
-        className="absolute top-[235px] left-[580px] w-[250px] h-auto"
+        className="absolute top-[165px] left-[575px] w-[250px] h-auto z-30"
       />
       <img
-        src="/images/whitebox.png"
+        src="/images/whitebox.webp"
         alt="Whitebox"
-        className="absolute top-[360px] left-[150px] w-[250px] h-auto"
+        className="absolute top-[300px] left-[110px] w-[250px] h-auto z-30"
+      />
+
+      {/* circle 이미지도 위치/크기 조절 지원 */}
+      <img
+        src="/images/circle.webp"
+        alt="Circle"
+        className="absolute top-[100px] left-[0px] w-[60px] h-[600px] z-40"
       />
 
       <img
-        src="/images/barchart.png"
-        alt="Bar Chart"
-        className="absolute bottom-[120px] left-[950px] w-[90px] h-auto"
-      />
-      <img
-        src="/images/icon1_oreo.png"
-        alt="Icon Oreo"
-        className="absolute top-[515px] left-[260px] w-[50px] h-auto"
-      />
-      <img
-        src="/images/icon2_clock.png"
-        alt="Icon Clock"
-        className="absolute top-[385px] left-[685px] w-[50px] h-auto"
-      />
-      <img
-        src="/images/icon3_marshmallow.png"
-        alt="Icon Marshmallow"
-        className="absolute top-[160px] left-[1005px] w-[60px] h-auto"
-      />
-      <img
-        src="/images/line_vector.png"
+        src="/images/line_vector.webp"
         alt="Line Vector"
-        className="absolute top-[180px] left-[100px] w-[1000px] h-auto"
+        className="absolute top-[90px] left-[100px] w-[1100px] h-auto z-20"
+      />
+
+      <img
+        ref={ref1}
+        src="/images/number1.webp"
+        alt="Number 1"
+        className={`absolute bottom-[80px] left-[390px] w-[70px] h-auto transition-transform duration-700 ease-out cursor-pointer 
+          ${visible1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
+          hover:scale-110 hover:-translate-y-2 z-40`}
+        style={{ transitionProperty: 'opacity, transform' }}
       />
       <img
-        src="/images/marshmallow.png"
+        ref={ref2}
+        src="/images/number2.webp"
+        alt="Number 2"
+        className={`absolute bottom-[230px] left-[880px] w-[80px] h-auto transition-transform duration-700 ease-out cursor-pointer
+          ${visible2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
+          hover:scale-110 hover:-translate-y-2 z-40`}
+        style={{ transitionProperty: 'opacity, transform' }}
+      />
+      <img
+        ref={ref3}
+        src="/images/number3.webp"
+        alt="Number 3"
+        className={`absolute top-[120px] right-[160px] w-[80px] h-auto transition-transform duration-700 ease-out cursor-pointer
+          ${visible3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
+          hover:scale-110 hover:-translate-y-2 z-40`}
+        style={{ transitionProperty: 'opacity, transform' }}
+      />
+
+      <img
+        src="/images/barchart.webp"
+        alt="Bar Chart"
+        className="absolute bottom-[140px] left-[950px] w-[90px] h-auto"
+      />
+      <img
+        src="/images/icon1_oreo.webp"
+        alt="Icon Oreo"
+        className="absolute top-[455px] left-[215px] w-[50px] h-auto z-40"
+      />
+      <img
+        src="/images/icon2_clock.webp"
+        alt="Icon Clock"
+        className="absolute top-[320px] left-[680px] w-[50px] h-auto z-40"
+      />
+      <img
+        src="/images/icon3_marshmallow.webp"
+        alt="Icon Marshmallow"
+        className="absolute top-[100px] left-[1000px] w-[60px] h-auto z-40"
+      />
+      <img
+        src="/images/marshmallow.webp"
         alt="Marshmallow"
         className="absolute top-[220px] right-[65px] w-[120px] h-auto"
       />
       <img
-        src="/images/number1.png"
-        alt="Number 1"
-        className="absolute bottom-[30px] left-[390px] w-[75px] h-auto"
-      />
-      <img
-        src="/images/number2.png"
-        alt="Number 2"
-        className="absolute bottom-[190px] left-[880px] w-[80px] h-auto"
-      />
-      <img
-        src="/images/number3.png"
-        alt="Number 3"
-        className="absolute top-[150px] right-[160px] w-[80px] h-auto"
-      />
-      <img
-        src="/images/oreo.png"
+        src="/images/oreo.webp"
         alt="Oreo"
-        className="absolute top-[570px] left-[470px] w-[100px] h-auto"
+        className="absolute top-[530px] left-[470px] w-[100px] h-auto"
       />
 
-      {/* 기존 섹션 타이틀 및 설명 영역 */}
+      {/* 섹션 타이틀 및 설명 영역 */}
       <div className="mb-8 lg:absolute lg:top-[-5px] lg:left-20">
-        <h2 className="text-[2rem] lg:text-[3rem] font-sans font-black text-dimgray leading-tight w-full lg:w-[482px]">
-          <p className="m-0">
-            <span className="text-dimgray">S’m</span>
-            <span className="text-cornflowerblue">o</span>
-            <span>re’가</span>
-            <br />
-            <span className="whitespace-nowrap">제공하는 최적의 솔루션</span>
-          </p>
+        <h2
+          className="text-[2rem] lg:text-[3rem] font-normal leading-tight w-full lg:w-[482px]"
+          style={{ fontFamily: '"Black Han Sans", sans-serif' }}
+        >
+          <span className="text-dimgray">S’m</span>
+          <span style={{ color: '#76AAF8' }}>o</span>
+          <span className="text-dimgray">re’가</span>
+          <br />
+          <span className="text-dimgray whitespace-nowrap">
+            제공하는 최적의 솔루션
+          </span>
         </h2>
       </div>
 
       {/* 설명 영역 */}
-      <div className="mt-8 lg:absolute lg:top-[190px] lg:left-[80px] w-full lg:w-[1207px] text-[1rem] font-manrope space-y-12 lg:space-y-0">
+      <div className="mt-8 lg:absolute lg:top-[120px] lg:left-[80px] w-full lg:w-[1207px] text-[1rem] font-manrope space-y-12 lg:space-y-0">
         {/* 공통 설명 */}
         <div className="text-[1.125rem] lg:text-[1.375rem] leading-[1.8rem] text-slategray font-noto-sans-kr lg:w-[507px] tracking-[-0.02em] mb-8">
           <p className="m-0">
@@ -95,10 +155,10 @@ const SolutionSection = () => {
           </p>
         </div>
 
-        {/* 세부항목 - 반응형에서는 세로, 데스크톱에서는 절대좌표 */}
+        {/* 세부항목 */}
         <div className="space-y-8 lg:space-y-0">
           {/* 마시멜로 */}
-          <div className="lg:absolute lg:top-0 lg:left-[927px] w-full lg:w-[279.5px]">
+          <div className="lg:absolute lg:top-[35px] lg:left-[927px] w-full lg:w-[290px]">
             <div className="font-extrabold text-[1.1rem] lg:text-[1.25rem] leading-[1.8rem] mb-2">
               매일 마시멜로 굽기
             </div>
@@ -109,7 +169,7 @@ const SolutionSection = () => {
           </div>
 
           {/* 그래프 */}
-          <div className="lg:absolute lg:top-[240px] lg:left-[592px] w-full lg:w-[288px]">
+          <div className="lg:absolute lg:top-[260px] lg:left-[592px] w-full lg:w-[300px]">
             <div className="font-extrabold text-[1.1rem] lg:text-[1.25rem] leading-[1.8rem] mb-2">
               다양한 공부 그래프 제공
             </div>
@@ -122,7 +182,7 @@ const SolutionSection = () => {
           </div>
 
           {/* 오레오 등급 */}
-          <div className="lg:absolute lg:top-[368px] lg:left-[125px] w-full lg:w-[303px]">
+          <div className="lg:absolute lg:top-[390px] lg:left-[125px] w-full lg:w-[320px]">
             <div className="font-extrabold text-[1.1rem] lg:text-[1.25rem] leading-[1.8rem] mb-2">
               오레오 등급 쌓기
             </div>

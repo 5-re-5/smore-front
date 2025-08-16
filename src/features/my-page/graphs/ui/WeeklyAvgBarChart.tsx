@@ -31,13 +31,22 @@ const WeeklyAvgBarChart: FunctionComponent<Props> = ({ userId }) => {
         return (
           <div
             key={idx}
-            className="absolute w-[3.5rem] bg-[#34b3f1] rounded-t-[9px]
-                       shadow-[0_4px_12px_rgba(52,179,241,0.13)]"
+            className={`
+              absolute
+              w-[3.5rem]
+              rounded-t-[16px]          // 상단 둥글게 (통일)
+              transition-all
+              shadow-lg                 // 입체감 그림자 (통일)
+              bg-gradient-to-t from-[#38bdf8] via-[#60a5fa] to-[#6366f1]   // 블루-퍼플 그라데이션 (통일)
+              hover:brightness-105      // hover 밝기 증가 (통일)
+              hover:scale-105           // hover 확대 (통일)
+            `}
             style={{
               left: `${leftRems[idx]}rem`,
               bottom: '6.6rem',
               height: `${height}px`,
-              transition: 'height 0.4s cubic-bezier(0.4,0,0.2,1)', // 애니메이션 효과 [속성명] [지속시간] [타이밍함수] [지연시간(optional)]
+              transition:
+                'height 0.6s cubic-bezier(0.4,0,0.2,1), filter 0.2s, transform 0.2s',
             }}
             title={`${idx + 1}주차: ${hour}시간`}
           />
@@ -79,7 +88,7 @@ const WeeklyAvgBarChart: FunctionComponent<Props> = ({ userId }) => {
           <div
             key={idx}
             className="absolute border-lightgray border-dashed border-t-[1px]
-                       box-border w-[52.813rem] h-[0.063rem] z-0"
+                   box-border w-[52.813rem] h-[0.063rem] z-0"
             style={{
               top: `${top + verticalOffset}rem`,
               left: '6.5rem',
@@ -96,7 +105,7 @@ const WeeklyAvgBarChart: FunctionComponent<Props> = ({ userId }) => {
         <div
           key={label}
           className="absolute text-[1.15rem] font-inter text-black text-center
-                     user-select-none leading-normal"
+                 user-select-none leading-normal"
           style={{
             bottom: '3rem',
             left: `calc(${leftRems[idx]}rem - 1rem)`,
@@ -117,9 +126,9 @@ const WeeklyAvgBarChart: FunctionComponent<Props> = ({ userId }) => {
         >
           <div
             className="bg-[rgba(255,255,255,0.87)] px-6 py-2 rounded-xl
-                          font-semibold text-[1.13rem] pointer-events-none
-                          z-20 shadow-lg border border-gray-200 text-gray-700
-                          text-center"
+                       font-semibold text-[1.13rem] pointer-events-none
+                       z-20 shadow-lg border border-gray-200 text-gray-700
+                       text-center"
           >
             {error ? `에러: ${error}` : '데이터 없음'}
           </div>

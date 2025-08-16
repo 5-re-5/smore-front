@@ -26,19 +26,11 @@ const FeaturesSection = () => {
           {/* 바탕 라운드 카드 */}
           <div className="absolute inset-0 rounded-[32px] bg-whitesmoke shadow-[-1px_-1px_0px_#fff_inset,-2px_-2px_2px_#b8cce0_inset,-1px_-1px_0px_#fff,-2px_-2px_2px_#b8cce0]" />
 
-          {/* [추가] 장식 PNG - 연필 (오른쪽 상단) */}
+          {/* 종이 (왼쪽 하단) */}
           <img
-            src="/images/pencil_icon.png"
-            alt="Pencil Icon"
-            className="absolute top-[-120px] right-[-30px] w-[270px] h-[270px] z-30 cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110 animate-cardfloat"
-            style={{ pointerEvents: 'auto' }}
-          />
-
-          {/* [추가] 장식 PNG - 종이 (왼쪽 하단) */}
-          <img
-            src="/images/paper_icon.png"
+            src="/images/paper_icon.webp"
             alt="Paper Icon"
-            className="absolute bottom-[-80px] left-[-95px] w-[230px] h-[230px] z-30 cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110 animate-cardfloat2"
+            className="absolute bottom-[-75px] left-[-95px] w-[220px] h-[220px] z-30 cursor-pointer transition-transform duration-300 ease-in-out hover:scale-110 animate-cardfloat2"
             style={{ pointerEvents: 'auto' }}
           />
 
@@ -68,9 +60,9 @@ const FeaturesSection = () => {
                     className="absolute w-[60px] h-[60px] rounded-[14px] bg-aliceblue flex items-center justify-center shadow-[8px_8px_16px_#c9d9e8,-8px_-8px_16px_#fff] hover:bg-white transition"
                     style={{ top: `${top}px`, left: `${left}px` }}
                   />
-                  {/* 텍스트 */}
+                  {/* 텍스트 - 색상 #5D5FEF */}
                   <span
-                    className="absolute w-[80px] text-center font-inter font-semibold text-royalblue text-[1.13rem] pointer-events-none"
+                    className="absolute w-[80px] text-center font-inter font-semibold text-[#5D5FEF] text-[1.13rem] pointer-events-none"
                     style={{
                       top: `${top + 68}px`,
                       left: `${left - 10}px`,

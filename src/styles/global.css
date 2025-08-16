@@ -13,9 +13,9 @@
 @layer theme, base, components, utilities;
 
 /* 기본 body 스타일 */
-body {
+/* body {
   @apply leading-[normal] m-0;
-}
+} */
 
 /* border, box-sizing 기본화 */
 @layer base {
@@ -35,9 +35,9 @@ body {
 
 @layer theme, base, components, utilities;
 
-body {
+/* body {
   @apply leading-[normal] m-0;
-}
+} */
 
 @layer base {
   *, ::before, ::after {
