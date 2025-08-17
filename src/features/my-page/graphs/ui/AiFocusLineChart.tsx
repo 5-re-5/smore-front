@@ -31,8 +31,8 @@ const AiFocusLineChart: React.FC<AiFocusLineChartProps> = ({ userId }) => {
     return (
       <>
         <div
-          className="w-full max-w-full shadow rounded-[25px] bg-white flex items-center justify-center text-gray-600 font-semibold"
-          style={{ minHeight: '15rem' }}
+          className="w-full max-w-full shadow rounded-[25px] bg-white flex items-center justify-center font-semibold"
+          style={{ minHeight: '15rem', color: '#444' }}
         >
           데이터가 없습니다.
         </div>
@@ -92,28 +92,34 @@ const AiFocusLineChart: React.FC<AiFocusLineChartProps> = ({ userId }) => {
         style={{ minHeight: '40rem' }}
       >
         {/* AI 피드백 헤더 */}
-        <div className="w-full max-w-[75rem] font-montserrat font-semibold text-darkslategray-100 text-[clamp(1.2rem,1.8vw,1.5rem)]">
+        <div className="w-full max-w-[75rem] font-montserrat font-semibold text-black text-[clamp(1.2rem,1.8vw,1.5rem)]">
           AI 피드백
         </div>
 
         {/* 피드백 내용 */}
-        <div className="w-full max-w-[75rem] font-montserrat font-semibold text-dimgray text-[clamp(0.9rem,1.5vw,1rem)]">
+        <div
+          className="w-full max-w-[75rem] font-montserrat font-semibold text-[clamp(0.9rem,1.5vw,1rem)]"
+          style={{ color: '#4B4B4B' }}
+        >
           {feedback}
         </div>
 
         {/* 분석 제목 + 총 공부시간 */}
         <div className="w-full max-w-[75rem] flex items-center justify-between flex-wrap gap-2">
-          <b className="text-gray-200 text-[clamp(1rem,1.5vw,1.25rem)]">
-            <span className="text-[clamp(1.2rem,2vw,1.5rem)] font-semibold">
+          <b className="text-black text-[clamp(1rem,1.5vw,1.25rem)]">
+            <span className="text-black text-[clamp(1.2rem,2vw,1.5rem)] font-semibold">
               AI 집중도 분석{' '}
             </span>
-            <span className="text-[clamp(1rem,1.5vw,1.25rem)] text-dimgray font-semibold">
+            <span
+              className="text-[clamp(1rem,1.5vw,1.25rem)] font-semibold"
+              style={{ color: '#4B4B4B' }}
+            >
               (한달 평균)
             </span>
           </b>
           <div className="relative flex-shrink-0 flex items-center justify-center w-[13rem] h-[2.5rem]">
-            <div className="absolute inset-0 rounded-[5.2px] bg-gray-100 border border-lightgray" />
-            <span className="relative font-semibold text-[clamp(0.9rem,1vw,1.125rem)] text-gray-200 flex items-center justify-center w-full h-full">
+            <div className="absolute inset-0 rounded-[5.2px] bg-white border border-gray-300" />
+            <span className="relative font-semibold text-black flex items-center justify-center w-full h-full text-[clamp(0.9rem,1vw,1.125rem)]">
               총 공부시간 {averageFocusDuration}분
             </span>
           </div>
@@ -133,8 +139,9 @@ const AiFocusLineChart: React.FC<AiFocusLineChartProps> = ({ userId }) => {
             return (
               <div
                 key={val}
-                className="absolute font-semibold text-darkslategray-100"
+                className="absolute font-semibold"
                 style={{
+                  color: '#333',
                   top: `${(yPos / (graphHeight + baseTop)) * 100}%`,
                   left: 0,
                   transform: 'translateY(-50%)',
@@ -152,8 +159,9 @@ const AiFocusLineChart: React.FC<AiFocusLineChartProps> = ({ userId }) => {
             return (
               <div
                 key={label}
-                className="absolute font-semibold text-darkslategray-100"
+                className="absolute font-semibold"
                 style={{
+                  color: '#333',
                   bottom: '-5rem',
                   left: `${(xPos / (graphWidth + baseLeft)) * 100}%`,
                   transform: 'translateX(-50%)',
