@@ -34,7 +34,8 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
   const hasData =
     Array.isArray(weekdayGraph) && weekdayGraph.some((v) => v > 0);
 
-  const maxHours = hasData ? Math.max(...weekdayGraph, 12) : 12;
+  // 수정된 부분: null-safe
+  const maxHours = Math.max(12, ...(weekdayGraph ?? []));
 
   // 모든 y축 부모 오프셋(rem 단위), 기존 3
   const yAxisOffset = 3;

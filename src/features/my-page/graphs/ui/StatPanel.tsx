@@ -77,12 +77,12 @@ const StatPanel: React.FC<StatPanelProps> = ({
 }) => {
   return (
     <div
-      className="relative w-full flex flex-row items-center justify-start gap-[1.562rem] text-center text-[1.625rem] text-darkslategray font-montserrat"
+      className="relative w-full flex flex-row items-center justify-start gap-[1.562rem] text-center text-[1.625rem] text-[#2F4F4F] font-montserrat"
       style={{ height: 200 }}
     >
       {/* 카드 배경들 */}
       <div className="w-[23.75rem] relative shadow-[-10px_-10px_20px_#fff,_10px_10px_20px_rgba(0,0,0,0.09)] rounded-[25px] bg-aliceblue h-[12.5rem] z-[0]" />
-      <div className="w-[23.75rem] relative shadow-[-10px_-10px_20px_#fff,_10px_10px_20px_rgba(0,0,0,0.09)] rounded-[25px] bg-aliceblue h-[12.5rem] z-" />
+      <div className="w-[23.75rem] relative shadow-[-10px_-10px_20px_#fff,_10px_10px_20px_rgba(0,0,0,0.09)] rounded-[25px] bg-aliceblue h-[12.5rem] z-[1]" />
       <div className="w-[23.75rem] relative shadow-[-10px_-10px_20px_#fff,_10px_10px_20px_rgba(0,0,0,0.09)] rounded-[25px] bg-aliceblue h-[12.5rem] z-" />
 
       {/* 타이틀 텍스트 */}
