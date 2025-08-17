@@ -45,7 +45,7 @@ export const Header = () => {
         <Link to="/room-create">
           <Button
             variant="ghost"
-            className="w-[10rem] h-[1rem] rounded-full bg-header-button-bg text-header-text font-medium text-[1.25rem] font-['Noto_Sans_KR'] 
+            className="w-[10rem] h-[3.4rem] rounded-full bg-header-button-bg text-header-text font-medium text-[1.25rem] font-['Noto_Sans_KR'] 
             shadow-[-0.25rem_-0.25rem_0.9375rem_0_var(--color-header-shadow-light),0.25rem_0.25rem_0.9375rem_0_var(--color-header-shadow-dark)] 
             hover:bg-[#f5f7fa] hover:text-header-text transition-colors flex-shrink-0 !border-0"
           >
