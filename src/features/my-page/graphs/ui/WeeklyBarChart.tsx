@@ -77,13 +77,13 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
   return (
     <div
       className={`
-        w-full max-w-[1047px] h-[${cardHeightPx}px] bg-white rounded-[25px]
+        w-full max-w-[1047px] bg-white rounded-[25px]
         shadow-[6px_6px_54px_rgba(0,0,0,0.05)]
         mx-auto box-border relative
         py-[3.125rem] px-[5.187rem]
         font-poppins text-left text-[0.875rem] text-darkgray
       `}
-      style={{ minWidth: 320 }}
+      style={{ minWidth: 320, height: `${cardHeightPx}px` }} // 수정: 동적 height는 style로 전달
     >
       {/* Y축 숫자 라벨 */}
       {yLabels.map((label, idx) => (
@@ -91,7 +91,7 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
           key={label}
           className="absolute text-[1rem] text-darkslategray pointer-events-none select-none"
           style={{
-            top: `calc(${yLabelTops[idx] + yAxisOffset}rem - ${moveUpPx}px)`, // 기존 rem 위치에서 50px 위로 이동
+            top: `calc(${yLabelTops[idx] + yAxisOffset}rem - ${moveUpPx}px)`,
             left: '0.7rem',
             width: '2.8rem',
             textAlign: 'right',
@@ -108,7 +108,7 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
           key={idx}
           className="absolute border-lightgray border-dashed border-t-[1px] box-border w-[52.813rem] h-[0.063rem] z-0"
           style={{
-            top: `calc(${top + verticalOffset}rem - ${moveUpPx}px)`, // 기존 rem 위치에서 50px 위로 이동
+            top: `calc(${top + verticalOffset}rem - ${moveUpPx}px)`,
             left: '2.8rem',
           }}
         />
@@ -123,7 +123,7 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
           key={label}
           className="absolute text-[1.25rem] font-inter text-black text-center"
           style={{
-            top: `calc(33rem - ${moveUpPx}px)`, // 기존 top에서 50px 위로 이동
+            top: `calc(33rem - ${moveUpPx}px)`,
             left: `calc(${barLefts[idx]}rem + ${barWidthRem / 2}rem - 2rem)`,
             width: '4rem',
             zIndex: 2,
@@ -139,7 +139,7 @@ const WeeklyBarChart: FunctionComponent<Props> = ({ userId }) => {
         <div
           className="absolute left-1/2 -translate-x-1/2"
           style={{
-            top: `calc(${yLabelTops[3] + 0.1}rem - ${moveUpPx}px)`, // 기존 위치에서 50px 위로 이동
+            top: `calc(${yLabelTops[3] + 0.1}rem - ${moveUpPx}px)`,
           }}
         >
           <div className="text-gray bg-[rgba(255,255,255,0.87)] px-6 py-2 rounded-xl font-semibold text-[1.13rem] pointer-events-none z-20 shadow-lg border border-gray-200">

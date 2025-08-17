@@ -6,9 +6,10 @@ const SolutionSection = () => {
   const [visible2, setVisible2] = useState(false);
   const [visible3, setVisible3] = useState(false);
 
-  const ref1 = useRef(null);
-  const ref2 = useRef(null);
-  const ref3 = useRef(null);
+  // useRef 타입 명시
+  const ref1 = useRef<HTMLImageElement | null>(null);
+  const ref2 = useRef<HTMLImageElement | null>(null);
+  const ref3 = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     const observer1 = new IntersectionObserver(

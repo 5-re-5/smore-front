@@ -1,13 +1,16 @@
 const ExtraFeaturesSection = () => {
   return (
     <section className="relative w-full h-[730px] bg-white font-black-han-sans overflow-hidden">
-      {/* studyroom.png - 왼쪽 메인 이미지 */}
-      <img
-        src="/images/studyroom.webp"
-        alt="스터디룸"
-        className="absolute top-[61px] left-0 w-[830px] h-[571px] rounded-[7.2px] object-cover shadow-xl"
-        style={{ zIndex: 1 }}
-      />
+      {/* studyroom.webp/png - 왼쪽 메인 이미지 */}
+      <picture>
+        <source srcSet="/images/studyroom.webp" type="image/webp" />
+        <img
+          src="/images/studyroom.png"
+          alt="스터디룸"
+          className="absolute top-[61px] left-0 w-[830px] h-[571px] rounded-[7.2px] object-cover shadow-xl"
+          style={{ zIndex: 1 }}
+        />
+      </picture>
 
       {/* 오른쪽: 섹션 타이틀 */}
       <div
