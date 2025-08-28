@@ -125,29 +125,67 @@ npx tsc --noEmit
 
 ```
 src/
-├── app/                    # 애플리케이션 레이어
-│   ├── providers/          # React Context, 상태 제공자
-│   └── router/             # 라우팅 설정
-├── pages/                  # 페이지 컴포넌트
-├── widgets/                # 복합 UI 블록
-│   ├── room-layout/        # 스터디룸 레이아웃
-│   ├── media-toolbar/      # 미디어 제어 도구
-│   └── header/             # 헤더 컴포넌트
-├── features/               # 비즈니스 기능
-│   ├── face-detection/     # 얼굴 인식 기능
-│   ├── participants/       # 참가자 관리
-│   ├── stopwatch/          # 스톱워치 기능
-│   ├── pomodoro/           # 포모도로 타이머
-│   ├── white-noise/        # 화이트노이즈
-│   └── chat/               # 채팅 기능
-├── entities/               # 핵심 비즈니스 엔티티
-│   └── track/              # LiveKit 트랙 관리
-├── shared/                 # 공통 유틸리티
-│   ├── api/                # API 클라이언트
-│   ├── ui/                 # 공통 UI 컴포넌트
-│   ├── lib/                # 유틸리티 함수
-│   └── types/              # TypeScript 타입 정의
-└── styles/                 # 전역 스타일
+├── app/                        # 애플리케이션 레이어
+│   ├── routing/                # 라우팅 설정
+│   ├── reportWebVitals.ts      # 성능 모니터링
+│   └── styles.css              # 전역 스타일
+├── pages/                      # 페이지 컴포넌트
+│   ├── edit-page/              # 프로필 수정 페이지
+│   ├── homepage/               # 홈페이지
+│   ├── login/                  # 로그인 페이지
+│   ├── my-page/                # 마이페이지
+│   ├── not-found/              # 404 페이지
+│   ├── prejoin/                # 입장 전 설정 페이지
+│   ├── room-create/            # 룸 생성 페이지
+│   ├── room/                   # 스터디룸 페이지
+│   ├── search-detail-page/     # 검색 상세 페이지
+│   └── study-list/             # 스터디 목록 페이지
+├── widgets/                    # 복합 UI 블록
+│   ├── AnalysisSection/        # 분석 섹션
+│   ├── ExtraFeaturesSection/   # 부가 기능 섹션
+│   ├── FeaturesSection/        # 기능 소개 섹션
+│   ├── HeroSection/            # 메인 히어로 섹션
+│   ├── ReviewsSection/         # 리뷰 섹션
+│   ├── SolutionSection/        # 솔루션 섹션
+│   ├── footer/                 # 푸터
+│   ├── header/                 # 헤더
+│   ├── media-toolbar/          # 미디어 제어 도구
+│   ├── room-layout/            # 스터디룸 레이아웃
+│   └── user/                   # 사용자 관련 위젯
+├── features/                   # 비즈니스 기능
+│   ├── chat/                   # 채팅 기능
+│   ├── face-detection/         # 얼굴 인식 기능
+│   ├── focus-capture/          # 집중도 캡처
+│   ├── focus-gauge/            # 집중도 게이지
+│   ├── my-page/                # 마이페이지 기능
+│   ├── participants/           # 참가자 관리
+│   ├── pomodoro/               # 포모도로 타이머
+│   ├── prejoin/                # 입장 전 설정
+│   ├── profile-card/           # 프로필 카드
+│   ├── room-create/            # 룸 생성
+│   ├── room/                   # 룸 관리
+│   ├── stopwatch/              # 스톱워치 기능
+│   └── white-noise/            # 화이트노이즈
+├── entities/                   # 핵심 비즈니스 엔티티
+│   ├── focus/                  # 집중도 엔티티
+│   ├── room/                   # 룸 엔티티
+│   ├── study/                  # 학습 엔티티
+│   └── user/                   # 사용자 엔티티
+├── shared/                     # 공통 유틸리티
+│   ├── api/                    # API 클라이언트
+│   ├── config/                 # 설정 파일
+│   ├── constants/              # 상수 정의
+│   ├── hooks/                  # 공통 훅
+│   ├── lib/                    # 유틸리티 함수
+│   ├── stores/                 # 전역 상태 저장소
+│   ├── types/                  # TypeScript 타입 정의
+│   ├── ui/                     # 공통 UI 컴포넌트
+│   └── utils/                  # 유틸리티 함수
+├── styles/                     # 전역 스타일
+├── types/                      # 전역 타입 정의
+├── App.tsx                     # 메인 앱 컴포넌트
+├── main.tsx                    # 엔트리 포인트
+└── vite-env.d.ts              # Vite 환경 타입 정의
 ```
 
 ### 아키텍처 특징
