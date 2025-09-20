@@ -21,7 +21,7 @@ const CATEGORY_MAP = {
   학교공부: 'SCHOOL_STUDY',
 } as const;
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+// const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/jpg',
@@ -84,15 +84,15 @@ const roomCreateSchema = z
     thumbnailFile: z
       .instanceof(File)
       .optional()
-      .refine(
-        (file: File | undefined) => {
-          if (!file) return true;
-          return file.size <= MAX_FILE_SIZE;
-        },
-        {
-          message: '파일 크기가 2MB를 초과합니다',
-        },
-      )
+      // .refine(
+      //   (file: File | undefined) => {
+      //     if (!file) return true;
+      //     return file.size <= MAX_FILE_SIZE;
+      //   },
+      //   {
+      //     message: '파일 크기가 2MB를 초과합니다',
+      //   },
+      // )
       .refine(
         (file: File | undefined) => {
           if (!file) return true;

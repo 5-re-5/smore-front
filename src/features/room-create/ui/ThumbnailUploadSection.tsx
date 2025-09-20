@@ -1,19 +1,14 @@
-import {
-  createCroppedBlobWithDimensions,
-  loadImageFromBlob,
-} from '@/features/focus-capture/model/imageResize';
 import { Button } from '@/shared/ui/button';
 import { Image } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { loadImageFromBlob } from '@/features/focus-capture/model/imageResize';
 
 interface ThumbnailUploadSectionProps {
   onImageChange: (file: File | null) => void;
   error?: string;
 }
 
-const THUMBNAIL_WIDTH = 250;
-const THUMBNAIL_HEIGHT = 160;
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+// const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/jpg',
@@ -98,9 +93,9 @@ export function ThumbnailUploadSection({
       return 'jpg, jpeg, png, webp 파일만 업로드 가능합니다';
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return '파일 크기가 2MB를 초과합니다';
-    }
+    // if (file.size > MAX_FILE_SIZE) {
+    //   return '파일 크기가 2MB를 초과합니다';
+    // }
 
     // 빈 파일 체크
     if (file.size === 0) {
@@ -121,6 +116,42 @@ export function ThumbnailUploadSection({
     }
   };
 
+  // Base64를 Blob으로 변환하는 동기 함수
+  const dataURLToBlob = (dataURL: string): Blob => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  };
+
+  // 동기적 WebP 변환 함수
+  const convertToWebPSync = (image: HTMLImageElement): File => {
+    // Canvas 생성 및 설정
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+
+    // 원본 크기로 설정
+    canvas.width = image.width;
+    canvas.height = image.height;
+
+    // 이미지를 Canvas에 그리기 (동기적)
+    ctx.drawImage(image, 0, 0, image.width, image.height);
+
+    // toDataURL로 동기적 WebP 변환 (최고 품질 1.0)
+    const dataURL = canvas.toDataURL('image/webp', 1.0);
+
+    // Base64를 Blob으로 변환 (동기적)
+    const blob = dataURLToBlob(dataURL);
+
+    // File 객체 생성 (동기적)
+    return new File([blob], 'thumbnail.webp', { type: 'image/webp' });
+  };
+
   const processImageFile = async (file: File) => {
     setIsProcessing(true);
     setUploadError(null);
@@ -133,29 +164,17 @@ export function ThumbnailUploadSection({
         return;
       }
 
-      // 이미지 로드
+      // 이미지 로드 (비동기)
       const image = await loadImageFromBlob(file);
 
-      // 리사이징 및 webp 변환
-      const resizedBlob = await createCroppedBlobWithDimensions(
-        image,
-        THUMBNAIL_WIDTH,
-        THUMBNAIL_HEIGHT,
-        0.9,
-        'image/webp',
-      );
+      // 동기적 WebP 변환 - 여기서 메인 스레드 블로킹 발생
+      const webpFile = convertToWebPSync(image);
 
-      // File 객체로 변환
-      const resizedFile = new File([resizedBlob], 'thumbnail.webp', {
-        type: 'image/webp',
-      });
-
-      // 미리보기 URL 생성
-      const previewUrl = URL.createObjectURL(resizedBlob);
+      const previewUrl = URL.createObjectURL(webpFile);
       setPreviewUrl(previewUrl);
 
       // 부모 컴포넌트에 전달
-      onImageChange(resizedFile);
+      onImageChange(webpFile);
     } catch (error) {
       console.error('이미지 처리 중 오류:', error);
       setUploadError('이미지 처리 중 오류가 발생했습니다');
@@ -228,7 +247,7 @@ export function ThumbnailUploadSection({
               </div>
               <div className="flex gap-2 items-start">
                 <span className="font-medium text-blue-600">3.</span>
-                <span>이미지는 250×160 크기로 자동 조정됩니다</span>
+                <span>이미지는 WebP 포맷으로 자동 변환됩니다</span>
               </div>
             </div>
           </div>
