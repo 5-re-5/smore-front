@@ -24,7 +24,7 @@ export const useHeaderLogic = () => {
     });
 
     if (!isAuthenticated && !isPublicPath) {
-      navigate({ to: '/login', replace: true });
+      // navigate({ to: '/login', replace: true });
       return;
     }
   }, [isAuthenticated, navigate, location]);
