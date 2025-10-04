@@ -1,7 +1,7 @@
-import { Mic, MicOff, Video, VideoOff } from 'lucide-react'; // 아이콘 라이브러리
 import type { ChatUser } from '@/entities/user/types/user.interface';
 import { useParticipants } from '@livekit/components-react';
 import type { Participant } from 'livekit-client';
+import { Mic, MicOff, Video, VideoOff } from 'lucide-react'; // 아이콘 라이브러리
 // Participant → ChatUser로 변환하는 헬퍼 함수
 function mapParticipantToChatUser(participant: Participant): ChatUser | null {
   try {
@@ -31,7 +31,7 @@ function mapParticipantToChatUser(participant: Participant): ChatUser | null {
     return {
       uid: data.uid ?? 0,
       nickname: data.nickname ?? participant.identity,
-      profileUrl: data.profileUrl ?? '/default.png',
+      profileUrl: data.profileUrl ?? '/default.webp',
       sid: participant.sid,
       micOn: participant.isMicrophoneEnabled,
       camOn: participant.isCameraEnabled,
@@ -92,7 +92,7 @@ function ChatUserList() {
   //     {
   //       uid: 9001,
   //       nickname: '테스트1',
-  //       profileUrl: '/default.png',
+  //       profileUrl: '/default.webp',
   //       sid: 'dummy1',
   //       micOn: true,
   //       camOn: false,
@@ -102,7 +102,7 @@ function ChatUserList() {
   // {
   //   uid: 9002,
   //   nickname: '테스트2',
-  //   profileUrl: '/default.png',
+  //   profileUrl: '/default.webp',
   //   sid: 'dummy2',
   //   micOn: false,
   //   camOn: true,
@@ -112,7 +112,7 @@ function ChatUserList() {
   // {
   //   uid: 9003,
   //   nickname: '테스트3',
-  //   profileUrl: '/default.png',
+  //   profileUrl: '/default.webp',
   //   sid: 'dummy3',
   //   micOn: true,
   //   camOn: true,
@@ -122,7 +122,7 @@ function ChatUserList() {
   // {
   //   uid: 9004,
   //   nickname: '테스트4',
-  //   profileUrl: '/default.png',
+  //   profileUrl: '/default.webp',
   //   sid: 'dummy4',
   //   micOn: false,
   //   camOn: false,
@@ -132,7 +132,7 @@ function ChatUserList() {
   // {
   //   uid: 9005,
   //   nickname: '테스트5',
-  //   profileUrl: '/default.png',
+  //   profileUrl: '/default.webp',
   //   sid: 'dummy5',
   //   micOn: true,
   //   camOn: true,

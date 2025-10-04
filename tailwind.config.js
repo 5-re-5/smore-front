@@ -11,6 +11,7 @@ module.exports = {
         royalblue: '#0063e5',
         orangered: '#f75804',
         white: '#fff',
+        skyblue: '#EBF3FF',
       },
       // 🔤 폰트
       fontFamily: {

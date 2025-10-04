@@ -3,7 +3,7 @@ const AnalysisSection = () => {
     <section className="relative w-full max-w-[1440px] h-[900px] mx-auto bg-white overflow-hidden px-10 pt-24 font-sans">
       {/* 상단 타이틀 및 설명 */}
       <div className="absolute left-10 top-16 pl-8">
-        <b className="block text-[1.2rem] text-mediumslateblue mb-2 font-bold">
+        <b className="block text-[1.2rem] text-[#5D5FEF] mb-2 font-bold">
           최신형 AI 모델을 활용한 집중도 분석
         </b>
         {/* 자간(tracking), 행간(leading) */}
@@ -24,7 +24,7 @@ const AnalysisSection = () => {
 
       {/* 오른쪽 그래프 이미지 */}
       <img
-        src="/images/graphs.png"
+        src="/images/graphs.webp"
         alt="AI 집중도 분석 그래프"
         className="absolute bottom-45 left-170 w-[880px] h-[780px] object-cover drop-shadow-md select-none pointer-events-none"
         draggable={false}
@@ -40,7 +40,7 @@ const AnalysisSection = () => {
         <button
           className="relative 
              top-[0px]     
-             left-[-90px]    
+             left-[-100px]    
              shadow-[-6px_-4px_15px_#fff,4px_4px_15px_#c3c3c3] 
              rounded-[14px] 
              bg-gradient-to-b from-[#ff7300] to-[#ff8f06] 
@@ -58,7 +58,7 @@ const AnalysisSection = () => {
 
       {/* 웨이브 이미지 */}
       <img
-        src="/images/wave.png"
+        src="/images/wave.webp"
         alt=""
         className="absolute left-[-140px] bottom-[10px] w-[1040px] h-[890px] pointer-events-none select-none opacity-70"
         draggable={false}
