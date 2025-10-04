@@ -24,7 +24,7 @@ const AnalysisSection = () => {
 
       {/* 오른쪽 그래프 이미지 */}
       <img
-        src="/images/graphs.png"
+        src="/images/graphs.webp"
         alt="AI 집중도 분석 그래프"
         className="absolute bottom-45 left-170 w-[880px] h-[780px] object-cover drop-shadow-md select-none pointer-events-none"
         draggable={false}

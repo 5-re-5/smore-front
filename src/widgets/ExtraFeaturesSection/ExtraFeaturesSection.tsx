@@ -1,11 +1,11 @@
 const ExtraFeaturesSection = () => {
   return (
     <section className="relative w-full h-[730px] bg-white font-black-han-sans overflow-hidden">
-      {/* studyroom.webp/png - 왼쪽 메인 이미지 */}
+      {/* studyroom.webp/webp - 왼쪽 메인 이미지 */}
       <picture>
         <source srcSet="/images/studyroom.webp" type="image/webp" />
         <img
-          src="/images/studyroom.png"
+          src="/images/studyroom.webp"
           alt="스터디룸"
           className="absolute top-[61px] left-0 w-[830px] h-[571px] rounded-[7.2px] object-cover shadow-xl"
           style={{ zIndex: 1 }}
