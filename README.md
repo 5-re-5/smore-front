@@ -75,8 +75,8 @@ MediaPipe 기반의 얼굴 인식 기술로 **실시간 자리비움을 감지**
 
 
 ## 📸 사용화면
-곧 추가될 예정입니다.
-<!-- 이곳에 스크린샷 및 사용 화면을 추가해주세요 -->
+- 실시간 집중도   
+   <img width="716" height="620" alt="실시간 집중도" src="https://github.com/user-attachments/assets/6ff9341b-d786-466b-9dfe-d895761ad9f7" />
 
 # 🔫 트러블 슈팅  
 
