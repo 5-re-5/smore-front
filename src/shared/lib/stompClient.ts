@@ -8,9 +8,7 @@ export const createStompClient = (useTestBroker = false): Client => {
     import.meta.env.VITE_TEST_BROKER_URL ?? 'ws://127.0.0.1:61613';
 
   // 네이티브 WS 엔드포인트(실서버)
-  const explicit = `wss://studymore.duckdns.org/api/ws/chat` as
-    | string
-    | undefined;
+  const explicit = import.meta.env.VITE_WS_URL as string | undefined;
   const back = import.meta.env.VITE_BACK_URL as string | undefined;
 
   // wss://.../ws 를 유도
