@@ -43,10 +43,11 @@ const adaptRecentStudyData = (
   };
 };
 
-export const getRecentStudy = async (userId: string) => {
+export const getRecentStudy = async (userId: string, signal?: AbortSignal) => {
   const response = await request<RawRecentStudyResponse>({
     url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/${userId}/recent-study`,
     method: REQUEST_METHOD.GET,
+    signal,
   });
   return adaptRecentStudyData(response.data);
 };

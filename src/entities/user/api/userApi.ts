@@ -1,10 +1,11 @@
 import { request, REQUEST_METHOD } from '@/shared/api/request';
 import type { UserProfile } from '../types';
 
-export const getUserProfile = async (userId: number) => {
+export const getUserProfile = async (userId: number, signal?: AbortSignal) => {
   const response = await request<UserProfile>({
     method: REQUEST_METHOD.GET,
     url: `${import.meta.env.VITE_BACK_URL}/api/v1/users/${userId}`,
+    signal,
   });
 
   return response.data;
@@ -30,6 +31,7 @@ export interface UpdateUserProfileData {
 export const updateUserProfile = async (
   userId: number,
   data: UpdateUserProfileData,
+  signal?: AbortSignal,
 ) => {
   const formData = new FormData();
 
@@ -63,6 +65,7 @@ export const updateUserProfile = async (
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    signal,
   });
 
   return response.data;
@@ -78,6 +81,7 @@ export interface UpdateUserSettingsData {
 export const updateUserSettings = async (
   userId: number,
   data: UpdateUserSettingsData,
+  signal?: AbortSignal,
 ) => {
   const formData = new FormData();
 
@@ -102,6 +106,7 @@ export const updateUserSettings = async (
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    signal,
   });
 
   return response.data;
@@ -123,10 +128,12 @@ export interface RoomParticipantResponse {
 export const getRoomParticipantInfo = async (
   roomId: number,
   userId: number,
+  signal?: AbortSignal,
 ) => {
   const response = await request<RoomParticipantResponse>({
     method: REQUEST_METHOD.GET,
     url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/${roomId}/participants/${userId}`,
+    signal,
   });
 
   return response.data;
@@ -141,11 +148,13 @@ export const updateRoomParticipantMedia = async (
   roomId: number,
   userId: number,
   data: UpdateMediaSettingsData,
+  signal?: AbortSignal,
 ) => {
   const response = await request({
     method: REQUEST_METHOD.PATCH,
     url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/${roomId}/participants/${userId}`,
     data,
+    signal,
   });
 
   return response.data;

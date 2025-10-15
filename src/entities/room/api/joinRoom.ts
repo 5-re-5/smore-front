@@ -31,6 +31,7 @@ export const joinRoom = async (
   userId: number,
   identity: string,
   password?: string,
+  signal?: AbortSignal,
 ) => {
   const response = await request<JoinRoomResponse, JoinRoomRequest>({
     method: REQUEST_METHOD.POST,
@@ -42,6 +43,7 @@ export const joinRoom = async (
       canPublish: CAN_PUBLISH,
       canSubscribe: CAN_SUBSCRIBE,
     },
+    signal,
   });
 
   return response.data;

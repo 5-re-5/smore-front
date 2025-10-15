@@ -24,7 +24,11 @@ export type RejoinRoomResponse = {
 };
 
 // 방 재입장 API 함수
-export const rejoinRoom = async (roomId: number, userId: number) => {
+export const rejoinRoom = async (
+  roomId: number,
+  userId: number,
+  signal?: AbortSignal,
+) => {
   const response = await request<RejoinRoomResponse, RejoinRoomRequest>({
     method: REQUEST_METHOD.POST,
     url: `${import.meta.env.VITE_BACK_URL}/api/v1/study-rooms/${roomId}/rejoin?userId=${userId}`,
@@ -33,6 +37,7 @@ export const rejoinRoom = async (roomId: number, userId: number) => {
       canSubscribe: CAN_SUBSCRIBE,
       tokenExpirySeconds: TOKEN_EXPIRY_SECONDS,
     },
+    signal,
   });
 
   return response.data;

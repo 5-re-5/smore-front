@@ -25,6 +25,7 @@ export interface CreateRoomResponse {
 export const createRoom = async (
   formData: CreateRoomFormData,
   userId: number,
+  signal?: AbortSignal,
 ) => {
   const form = new FormData();
 
@@ -57,6 +58,7 @@ export const createRoom = async (
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    signal,
   };
 
   const response = await request<CreateRoomResponse>(config);
