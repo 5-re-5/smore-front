@@ -33,6 +33,7 @@ export const useAutoCaptureScheduler = (
   const { enabled, intervalMs = AUTO_CAPTURE_CONFIG.INTERVAL_MS } = options;
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // stats를 useState로 관리해서 리렌더링 트리거
   const [stats, setStats] = useState<CaptureStats>({
@@ -66,6 +67,15 @@ export const useAutoCaptureScheduler = (
       throw new Error('사용자 인증이 필요합니다');
     }
 
+    // 이전 요청이 진행 중이면 취소
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // 새로운 AbortController 생성
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     try {
       // 1. 이미지 캡처
       const capturedImage = await captureImageFromVideo(videoRef.current);
@@ -76,10 +86,11 @@ export const useAutoCaptureScheduler = (
         format: 'image/webp',
       });
 
-      // 3. AI 서버 전송
+      // 3. AI 서버 전송 (signal 전달)
       const response = await submitFocusImage({
         userId,
         image: resizeResult.blob,
+        signal: abortController.signal,
       });
 
       // 4. 집중도 데이터를 store에 저장
@@ -92,6 +103,11 @@ export const useAutoCaptureScheduler = (
         successfulCaptures: prev.successfulCaptures + 1,
       }));
     } catch (error) {
+      // AbortError는 무시 (정상적인 취소)
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+
       // 실패 stats 업데이트
       setStats((prev) => ({
         ...prev,
@@ -100,6 +116,11 @@ export const useAutoCaptureScheduler = (
       }));
 
       console.warn('자동 캡처 실패:', error);
+    } finally {
+      // 현재 요청이 완료되면 참조 정리
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+      }
     }
   }, [
     videoRef,
@@ -128,6 +149,12 @@ export const useAutoCaptureScheduler = (
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
+    }
+
+    // 진행 중인 요청이 있으면 취소
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
 
     setStats((prev) => ({ ...prev, isActive: false }));

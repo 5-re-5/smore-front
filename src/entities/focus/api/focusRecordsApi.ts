@@ -15,6 +15,7 @@ interface FocusRecordResponse {
 interface SubmitFocusImageParams {
   userId: number;
   image: Blob;
+  signal?: AbortSignal;
 }
 
 /**
@@ -25,6 +26,7 @@ interface SubmitFocusImageParams {
 export const submitFocusImage = async ({
   userId,
   image,
+  signal,
 }: SubmitFocusImageParams) => {
   const formData = new FormData();
 
@@ -39,6 +41,7 @@ export const submitFocusImage = async ({
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    signal,
   };
 
   const response = await request<FocusRecordResponse>(config);
